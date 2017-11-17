@@ -8,6 +8,7 @@ AP_State.cpp
 ArduCopter.cpp
 Attitude.cpp
 Copter.cpp
+Copter.h
 GCS_Mavlink.cpp
 GCS_Mavlink.h
 Log.cpp
