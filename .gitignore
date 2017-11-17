@@ -11,11 +11,9 @@
 /Tools/autotest/jsbsim_fgout_0.xml
 /Tools/autotest/jsbsim_start_0.xml
 /tmp/*
-*.bin
 *.d
 *.dfu
 *.dll
-*.elf
 *.exe
 *.generated.h
 *.hex
