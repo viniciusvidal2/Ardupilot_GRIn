@@ -45,24 +45,33 @@ float Copter::get_pilot_desired_yaw_rate(int16_t stick_angle)
 {
     float yaw_request;
 
-    // calculate yaw rate request
-    if (g2.acro_y_expo <= 0) {
-        yaw_request = stick_angle * g.acro_yaw_p;
-    } else {
-        // expo variables
-        float y_in, y_in3, y_out;
+//    // calculate yaw rate request
+//    if (g2.acro_y_expo <= 0) {
+//        yaw_request = stick_angle * g.acro_yaw_p;
+//    } else {
+//        // expo variables
+//        //float y_in, y_in3, y_out;
 
-        // range check expo
-        if (g2.acro_y_expo > 1.0f || g2.acro_y_expo < 0.5f) {
-            g2.acro_y_expo = 1.0f;
+//        // range check expo
+//        if (g2.acro_y_expo > 1.0f || g2.acro_y_expo < 0.5f) {
+//            g2.acro_y_expo = 1.0f;
+//        }
+
+        // MURILLO
+        yaw_request = float(stick_angle);
+
+        if (yaw_request<20 && yaw_request>-20){
+            yaw_request = 0;
+        }else{
+            yaw_request = yaw_request*8;//g.acro_yaw_p;
         }
 
-        // yaw expo
-        y_in = float(stick_angle)/ROLL_PITCH_YAW_INPUT_MAX;
-        y_in3 = y_in*y_in*y_in;
-        y_out = (g2.acro_y_expo * y_in3) + ((1.0f - g2.acro_y_expo) * y_in);
-        yaw_request = ROLL_PITCH_YAW_INPUT_MAX * y_out * g.acro_yaw_p;
-    }
+//        // yaw expo
+//        y_in = float(stick_angle)/ROLL_PITCH_YAW_INPUT_MAX;
+//        y_in3 = y_in*y_in*y_in;
+//        y_out = (g2.acro_y_expo * y_in3) + ((1.0f - g2.acro_y_expo) * y_in);
+//        yaw_request = ROLL_PITCH_YAW_INPUT_MAX * y_out * g.acro_yaw_p;
+
     // convert pilot input to the desired yaw rate
     return yaw_request;
 }

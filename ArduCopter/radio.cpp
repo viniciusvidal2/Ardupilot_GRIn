@@ -60,6 +60,9 @@ void Copter::init_rc_out()
 #endif
 
     // refresh auxiliary channel to function map
+
+    //MURILLO
+//    SRV_Channels::enable_aux_servos();
     SRV_Channels::update_aux_servo_function();
 
 #if FRAME_CONFIG != HELI_FRAME
