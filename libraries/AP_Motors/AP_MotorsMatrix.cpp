@@ -517,7 +517,7 @@ void AP_MotorsMatrix::output_armed_stabilizing(float &srv5, float &srv6, float &
     // MURILLO
     //float vlr_pitch;
     float mtr1=0.0, mtr2=0.0, mtr3=0.0, mtr4=0.0;
-//    float Fx=0.0;
+    float Fx=0.0;
 
     // apply voltage and air pressure compensation
     roll_thrust  = _roll_in * get_compensation_gain();
@@ -651,9 +651,9 @@ void AP_MotorsMatrix::output_armed_stabilizing(float &srv5, float &srv6, float &
         throttle_thrust = throttle_thrust;
     }
 
-//    Fx = norm_Pitch_Channel()/10.0;
+    Fx = norm_Pitch_Channel()/10.0;
 // mexer na parte de zerar os servos quando estiver armado e throttle no mínimo
-    tilt_angle_full_TRUAV(mtr1, mtr2, mtr3, mtr4, srv5, srv6, srv7, srv8, 0, throttle_thrust, roll_thrust/100.0, pitch_thrust/100.0, yaw_thrust/100.0);
+    tilt_angle_full_TRUAV(mtr1, mtr2, mtr3, mtr4, srv5, srv6, srv7, srv8, Fx, throttle_thrust, roll_thrust/100.0, pitch_thrust/100.0, yaw_thrust/100.0);
 
     _thrust_rpyt_out[0] = mtr1;
     _thrust_rpyt_out[1] = mtr2;
