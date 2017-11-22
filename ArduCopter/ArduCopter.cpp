@@ -253,14 +253,7 @@ void Copter::fast_loop()
     attitude_control->rate_controller_run();
 
     // send outputs to the motors library immediately
-    if (control_mode==AUTO)
-    {
-        motors_output(Pitch_WP_Test);
-    }
-    else
-    {
-        motors_output();
-    }
+    motors_output();
 
     // run EKF state estimator (expensive)
     // --------------------
