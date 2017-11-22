@@ -273,13 +273,36 @@ void Copter::auto_wp_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
+    // MURILLO //
+    Pitch_WP_Test = (1108 + (1928 - 1108)/2) + (wp_nav->get_pitch()/(aparm.angle_max)*(1928-1108)/2);
+
+//    _mid_srv5 = 1515;
+//    _mid_srv6 = 1485;
+//    _mid_srv7 = 1490;
+//    _mid_srv8 = 1600;
+
+//    // Valor PWM do canal PITCH.
+//    min_chn  = 1108;
+//    max_chn  = 1928;
+
+//    // Valor PWM do canal PITCH.
+//    _mid_chn = min_chn + (max_chn - min_chn)/2;
+
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
         // roll & pitch from waypoint controller, yaw rate from pilot
-        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
+        // MURILLO //
+            attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), 0, target_yaw_rate, get_smoothing_gain());
+
+//            get_pilot_desired_lean_angles(0, wp_nav->get_pitch(), teste2, Pitch_WP_Test, aparm.angle_max);
+        //        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
     }else{
         // roll, pitch from waypoint controller, yaw heading from auto_heading()
-        attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), get_auto_heading(),true, get_smoothing_gain());
+        // MURILLO //
+            attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), 0, get_auto_heading(),true, get_smoothing_gain());
+//            get_pilot_desired_lean_angles(0, wp_nav->get_pitch(), teste2, Pitch_WP_Test, aparm.angle_max);
+//            Pitch_WP_Test = wp_nav->get_pitch();
+        //        attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), get_auto_heading(),true, get_smoothing_gain());
     }
 }
 
