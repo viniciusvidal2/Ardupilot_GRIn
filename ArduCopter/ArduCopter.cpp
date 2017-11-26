@@ -186,6 +186,7 @@ void Copter::barometer_accumulate(void)
     barometer.accumulate();
 }
 
+// Testando um commit no meu Branch Mathaus
 void Copter::perf_update(void)
 {
     if (should_log(MASK_LOG_PM))
