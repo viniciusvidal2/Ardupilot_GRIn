@@ -177,7 +177,7 @@ protected:
 
     // MURILLO
     virtual void        output_armed_stabilizing(float &vlr_yaw)=0;
-    virtual void        output_armed_stabilizing(float &srv5, float &srv6, float &srv7, float &srv8)=0;
+    virtual void        output_armed_stabilizing(float &srv5, float &srv6, float &srv7, float &srv8, int tp)=0;
 
     // add a motor to the motor map
     void add_motor_num(int8_t motor_num);
@@ -215,17 +215,17 @@ protected:
     spool_up_down_desired _spool_desired;           // desired spool state
 
     // MURILLO
-    float _lastSrv5;
-    float _lastSrv6;
-    float _lastSrv7;
-    float _lastSrv8;
-    float _k1;
-    float _k2;
-    float _l_arm;
-    float _last2_Srv5;
-    float _last2_Srv6;
-    float _last2_Srv7;
-    float _last2_Srv8;
+    double _lastSrv5;
+    double _lastSrv6;
+    double _lastSrv7;
+    double _lastSrv8;
+    double _k1;
+    double _k2;
+    double _l_arm;
+    double _last2_Srv5;
+    double _last2_Srv6;
+    double _last2_Srv7;
+    double _last2_Srv8;
 
     // battery voltage, current and air pressure compensation variables
     float               _batt_voltage;          // latest battery voltage reading

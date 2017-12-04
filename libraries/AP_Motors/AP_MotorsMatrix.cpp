@@ -499,7 +499,7 @@ void AP_MotorsMatrix::output_armed_stabilizing(float &vlr_yaw)
 //MURILLO
 // output_armed - sends commands to the motors
 // includes new scaling stability patch
-void AP_MotorsMatrix::output_armed_stabilizing(float &srv5, float &srv6, float &srv7, float &srv8)
+void AP_MotorsMatrix::output_armed_stabilizing(double &srv5, double &srv6, double &srv7, double &srv8, int tp)
 {
     uint8_t i;                          // general purpose counter
     float   roll_thrust;                // roll thrust input value, +/- 1.0
@@ -516,8 +516,8 @@ void AP_MotorsMatrix::output_armed_stabilizing(float &srv5, float &srv6, float &
 
     // MURILLO
     //float vlr_pitch;
-    float mtr1=0.0, mtr2=0.0, mtr3=0.0, mtr4=0.0;
-    float Fx=0.0;
+    double mtr1=0.0, mtr2=0.0, mtr3=0.0, mtr4=0.0;
+    double Fx=0.0;
 
     // apply voltage and air pressure compensation
     roll_thrust  = _roll_in * get_compensation_gain();
@@ -644,16 +644,16 @@ void AP_MotorsMatrix::output_armed_stabilizing(float &srv5, float &srv6, float &
 //    tilt_angle_full_TRUAV(mtr1, mtr2, mtr3, mtr4, srv5, srv6, srv7, srv8, Fx, Fz, T_roll, T_pitch, T_yaw);
 //throttle_thrust/100
 
-    // Checking if Throttle is <0.1.
+    // Checking if Normalized Throttle Control is <0.1.
     if((throttle_thrust)<0.1){
         throttle_thrust = 0.1;
     }else{
         throttle_thrust = throttle_thrust;
     }
 
-    Fx = norm_Pitch_Channel()/10.0;
-// mexer na parte de zerar os servos quando estiver armado e throttle no mínimo
-    tilt_angle_full_TRUAV(mtr1, mtr2, mtr3, mtr4, srv5, srv6, srv7, srv8, Fx, throttle_thrust, roll_thrust/100.0, pitch_thrust/100.0, yaw_thrust/100.0);
+    Fx = norm_Pitch_Channel()*0.9;
+    // Arrumar o problema de estourar os valores dos motores dependendo das ações de controle.
+    tilt_angle_full_TRUAV(tp, mtr1, mtr2, mtr3, mtr4, srv5, srv6, srv7, srv8, Fx, throttle_thrust, roll_thrust, pitch_thrust, yaw_thrust);
 
     _thrust_rpyt_out[0] = mtr1;
     _thrust_rpyt_out[1] = mtr2;
@@ -674,7 +674,7 @@ void AP_MotorsMatrix::output_armed_stabilizing(float &srv5, float &srv6, float &
 ///////////////////////
 // MURILLO //
 /////////////////////// (ot1, ot2, ot3, ot4, srv5, srv6, srv7, srv8, CANAL_PITCH, throttle_MFS, roll_MFS, pitch_MFS, yaw_MFS)
-void AP_MotorsMatrix::tilt_angle_full_TRUAV(float &mtr1, float &mtr2, float &mtr3, float &mtr4, float &srv5, float &srv6, float &srv7, float &srv8, float Fx, float Fz, float T_roll, float T_pitch, float T_yaw)
+void AP_MotorsMatrix::tilt_angle_full_TRUAV(int tp, double &mtr1, double &mtr2, double &mtr3, double &mtr4, double &srv5, double &srv6, double &srv7, double &srv8, double Fx, double Fz, double T_roll, double T_pitch, double T_yaw)
 {
     //////////////////////////////////////////
     // Saturação das variáveis de entrada
@@ -687,11 +687,20 @@ void AP_MotorsMatrix::tilt_angle_full_TRUAV(float &mtr1, float &mtr2, float &mtr
 
     int8_t it, i;
 
-    float out1=0.0, out2=0.0, out3=0.0, out4=0.0;
-    float ag5_c=0.0, ag6_c=0.0, ag7_c=0.0, ag8_c=0.0;
-    float arcsin1=0.0, arcsin2=0.0, arcsin3=0.0, arcsin4=0.0;
+    double out1=0.0, out2=0.0, out3=0.0, out4=0.0;
+    double ag5_c=0.0, ag6_c=0.0, ag7_c=0.0, ag8_c=0.0;
+    double arcsin1=0.0, arcsin2=0.0, arcsin3=0.0, arcsin4=0.0;
 
-    it = 5;
+    double _k2_quad, _k1_quad, _out1_quad, _out2_quad, _out3_quad, _out4_quad, _l_arm_quad;
+
+    double aux1;
+
+    _l_arm_quad = pow(_l_arm,2);
+
+    _k1_quad = pow(_k1,2);
+    _k2_quad = pow(_k2,2);
+
+    it = 10;
 
     for (i=0; i<it; i++) {        
         // Guardando os valores atuais dos servomotores.
@@ -701,10 +710,10 @@ void AP_MotorsMatrix::tilt_angle_full_TRUAV(float &mtr1, float &mtr2, float &mtr
         _last2_Srv8 = srv8;
 
         // Obtendo os cossenos das posições angulares do servos de inclinação.
-//        ag5_c = cosf(_lastSrv5);
-//        ag6_c = cosf(_lastSrv6);
-//        ag7_c = cosf(_lastSrv7);
-//        ag8_c = cosf(_lastSrv8);
+//        ag5_c = cos(_lastSrv5);
+//        ag6_c = cos(_lastSrv6);
+//        ag7_c = cos(_lastSrv7);
+//        ag8_c = cos(_lastSrv8);
 
         // Aproximação para pequneos ângulos.
         ag5_c = 1.0 - (_lastSrv5*_lastSrv5)/2.0;
@@ -712,36 +721,99 @@ void AP_MotorsMatrix::tilt_angle_full_TRUAV(float &mtr1, float &mtr2, float &mtr
         ag7_c = 1.0 - (_lastSrv7*_lastSrv7)/2.0;
         ag8_c = 1.0 - (_lastSrv8*_lastSrv8)/2.0;
 
-//        ag5_s = sinf(_lastSrv5);
-//        ag6_s = sinf(_lastSrv6);
-//        ag7_s = sinf(_lastSrv7);
-//        ag8_s = sinf(_lastSrv8);
+//        ag5_s = sin(_lastSrv5);
+//        ag6_s = sin(_lastSrv6);
+//        ag7_s = sin(_lastSrv7);
+//        ag8_s = sin(_lastSrv8);
 
-///////////////////////////////////////////////////////////////////////
-/// Primeira parte do processo
-///////////////////////////////////////////////////////////////////////
+        if(tp==1){
+            // Será calculado os ângulos dos servos
+            ///////////////////////////////////////////////////////////////////////
+            /// Primeira parte do processo
+            ///////////////////////////////////////////////////////////////////////
+            // Obtendo os PWMs dos motores considerando somente Fz e Torque de Arfagem.
+            out1 =  (pow(ag5_c,2)*(10000.0*T_pitch + 7071.0*Fz*_l_arm))/(14142.0*ag5_c*_k1*_l_arm*((ag5_c*ag5_c) + pow(ag7_c,2)));
+            out2 = -(pow(ag6_c,2)*(10000.0*T_pitch - 7071.0*Fz*_l_arm))/(14142.0*ag6_c*_k1*_l_arm*((ag6_c*ag6_c) + pow(ag8_c,2)));
+            out3 =  (pow(ag7_c,2)*(10000.0*T_pitch + 7071.0*Fz*_l_arm))/(14142.0*ag7_c*_k1*_l_arm*((ag5_c*ag5_c) + pow(ag7_c,2)));
+            out4 = -(pow(ag8_c,2)*(10000.0*T_pitch - 7071.0*Fz*_l_arm))/(14142.0*ag8_c*_k1*_l_arm*((ag6_c*ag6_c) + pow(ag8_c,2)));
 
-        // Obtendo os PWMs dos motores considerando somente Fz e Torque de Arfagem.
-        out1 =  (powf(ag5_c,2)*(10000.0*T_pitch + 7071.0*Fz*_l_arm))/(14142.0*ag5_c*_k1*_l_arm*((ag5_c*ag5_c) + powf(ag7_c,2)));
-        out2 = -(powf(ag6_c,2)*(10000.0*T_pitch - 7071.0*Fz*_l_arm))/(14142.0*ag6_c*_k1*_l_arm*((ag6_c*ag6_c) + powf(ag8_c,2)));
-        out3 =  (powf(ag7_c,2)*(10000.0*T_pitch + 7071.0*Fz*_l_arm))/(14142.0*ag7_c*_k1*_l_arm*((ag5_c*ag5_c) + powf(ag7_c,2)));
-        out4 = -(powf(ag8_c,2)*(10000.0*T_pitch - 7071.0*Fz*_l_arm))/(14142.0*ag8_c*_k1*_l_arm*((ag6_c*ag6_c) + powf(ag8_c,2)));
+            _out1_quad = pow(out1,2);
+            _out2_quad = pow(out2,2);
+            _out3_quad = pow(out3,2);
+            _out4_quad = pow(out4,2);
 
-///////////////////////////////////////////////////////////////////////
-/// Segunda parte do processo
-///////////////////////////////////////////////////////////////////////
-        // Obtendo os termos da inversa da matriz de obtenção dos arcossenos de inclinação dos servos.
-        // Obtendo os arcossenos de inclinação do servos.
-        arcsin1 = -(powf(out1,2)*(100000000.0*Fz*ag7_c*powf(_k2,2)*out3*powf(out2,2)*powf(out3,2) - 100000000.0*Fz*ag5_c*powf(_k2,2)*out1*powf(out2,2)*powf(out4,2) - 100000000.0*Fz*ag6_c*powf(_k2,2)*out2*powf(out2,2)*powf(out3,2) - 100000000.0*Fz*ag6_c*powf(_k2,2)*out2*powf(out2,2)*powf(out4,2) - 100000000.0*Fz*ag5_c*powf(_k2,2)*out1*powf(out2,2)*powf(out3,2) + 100000000.0*Fz*ag7_c*powf(_k2,2)*out3*powf(out2,2)*powf(out4,2) + 100000000.0*Fz*ag8_c*powf(_k2,2)*out4*powf(out2,2)*powf(out3,2) + 100000000.0*Fz*ag8_c*powf(_k2,2)*out4*powf(out2,2)*powf(out4,2) + 70710000.0*T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out2,2)*powf(out4,2) + 70710000.0*T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out3,2)*powf(out4,2) + 70710000.0*T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out2,2)*powf(out4,2) + 70710000.0*T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out3,2)*powf(out4,2) + 70710000.0*T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out2,2)*powf(out4,2) + 70710000.0*T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out3,2)*powf(out4,2) + 70710000.0*T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out2,2)*powf(out4,2) + 70710000.0*T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out3,2)*powf(out4,2) + 49999041.0*Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out2,2)*powf(out4,2) + 49999041.0*Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out3,2)*powf(out4,2) - 49999041.0*Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out2,2)*powf(out4,2) - 49999041.0*Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out3,2)*powf(out4,2) - 49999041.0*Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out2,2)*powf(out4,2) - 49999041.0*Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out3,2)*powf(out4,2) + 49999041.0*Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out2,2)*powf(out4,2) + 49999041.0*Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out3,2)*powf(out4,2) + 100000000.0*T_yaw*ag5_c*_k1*_k2*out1*powf(out2,2)*powf(out3,2) + 100000000.0*T_yaw*ag5_c*_k1*_k2*out1*powf(out2,2)*powf(out4,2) + 100000000.0*T_yaw*ag6_c*_k1*_k2*out2*powf(out2,2)*powf(out3,2) + 100000000.0*T_yaw*ag6_c*_k1*_k2*out2*powf(out2,2)*powf(out4,2) + 100000000.0*T_yaw*ag7_c*_k1*_k2*out3*powf(out2,2)*powf(out3,2) + 100000000.0*T_yaw*ag7_c*_k1*_k2*out3*powf(out2,2)*powf(out4,2) + 100000000.0*T_yaw*ag8_c*_k1*_k2*out4*powf(out2,2)*powf(out3,2) + 100000000.0*T_yaw*ag8_c*_k1*_k2*out4*powf(out2,2)*powf(out4,2) - 70710000.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out2,2)*powf(out3,2) - 70710000.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out3,2)*powf(out4,2) - 70710000.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out2,2)*powf(out3,2) - 70710000.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out3,2)*powf(out4,2) - 70710000.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out2,2)*powf(out3,2) - 70710000.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out3,2)*powf(out4,2) - 70710000.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out2,2)*powf(out3,2) - 70710000.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out3,2)*powf(out4,2)))/(141420000.0*powf(_k1,2)*_k2*_l_arm*out1*(powf(out1,2)*powf(out2,2)*powf(out3,2) + powf(out1,2)*powf(out2,2)*powf(out4,2) + powf(out1,2)*powf(out3,2)*powf(out4,2) + powf(out2,2)*powf(out3,2)*powf(out4,2))*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4));
-        arcsin2 =  (powf(out2,2)*(100000000.0*Fz*ag7_c*powf(_k2,2)*out3*powf(out1,2)*powf(out3,2) - 100000000.0*Fz*ag5_c*powf(_k2,2)*out1*powf(out1,2)*powf(out4,2) - 100000000.0*Fz*ag6_c*powf(_k2,2)*out2*powf(out1,2)*powf(out3,2) - 100000000.0*Fz*ag6_c*powf(_k2,2)*out2*powf(out1,2)*powf(out4,2) - 100000000.0*Fz*ag5_c*powf(_k2,2)*out1*powf(out1,2)*powf(out3,2) + 100000000.0*Fz*ag7_c*powf(_k2,2)*out3*powf(out1,2)*powf(out4,2) + 100000000.0*Fz*ag8_c*powf(_k2,2)*out4*powf(out1,2)*powf(out3,2) + 100000000.0*Fz*ag8_c*powf(_k2,2)*out4*powf(out1,2)*powf(out4,2) - 70710000.0*T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out1,2)*powf(out3,2) - 70710000.0*T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out1,2)*powf(out3,2) - 70710000.0*T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out3,2)*powf(out4,2) - 70710000.0*T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out1,2)*powf(out3,2) - 70710000.0*T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out3,2)*powf(out4,2) - 70710000.0*T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out1,2)*powf(out3,2) - 70710000.0*T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out3,2)*powf(out4,2) - 70710000.0*T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out3,2)*powf(out4,2) - 49999041.0*Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out1,2)*powf(out3,2) + 49999041.0*Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out1,2)*powf(out3,2) - 49999041.0*Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out3,2)*powf(out4,2) + 49999041.0*Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out1,2)*powf(out3,2) + 49999041.0*Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out3,2)*powf(out4,2) - 49999041.0*Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out1,2)*powf(out3,2) + 49999041.0*Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out3,2)*powf(out4,2) - 49999041.0*Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out3,2)*powf(out4,2) + 100000000.0*T_yaw*ag5_c*_k1*_k2*out1*powf(out1,2)*powf(out3,2) + 100000000.0*T_yaw*ag5_c*_k1*_k2*out1*powf(out1,2)*powf(out4,2) + 100000000.0*T_yaw*ag6_c*_k1*_k2*out2*powf(out1,2)*powf(out3,2) + 100000000.0*T_yaw*ag6_c*_k1*_k2*out2*powf(out1,2)*powf(out4,2) + 100000000.0*T_yaw*ag7_c*_k1*_k2*out3*powf(out1,2)*powf(out3,2) + 100000000.0*T_yaw*ag7_c*_k1*_k2*out3*powf(out1,2)*powf(out4,2) + 100000000.0*T_yaw*ag8_c*_k1*_k2*out4*powf(out1,2)*powf(out3,2) + 100000000.0*T_yaw*ag8_c*_k1*_k2*out4*powf(out1,2)*powf(out4,2) + 70710000.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out1,2)*powf(out4,2) + 70710000.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out3,2)*powf(out4,2) + 70710000.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out1,2)*powf(out4,2) + 70710000.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out3,2)*powf(out4,2) + 70710000.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out1,2)*powf(out4,2) + 70710000.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out3,2)*powf(out4,2) + 70710000.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out1,2)*powf(out4,2) + 70710000.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out3,2)*powf(out4,2)))/(141420000.0*powf(_k1,2)*_k2*_l_arm*out2*(powf(out1,2)*powf(out2,2)*powf(out3,2) + powf(out1,2)*powf(out2,2)*powf(out4,2) + powf(out1,2)*powf(out3,2)*powf(out4,2) + powf(out2,2)*powf(out3,2)*powf(out4,2))*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4));
-        arcsin3 =  (powf(out3,2)*(100000000.0*Fz*ag7_c*powf(_k2,2)*out3*powf(out1,2)*powf(out4,2) - 100000000.0*Fz*ag5_c*powf(_k2,2)*out1*powf(out2,2)*powf(out4,2) - 100000000.0*Fz*ag6_c*powf(_k2,2)*out2*powf(out1,2)*powf(out4,2) - 100000000.0*Fz*ag6_c*powf(_k2,2)*out2*powf(out2,2)*powf(out4,2) - 100000000.0*Fz*ag5_c*powf(_k2,2)*out1*powf(out1,2)*powf(out4,2) + 100000000.0*Fz*ag7_c*powf(_k2,2)*out3*powf(out2,2)*powf(out4,2) + 100000000.0*Fz*ag8_c*powf(_k2,2)*out4*powf(out1,2)*powf(out4,2) + 100000000.0*Fz*ag8_c*powf(_k2,2)*out4*powf(out2,2)*powf(out4,2) + 70710000.0*T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out1,2)*powf(out2,2) + 70710000.0*T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out1,2)*powf(out2,2) + 70710000.0*T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out2,2)*powf(out4,2) + 70710000.0*T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out1,2)*powf(out2,2) + 70710000.0*T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out2,2)*powf(out4,2) + 70710000.0*T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out1,2)*powf(out2,2) + 70710000.0*T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out2,2)*powf(out4,2) + 70710000.0*T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out2,2)*powf(out4,2) + 49999041.0*Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out1,2)*powf(out2,2) - 49999041.0*Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out1,2)*powf(out2,2) + 49999041.0*Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out2,2)*powf(out4,2) - 49999041.0*Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out1,2)*powf(out2,2) - 49999041.0*Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out2,2)*powf(out4,2) + 49999041.0*Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out1,2)*powf(out2,2) - 49999041.0*Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out2,2)*powf(out4,2) + 49999041.0*Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out2,2)*powf(out4,2) + 100000000.0*T_yaw*ag5_c*_k1*_k2*out1*powf(out1,2)*powf(out4,2) + 100000000.0*T_yaw*ag5_c*_k1*_k2*out1*powf(out2,2)*powf(out4,2) + 100000000.0*T_yaw*ag6_c*_k1*_k2*out2*powf(out1,2)*powf(out4,2) + 100000000.0*T_yaw*ag6_c*_k1*_k2*out2*powf(out2,2)*powf(out4,2) + 100000000.0*T_yaw*ag7_c*_k1*_k2*out3*powf(out1,2)*powf(out4,2) + 100000000.0*T_yaw*ag7_c*_k1*_k2*out3*powf(out2,2)*powf(out4,2) + 100000000.0*T_yaw*ag8_c*_k1*_k2*out4*powf(out1,2)*powf(out4,2) + 100000000.0*T_yaw*ag8_c*_k1*_k2*out4*powf(out2,2)*powf(out4,2) + 70710000.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out1,2)*powf(out2,2) + 70710000.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out1,2)*powf(out4,2) + 70710000.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out1,2)*powf(out2,2) + 70710000.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out1,2)*powf(out4,2) + 70710000.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out1,2)*powf(out2,2) + 70710000.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out1,2)*powf(out4,2) + 70710000.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out1,2)*powf(out2,2) + 70710000.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out1,2)*powf(out4,2)))/(141420000.0*powf(_k1,2)*_k2*_l_arm*out3*(powf(out1,2)*powf(out2,2)*powf(out3,2) + powf(out1,2)*powf(out2,2)*powf(out4,2) + powf(out1,2)*powf(out3,2)*powf(out4,2) + powf(out2,2)*powf(out3,2)*powf(out4,2))*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4));
-        arcsin4 =  (powf(out4,2)*(100000000.0*Fz*ag5_c*powf(_k2,2)*out1*powf(out1,2)*powf(out3,2) + 100000000.0*Fz*ag5_c*powf(_k2,2)*out1*powf(out2,2)*powf(out3,2) + 100000000.0*Fz*ag6_c*powf(_k2,2)*out2*powf(out1,2)*powf(out3,2) + 100000000.0*Fz*ag6_c*powf(_k2,2)*out2*powf(out2,2)*powf(out3,2) - 100000000.0*Fz*ag7_c*powf(_k2,2)*out3*powf(out1,2)*powf(out3,2) - 100000000.0*Fz*ag7_c*powf(_k2,2)*out3*powf(out2,2)*powf(out3,2) - 100000000.0*Fz*ag8_c*powf(_k2,2)*out4*powf(out1,2)*powf(out3,2) - 100000000.0*Fz*ag8_c*powf(_k2,2)*out4*powf(out2,2)*powf(out3,2) + 70710000.0*T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out1,2)*powf(out2,2) + 70710000.0*T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out1,2)*powf(out3,2) + 70710000.0*T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out1,2)*powf(out2,2) + 70710000.0*T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out1,2)*powf(out3,2) + 70710000.0*T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out1,2)*powf(out2,2) + 70710000.0*T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out1,2)*powf(out3,2) + 70710000.0*T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out1,2)*powf(out2,2) + 70710000.0*T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out1,2)*powf(out3,2) + 49999041.0*Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out1,2)*powf(out2,2) + 49999041.0*Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out1,2)*powf(out3,2) - 49999041.0*Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out1,2)*powf(out2,2) - 49999041.0*Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out1,2)*powf(out3,2) - 49999041.0*Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out1,2)*powf(out2,2) - 49999041.0*Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out1,2)*powf(out3,2) + 49999041.0*Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out1,2)*powf(out2,2) + 49999041.0*Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out1,2)*powf(out3,2) - 100000000.0*T_yaw*ag5_c*_k1*_k2*out1*powf(out1,2)*powf(out3,2) - 100000000.0*T_yaw*ag5_c*_k1*_k2*out1*powf(out2,2)*powf(out3,2) - 100000000.0*T_yaw*ag6_c*_k1*_k2*out2*powf(out1,2)*powf(out3,2) - 100000000.0*T_yaw*ag6_c*_k1*_k2*out2*powf(out2,2)*powf(out3,2) - 100000000.0*T_yaw*ag7_c*_k1*_k2*out3*powf(out1,2)*powf(out3,2) - 100000000.0*T_yaw*ag7_c*_k1*_k2*out3*powf(out2,2)*powf(out3,2) - 100000000.0*T_yaw*ag8_c*_k1*_k2*out4*powf(out1,2)*powf(out3,2) - 100000000.0*T_yaw*ag8_c*_k1*_k2*out4*powf(out2,2)*powf(out3,2) + 70710000.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out1,2)*powf(out2,2) + 70710000.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out2,2)*powf(out3,2) + 70710000.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out1,2)*powf(out2,2) + 70710000.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out2,2)*powf(out3,2) + 70710000.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out1,2)*powf(out2,2) + 70710000.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out2,2)*powf(out3,2) + 70710000.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out1,2)*powf(out2,2) + 70710000.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out2,2)*powf(out3,2)))/(141420000.0*powf(_k1,2)*_k2*_l_arm*out4*(powf(out1,2)*powf(out2,2)*powf(out3,2) + powf(out1,2)*powf(out2,2)*powf(out4,2) + powf(out1,2)*powf(out3,2)*powf(out4,2) + powf(out2,2)*powf(out3,2)*powf(out4,2))*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4));
+            ///////////////////////////////////////////////////////////////////////
+            /// Segunda parte do processo
+            ///////////////////////////////////////////////////////////////////////
+            // Obtendo os termos da inversa da matriz de obtenção dos arcossenos de inclinação dos servos.
+            // Obtendo os arcossenos de inclinação do servos.
+            aux1 = 100000.0*Fz*ag7_c*_k2_quad*out3*_out2_quad*_out3_quad - 100000.0*Fz*ag5_c*_k2_quad*out1*_out2_quad*_out4_quad - 100000.0*Fz*ag6_c*_k2_quad*out2*_out2_quad*_out3_quad - 100000.0*Fz*ag6_c*_k2_quad*out2*_out2_quad*_out4_quad - 100000.0*Fz*ag5_c*_k2_quad*out1*_out2_quad*_out3_quad + 100000.0*Fz*ag7_c*_k2_quad*out3*_out2_quad*_out4_quad + 100000.0*Fz*ag8_c*_k2_quad*out4*_out2_quad*_out3_quad + 100000.0*Fz*ag8_c*_k2_quad*out4*_out2_quad*_out4_quad + 70710.0*T_roll*ag5_c*_k1_quad*_l_arm*out1*_out2_quad*_out4_quad + 70710.0*T_roll*ag5_c*_k1_quad*_l_arm*out1*_out3_quad*_out4_quad + 70710.0*T_roll*ag6_c*_k1_quad*_l_arm*out2*_out2_quad*_out4_quad + 70710.0*T_roll*ag6_c*_k1_quad*_l_arm*out2*_out3_quad*_out4_quad + 70710.0*T_roll*ag7_c*_k1_quad*_l_arm*out3*_out2_quad*_out4_quad + 70710.0*T_roll*ag7_c*_k1_quad*_l_arm*out3*_out3_quad*_out4_quad + 70710.0*T_roll*ag8_c*_k1_quad*_l_arm*out4*_out2_quad*_out4_quad + 70710.0*T_roll*ag8_c*_k1_quad*_l_arm*out4*_out3_quad*_out4_quad + 49999.0410*Fz*ag5_c*_k1_quad*_l_arm_quad*out1*_out2_quad*_out4_quad + 49999.0410*Fz*ag5_c*_k1_quad*_l_arm_quad*out1*_out3_quad*_out4_quad - 49999.0410*Fz*ag6_c*_k1_quad*_l_arm_quad*out2*_out2_quad*_out4_quad - 49999.0410*Fz*ag6_c*_k1_quad*_l_arm_quad*out2*_out3_quad*_out4_quad - 49999.0410*Fz*ag7_c*_k1_quad*_l_arm_quad*out3*_out2_quad*_out4_quad - 49999.0410*Fz*ag7_c*_k1_quad*_l_arm_quad*out3*_out3_quad*_out4_quad + 49999.0410*Fz*ag8_c*_k1_quad*_l_arm_quad*out4*_out2_quad*_out4_quad + 49999.0410*Fz*ag8_c*_k1_quad*_l_arm_quad*out4*_out3_quad*_out4_quad + 100000.0*T_yaw*ag5_c*_k1*_k2*out1*_out2_quad*_out3_quad + 100000.0*T_yaw*ag5_c*_k1*_k2*out1*_out2_quad*_out4_quad + 100000.0*T_yaw*ag6_c*_k1*_k2*out2*_out2_quad*_out3_quad + 100000.0*T_yaw*ag6_c*_k1*_k2*out2*_out2_quad*_out4_quad + 100000.0*T_yaw*ag7_c*_k1*_k2*out3*_out2_quad*_out3_quad + 100000.0*T_yaw*ag7_c*_k1*_k2*out3*_out2_quad*_out4_quad + 100000.0*T_yaw*ag8_c*_k1*_k2*out4*_out2_quad*_out3_quad + 100000.0*T_yaw*ag8_c*_k1*_k2*out4*_out2_quad*_out4_quad - 70710.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*_out2_quad*_out3_quad - 70710.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*_out3_quad*_out4_quad - 70710.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*_out2_quad*_out3_quad - 70710.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*_out3_quad*_out4_quad - 70710.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*_out2_quad*_out3_quad - 70710.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*_out3_quad*_out4_quad - 70710.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*_out2_quad*_out3_quad - 70710.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*_out3_quad*_out4_quad;
+            arcsin1 = -_out1_quad*aux1;
+            aux1 = 141420.0*_k1_quad*_k2*_l_arm*out1*(_out1_quad*_out2_quad*_out3_quad + _out1_quad*_out2_quad*_out4_quad + _out1_quad*_out3_quad*_out4_quad + _out2_quad*_out3_quad*_out4_quad)*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4);
+            arcsin1 = arcsin1/aux1;
+
+            aux1 = 100000.0*Fz*ag7_c*_k2_quad*out3*_out1_quad*_out3_quad - 100000.0*Fz*ag5_c*_k2_quad*out1*_out1_quad*_out4_quad - 100000.0*Fz*ag6_c*_k2_quad*out2*_out1_quad*_out3_quad - 100000.0*Fz*ag6_c*_k2_quad*out2*_out1_quad*_out4_quad - 100000.0*Fz*ag5_c*_k2_quad*out1*_out1_quad*_out3_quad + 100000.0*Fz*ag7_c*_k2_quad*out3*_out1_quad*_out4_quad + 100000.0*Fz*ag8_c*_k2_quad*out4*_out1_quad*_out3_quad + 100000.0*Fz*ag8_c*_k2_quad*out4*_out1_quad*_out4_quad - 70710.0*T_roll*ag5_c*_k1_quad*_l_arm*out1*_out1_quad*_out3_quad - 70710.0*T_roll*ag6_c*_k1_quad*_l_arm*out2*_out1_quad*_out3_quad - 70710.0*T_roll*ag5_c*_k1_quad*_l_arm*out1*_out3_quad*_out4_quad - 70710.0*T_roll*ag7_c*_k1_quad*_l_arm*out3*_out1_quad*_out3_quad - 70710.0*T_roll*ag6_c*_k1_quad*_l_arm*out2*_out3_quad*_out4_quad - 70710.0*T_roll*ag8_c*_k1_quad*_l_arm*out4*_out1_quad*_out3_quad - 70710.0*T_roll*ag7_c*_k1_quad*_l_arm*out3*_out3_quad*_out4_quad - 70710.0*T_roll*ag8_c*_k1_quad*_l_arm*out4*_out3_quad*_out4_quad - 49999.0410*Fz*ag5_c*_k1_quad*_l_arm_quad*out1*_out1_quad*_out3_quad + 49999.0410*Fz*ag6_c*_k1_quad*_l_arm_quad*out2*_out1_quad*_out3_quad - 49999.0410*Fz*ag5_c*_k1_quad*_l_arm_quad*out1*_out3_quad*_out4_quad + 49999.0410*Fz*ag7_c*_k1_quad*_l_arm_quad*out3*_out1_quad*_out3_quad + 49999.0410*Fz*ag6_c*_k1_quad*_l_arm_quad*out2*_out3_quad*_out4_quad - 49999.0410*Fz*ag8_c*_k1_quad*_l_arm_quad*out4*_out1_quad*_out3_quad + 49999.0410*Fz*ag7_c*_k1_quad*_l_arm_quad*out3*_out3_quad*_out4_quad - 49999.0410*Fz*ag8_c*_k1_quad*_l_arm_quad*out4*_out3_quad*_out4_quad + 100000.0*T_yaw*ag5_c*_k1*_k2*out1*_out1_quad*_out3_quad + 100000.0*T_yaw*ag5_c*_k1*_k2*out1*_out1_quad*_out4_quad + 100000.0*T_yaw*ag6_c*_k1*_k2*out2*_out1_quad*_out3_quad + 100000.0*T_yaw*ag6_c*_k1*_k2*out2*_out1_quad*_out4_quad + 100000.0*T_yaw*ag7_c*_k1*_k2*out3*_out1_quad*_out3_quad + 100000.0*T_yaw*ag7_c*_k1*_k2*out3*_out1_quad*_out4_quad + 100000.0*T_yaw*ag8_c*_k1*_k2*out4*_out1_quad*_out3_quad + 100000.0*T_yaw*ag8_c*_k1*_k2*out4*_out1_quad*_out4_quad + 70710.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*_out1_quad*_out4_quad + 70710.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*_out3_quad*_out4_quad + 70710.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*_out1_quad*_out4_quad + 70710.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*_out3_quad*_out4_quad + 70710.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*_out1_quad*_out4_quad + 70710.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*_out3_quad*_out4_quad + 70710.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*_out1_quad*_out4_quad + 70710.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*_out3_quad*_out4_quad;
+            arcsin2 =  _out2_quad*aux1;
+            aux1 = 141420.0*_k1_quad*_k2*_l_arm*out2*(_out1_quad*_out2_quad*_out3_quad + _out1_quad*_out2_quad*_out4_quad + _out1_quad*_out3_quad*_out4_quad + _out2_quad*_out3_quad*_out4_quad)*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4);
+            arcsin2 = arcsin2/aux1;
+
+            aux1 = 100000.0*Fz*ag7_c*_k2_quad*out3*_out1_quad*_out4_quad - 100000.0*Fz*ag5_c*_k2_quad*out1*_out2_quad*_out4_quad - 100000.0*Fz*ag6_c*_k2_quad*out2*_out1_quad*_out4_quad - 100000.0*Fz*ag6_c*_k2_quad*out2*_out2_quad*_out4_quad - 100000.0*Fz*ag5_c*_k2_quad*out1*_out1_quad*_out4_quad + 100000.0*Fz*ag7_c*_k2_quad*out3*_out2_quad*_out4_quad + 100000.0*Fz*ag8_c*_k2_quad*out4*_out1_quad*_out4_quad + 100000.0*Fz*ag8_c*_k2_quad*out4*_out2_quad*_out4_quad + 70710.0*T_roll*ag5_c*_k1_quad*_l_arm*out1*_out1_quad*_out2_quad + 70710.0*T_roll*ag6_c*_k1_quad*_l_arm*out2*_out1_quad*_out2_quad + 70710.0*T_roll*ag5_c*_k1_quad*_l_arm*out1*_out2_quad*_out4_quad + 70710.0*T_roll*ag7_c*_k1_quad*_l_arm*out3*_out1_quad*_out2_quad + 70710.0*T_roll*ag6_c*_k1_quad*_l_arm*out2*_out2_quad*_out4_quad + 70710.0*T_roll*ag8_c*_k1_quad*_l_arm*out4*_out1_quad*_out2_quad + 70710.0*T_roll*ag7_c*_k1_quad*_l_arm*out3*_out2_quad*_out4_quad + 70710.0*T_roll*ag8_c*_k1_quad*_l_arm*out4*_out2_quad*_out4_quad + 49999.0410*Fz*ag5_c*_k1_quad*_l_arm_quad*out1*_out1_quad*_out2_quad - 49999.0410*Fz*ag6_c*_k1_quad*_l_arm_quad*out2*_out1_quad*_out2_quad + 49999.0410*Fz*ag5_c*_k1_quad*_l_arm_quad*out1*_out2_quad*_out4_quad - 49999.0410*Fz*ag7_c*_k1_quad*_l_arm_quad*out3*_out1_quad*_out2_quad - 49999.0410*Fz*ag6_c*_k1_quad*_l_arm_quad*out2*_out2_quad*_out4_quad + 49999.0410*Fz*ag8_c*_k1_quad*_l_arm_quad*out4*_out1_quad*_out2_quad - 49999.0410*Fz*ag7_c*_k1_quad*_l_arm_quad*out3*_out2_quad*_out4_quad + 49999.0410*Fz*ag8_c*_k1_quad*_l_arm_quad*out4*_out2_quad*_out4_quad + 100000.0*T_yaw*ag5_c*_k1*_k2*out1*_out1_quad*_out4_quad + 100000.0*T_yaw*ag5_c*_k1*_k2*out1*_out2_quad*_out4_quad + 100000.0*T_yaw*ag6_c*_k1*_k2*out2*_out1_quad*_out4_quad + 100000.0*T_yaw*ag6_c*_k1*_k2*out2*_out2_quad*_out4_quad + 100000.0*T_yaw*ag7_c*_k1*_k2*out3*_out1_quad*_out4_quad + 100000.0*T_yaw*ag7_c*_k1*_k2*out3*_out2_quad*_out4_quad + 100000.0*T_yaw*ag8_c*_k1*_k2*out4*_out1_quad*_out4_quad + 100000.0*T_yaw*ag8_c*_k1*_k2*out4*_out2_quad*_out4_quad + 70710.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*_out1_quad*_out2_quad + 70710.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*_out1_quad*_out4_quad + 70710.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*_out1_quad*_out2_quad + 70710.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*_out1_quad*_out4_quad + 70710.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*_out1_quad*_out2_quad + 70710.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*_out1_quad*_out4_quad + 70710.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*_out1_quad*_out2_quad + 70710.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*_out1_quad*_out4_quad;
+            arcsin3 =  _out3_quad*aux1;
+            aux1 = 141420.0*_k1_quad*_k2*_l_arm*out3*(_out1_quad*_out2_quad*_out3_quad + _out1_quad*_out2_quad*_out4_quad + _out1_quad*_out3_quad*_out4_quad + _out2_quad*_out3_quad*_out4_quad)*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4);
+            arcsin3 = arcsin3/aux1;
+
+            aux1 = 100000.0*Fz*ag5_c*_k2_quad*out1*_out1_quad*_out3_quad + 100000.0*Fz*ag5_c*_k2_quad*out1*_out2_quad*_out3_quad + 100000.0*Fz*ag6_c*_k2_quad*out2*_out1_quad*_out3_quad + 100000.0*Fz*ag6_c*_k2_quad*out2*_out2_quad*_out3_quad - 100000.0*Fz*ag7_c*_k2_quad*out3*_out1_quad*_out3_quad - 100000.0*Fz*ag7_c*_k2_quad*out3*_out2_quad*_out3_quad - 100000.0*Fz*ag8_c*_k2_quad*out4*_out1_quad*_out3_quad - 100000.0*Fz*ag8_c*_k2_quad*out4*_out2_quad*_out3_quad + 70710.0*T_roll*ag5_c*_k1_quad*_l_arm*out1*_out1_quad*_out2_quad + 70710.0*T_roll*ag5_c*_k1_quad*_l_arm*out1*_out1_quad*_out3_quad + 70710.0*T_roll*ag6_c*_k1_quad*_l_arm*out2*_out1_quad*_out2_quad + 70710.0*T_roll*ag6_c*_k1_quad*_l_arm*out2*_out1_quad*_out3_quad + 70710.0*T_roll*ag7_c*_k1_quad*_l_arm*out3*_out1_quad*_out2_quad + 70710.0*T_roll*ag7_c*_k1_quad*_l_arm*out3*_out1_quad*_out3_quad + 70710.0*T_roll*ag8_c*_k1_quad*_l_arm*out4*_out1_quad*_out2_quad + 70710.0*T_roll*ag8_c*_k1_quad*_l_arm*out4*_out1_quad*_out3_quad + 49999.0410*Fz*ag5_c*_k1_quad*_l_arm_quad*out1*_out1_quad*_out2_quad + 49999.0410*Fz*ag5_c*_k1_quad*_l_arm_quad*out1*_out1_quad*_out3_quad - 49999.0410*Fz*ag6_c*_k1_quad*_l_arm_quad*out2*_out1_quad*_out2_quad - 49999.0410*Fz*ag6_c*_k1_quad*_l_arm_quad*out2*_out1_quad*_out3_quad - 49999.0410*Fz*ag7_c*_k1_quad*_l_arm_quad*out3*_out1_quad*_out2_quad - 49999.0410*Fz*ag7_c*_k1_quad*_l_arm_quad*out3*_out1_quad*_out3_quad + 49999.0410*Fz*ag8_c*_k1_quad*_l_arm_quad*out4*_out1_quad*_out2_quad + 49999.0410*Fz*ag8_c*_k1_quad*_l_arm_quad*out4*_out1_quad*_out3_quad - 100000.0*T_yaw*ag5_c*_k1*_k2*out1*_out1_quad*_out3_quad - 100000.0*T_yaw*ag5_c*_k1*_k2*out1*_out2_quad*_out3_quad - 100000.0*T_yaw*ag6_c*_k1*_k2*out2*_out1_quad*_out3_quad - 100000.0*T_yaw*ag6_c*_k1*_k2*out2*_out2_quad*_out3_quad - 100000.0*T_yaw*ag7_c*_k1*_k2*out3*_out1_quad*_out3_quad - 100000.0*T_yaw*ag7_c*_k1*_k2*out3*_out2_quad*_out3_quad - 100000.0*T_yaw*ag8_c*_k1*_k2*out4*_out1_quad*_out3_quad - 100000.0*T_yaw*ag8_c*_k1*_k2*out4*_out2_quad*_out3_quad + 70710.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*_out1_quad*_out2_quad + 70710.0*Fx*ag5_c*_k1*_k2*_l_arm*out1*_out2_quad*_out3_quad + 70710.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*_out1_quad*_out2_quad + 70710.0*Fx*ag6_c*_k1*_k2*_l_arm*out2*_out2_quad*_out3_quad + 70710.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*_out1_quad*_out2_quad + 70710.0*Fx*ag7_c*_k1*_k2*_l_arm*out3*_out2_quad*_out3_quad + 70710.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*_out1_quad*_out2_quad + 70710.0*Fx*ag8_c*_k1*_k2*_l_arm*out4*_out2_quad*_out3_quad;
+            arcsin4 =  _out4_quad*aux1;
+            aux1 = 141420.0*_k1_quad*_k2*_l_arm*out4*(_out1_quad*_out2_quad*_out3_quad + _out1_quad*_out2_quad*_out4_quad + _out1_quad*_out3_quad*_out4_quad + _out2_quad*_out3_quad*_out4_quad)*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4);
+            arcsin4 = arcsin4/aux1;
+
+            // TÁ PARECENDO QUE O PROBLEMA É O LASTSRV
+
+//            arcsin1 = 0;
+//            arcsin2 = 0;
+//            arcsin3 = 0;
+//            arcsin4 = 0;
+
+//                    aux1 = 100000000.0*(Fz*ag7_c*powf(_k2,2)*out3*powf(out2,2)*powf(out3,2)) - 100000000.0*(Fz*ag5_c*powf(_k2,2)*out1*powf(out2,2)*_out4_quad) - 100000000.0*(Fz*ag6_c*powf(_k2,2)*out2*powf(out2,2)*powf(out3,2)) - 100000000.0*(Fz*ag6_c*powf(_k2,2)*out2*powf(out2,2)*powf(out4,2)) - 100000000.0*(Fz*ag5_c*powf(_k2,2)*out1*powf(out2,2)*powf(out3,2)) + 100000000.0*(Fz*ag7_c*powf(_k2,2)*out3*powf(out2,2)*powf(out4,2)) + 100000000.0*(Fz*ag8_c*powf(_k2,2)*out4*powf(out2,2)*powf(out3,2)) + 100000000.0*(Fz*ag8_c*powf(_k2,2)*out4*powf(out2,2)*powf(out4,2)) + 70710000.0*(T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out2,2)*powf(out4,2)) + 70710000.0*(T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out3,2)*powf(out4,2)) + 70710000.0*(T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out2,2)*powf(out4,2)) + 70710000.0*(T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out3,2)*powf(out4,2)) + 70710000.0*(T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out2,2)*powf(out4,2)) + 70710000.0*(T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out3,2)*powf(out4,2)) + 70710000.0*(T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out2,2)*powf(out4,2)) + 70710000.0*(T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out3,2)*powf(out4,2)) + 49999041.0*(Fz*ag5_c*powf(_k1,2)*_l_arm_quad*out1*powf(out2,2)*powf(out4,2)) + 49999041.0*(Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out3,2)*powf(out4,2)) - 49999041.0*(Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out2,2)*powf(out4,2)) - 49999041.0*(Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out3,2)*powf(out4,2)) - 49999041.0*(Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out2,2)*powf(out4,2)) - 49999041.0*(Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out3,2)*powf(out4,2)) + 49999041.0*(Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out2,2)*powf(out4,2)) + 49999041.0*(Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out3,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag5_c*_k1*_k2*out1*powf(out2,2)*powf(out3,2)) + 100000000.0*(T_yaw*ag5_c*_k1*_k2*out1*powf(out2,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag6_c*_k1*_k2*out2*powf(out2,2)*powf(out3,2)) + 100000000.0*(T_yaw*ag6_c*_k1*_k2*out2*powf(out2,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag7_c*_k1*_k2*out3*powf(out2,2)*powf(out3,2)) + 100000000.0*(T_yaw*ag7_c*_k1*_k2*out3*powf(out2,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag8_c*_k1*_k2*out4*powf(out2,2)*powf(out3,2)) + 100000000.0*(T_yaw*ag8_c*_k1*_k2*out4*powf(out2,2)*powf(out4,2)) - 70710000.0*(Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out2,2)*powf(out3,2)) - 70710000.0*(Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out3,2)*powf(out4,2)) - 70710000.0*(Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out2,2)*powf(out3,2)) - 70710000.0*(Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out3,2)*powf(out4,2)) - 70710000.0*(Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out2,2)*powf(out3,2)) - 70710000.0*(Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out3,2)*powf(out4,2)) - 70710000.0*(Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out2,2)*powf(out3,2) - 70710000.0*(Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out3,2)*powf(out4,2)));
+//                    arcsin1 = -powf(out1,2)*aux1;
+//                    arcsin1 = arcsin1/141420000.0;
+//                    arcsin1 = arcsin1/(powf(_k1,2)*_k2*_l_arm*out1*(powf(out1,2)*powf(out2,2)*powf(out3,2) + powf(out1,2)*powf(out2,2)*powf(out4,2) + powf(out1,2)*powf(out3,2)*powf(out4,2) + powf(out2,2)*powf(out3,2)*powf(out4,2))*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4));
+//        //            arcsin2 =  (powf(out2,2)*(100000000.0*(Fz*ag7_c*powf(_k2,2)*out3*powf(out1,2)*powf(out3,2)) - 100000000.0*(Fz*ag5_c*powf(_k2,2)*out1*powf(out1,2)*powf(out4,2)) - 100000000.0*(Fz*ag6_c*powf(_k2,2)*out2*powf(out1,2)*powf(out3,2)) - 100000000.0*(Fz*ag6_c*powf(_k2,2)*out2*powf(out1,2)*powf(out4,2)) - 100000000.0*(Fz*ag5_c*powf(_k2,2)*out1*powf(out1,2)*powf(out3,2)) + 100000000.0*(Fz*ag7_c*powf(_k2,2)*out3*powf(out1,2)*powf(out4,2)) + 100000000.0*(Fz*ag8_c*powf(_k2,2)*out4*powf(out1,2)*powf(out3,2)) + 100000000.0*(Fz*ag8_c*powf(_k2,2)*out4*powf(out1,2)*powf(out4,2)) - 70710000.0*(T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out1,2)*powf(out3,2)) - 70710000.0*(T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out1,2)*powf(out3,2)) - 70710000.0*(T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out3,2)*powf(out4,2)) - 70710000.0*(T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out1,2)*powf(out3,2)) - 70710000.0*(T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out3,2)*powf(out4,2)) - 70710000.0*(T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out1,2)*powf(out3,2)) - 70710000.0*(T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out3,2)*powf(out4,2)) - 70710000.0*(T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out3,2)*powf(out4,2)) - 49999041.0*(Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out1,2)*powf(out3,2)) + 49999041.0*(Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out1,2)*powf(out3,2)) - 49999041.0*(Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out3,2)*powf(out4,2)) + 49999041.0*(Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out1,2)*powf(out3,2)) + 49999041.0*(Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out3,2)*powf(out4,2)) - 49999041.0*(Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out1,2)*powf(out3,2)) + 49999041.0*(Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out3,2)*powf(out4,2)) - 49999041.0*(Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out3,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag5_c*_k1*_k2*out1*powf(out1,2)*powf(out3,2)) + 100000000.0*(T_yaw*ag5_c*_k1*_k2*out1*powf(out1,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag6_c*_k1*_k2*out2*powf(out1,2)*powf(out3,2)) + 100000000.0*(T_yaw*ag6_c*_k1*_k2*out2*powf(out1,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag7_c*_k1*_k2*out3*powf(out1,2)*powf(out3,2)) + 100000000.0*(T_yaw*ag7_c*_k1*_k2*out3*powf(out1,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag8_c*_k1*_k2*out4*powf(out1,2)*powf(out3,2)) + 100000000.0*(T_yaw*ag8_c*_k1*_k2*out4*powf(out1,2)*powf(out4,2)) + 70710000.0*(Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out1,2)*powf(out4,2)) + 70710000.0*(Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out3,2)*powf(out4,2)) + 70710000.0*(Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out1,2)*powf(out4,2)) + 70710000.0*(Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out3,2)*powf(out4,2)) + 70710000.0*(Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out1,2)*powf(out4,2)) + 70710000.0*(Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out3,2)*powf(out4,2)) + 70710000.0*(Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out1,2)*powf(out4,2) + 70710000.0*(Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out3,2)*powf(out4,2))))/141420000.0)/(powf(_k1,2)*_k2*_l_arm*out2*(powf(out1,2)*powf(out2,2)*powf(out3,2) + powf(out1,2)*powf(out2,2)*powf(out4,2) + powf(out1,2)*powf(out3,2)*powf(out4,2) + powf(out2,2)*powf(out3,2)*powf(out4,2))*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4));
+//        //            arcsin3 =  (powf(out3,2)*(100000000.0*(Fz*ag7_c*powf(_k2,2)*out3*powf(out1,2)*powf(out4,2)) - 100000000.0*(Fz*ag5_c*powf(_k2,2)*out1*powf(out2,2)*powf(out4,2)) - 100000000.0*(Fz*ag6_c*powf(_k2,2)*out2*powf(out1,2)*powf(out4,2)) - 100000000.0*(Fz*ag6_c*powf(_k2,2)*out2*powf(out2,2)*powf(out4,2)) - 100000000.0*(Fz*ag5_c*powf(_k2,2)*out1*powf(out1,2)*powf(out4,2)) + 100000000.0*(Fz*ag7_c*powf(_k2,2)*out3*powf(out2,2)*powf(out4,2)) + 100000000.0*(Fz*ag8_c*powf(_k2,2)*out4*powf(out1,2)*powf(out4,2)) + 100000000.0*(Fz*ag8_c*powf(_k2,2)*out4*powf(out2,2)*powf(out4,2)) + 70710000.0*(T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out1,2)*powf(out2,2)) + 70710000.0*(T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out1,2)*powf(out2,2)) + 70710000.0*(T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out2,2)*powf(out4,2)) + 70710000.0*(T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out1,2)*powf(out2,2)) + 70710000.0*(T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out2,2)*powf(out4,2)) + 70710000.0*(T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out1,2)*powf(out2,2)) + 70710000.0*(T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out2,2)*powf(out4,2)) + 70710000.0*(T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out2,2)*powf(out4,2)) + 49999041.0*(Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out1,2)*powf(out2,2)) - 49999041.0*(Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out1,2)*powf(out2,2)) + 49999041.0*(Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out2,2)*powf(out4,2)) - 49999041.0*(Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out1,2)*powf(out2,2)) - 49999041.0*(Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out2,2)*powf(out4,2)) + 49999041.0*(Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out1,2)*powf(out2,2)) - 49999041.0*(Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out2,2)*powf(out4,2)) + 49999041.0*(Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out2,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag5_c*_k1*_k2*out1*powf(out1,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag5_c*_k1*_k2*out1*powf(out2,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag6_c*_k1*_k2*out2*powf(out1,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag6_c*_k1*_k2*out2*powf(out2,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag7_c*_k1*_k2*out3*powf(out1,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag7_c*_k1*_k2*out3*powf(out2,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag8_c*_k1*_k2*out4*powf(out1,2)*powf(out4,2)) + 100000000.0*(T_yaw*ag8_c*_k1*_k2*out4*powf(out2,2)*powf(out4,2)) + 70710000.0*(Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out1,2)*powf(out2,2)) + 70710000.0*(Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out1,2)*powf(out4,2)) + 70710000.0*(Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out1,2)*powf(out2,2)) + 70710000.0*(Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out1,2)*powf(out4,2)) + 70710000.0*(Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out1,2)*powf(out2,2)) + 70710000.0*(Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out1,2)*powf(out4,2)) + 70710000.0*(Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out1,2)*powf(out2,2) + 70710000.0*(Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out1,2)*powf(out4,2))))/141420000.0)/(powf(_k1,2)*_k2*_l_arm*out3*(powf(out1,2)*powf(out2,2)*powf(out3,2) + powf(out1,2)*powf(out2,2)*powf(out4,2) + powf(out1,2)*powf(out3,2)*powf(out4,2) + powf(out2,2)*powf(out3,2)*powf(out4,2))*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4));
+//        //            arcsin4 =  (powf(out4,2)*(100000000.0*(Fz*ag5_c*powf(_k2,2)*out1*powf(out1,2)*powf(out3,2)) + 100000000.0*(Fz*ag5_c*powf(_k2,2)*out1*powf(out2,2)*powf(out3,2)) + 100000000.0*(Fz*ag6_c*powf(_k2,2)*out2*powf(out1,2)*powf(out3,2)) + 100000000.0*(Fz*ag6_c*powf(_k2,2)*out2*powf(out2,2)*powf(out3,2)) - 100000000.0*(Fz*ag7_c*powf(_k2,2)*out3*powf(out1,2)*powf(out3,2)) - 100000000.0*(Fz*ag7_c*powf(_k2,2)*out3*powf(out2,2)*powf(out3,2)) - 100000000.0*(Fz*ag8_c*powf(_k2,2)*out4*powf(out1,2)*powf(out3,2)) - 100000000.0*(Fz*ag8_c*powf(_k2,2)*out4*powf(out2,2)*powf(out3,2)) + 70710000.0*(T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out1,2)*powf(out2,2)) + 70710000.0*(T_roll*ag5_c*powf(_k1,2)*_l_arm*out1*powf(out1,2)*powf(out3,2)) + 70710000.0*(T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out1,2)*powf(out2,2)) + 70710000.0*(T_roll*ag6_c*powf(_k1,2)*_l_arm*out2*powf(out1,2)*powf(out3,2)) + 70710000.0*(T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out1,2)*powf(out2,2)) + 70710000.0*(T_roll*ag7_c*powf(_k1,2)*_l_arm*out3*powf(out1,2)*powf(out3,2)) + 70710000.0*(T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out1,2)*powf(out2,2)) + 70710000.0*(T_roll*ag8_c*powf(_k1,2)*_l_arm*out4*powf(out1,2)*powf(out3,2)) + 49999041.0*(Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out1,2)*powf(out2,2)) + 49999041.0*(Fz*ag5_c*powf(_k1,2)*powf(_l_arm,2)*out1*powf(out1,2)*powf(out3,2)) - 49999041.0*(Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out1,2)*powf(out2,2)) - 49999041.0*(Fz*ag6_c*powf(_k1,2)*powf(_l_arm,2)*out2*powf(out1,2)*powf(out3,2)) - 49999041.0*(Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out1,2)*powf(out2,2)) - 49999041.0*(Fz*ag7_c*powf(_k1,2)*powf(_l_arm,2)*out3*powf(out1,2)*powf(out3,2)) + 49999041.0*(Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out1,2)*powf(out2,2)) + 49999041.0*(Fz*ag8_c*powf(_k1,2)*powf(_l_arm,2)*out4*powf(out1,2)*powf(out3,2)) - 100000000.0*(T_yaw*ag5_c*_k1*_k2*out1*powf(out1,2)*powf(out3,2)) - 100000000.0*(T_yaw*ag5_c*_k1*_k2*out1*powf(out2,2)*powf(out3,2)) - 100000000.0*(T_yaw*ag6_c*_k1*_k2*out2*powf(out1,2)*powf(out3,2)) - 100000000.0*(T_yaw*ag6_c*_k1*_k2*out2*powf(out2,2)*powf(out3,2)) - 100000000.0*(T_yaw*ag7_c*_k1*_k2*out3*powf(out1,2)*powf(out3,2)) - 100000000.0*(T_yaw*ag7_c*_k1*_k2*out3*powf(out2,2)*powf(out3,2)) - 100000000.0*(T_yaw*ag8_c*_k1*_k2*out4*powf(out1,2)*powf(out3,2)) - 100000000.0*(T_yaw*ag8_c*_k1*_k2*out4*powf(out2,2)*powf(out3,2)) + 70710000.0*(Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out1,2)*powf(out2,2)) + 70710000.0*(Fx*ag5_c*_k1*_k2*_l_arm*out1*powf(out2,2)*powf(out3,2)) + 70710000.0*(Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out1,2)*powf(out2,2)) + 70710000.0*(Fx*ag6_c*_k1*_k2*_l_arm*out2*powf(out2,2)*powf(out3,2)) + 70710000.0*(Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out1,2)*powf(out2,2)) + 70710000.0*(Fx*ag7_c*_k1*_k2*_l_arm*out3*powf(out2,2)*powf(out3,2)) + 70710000.0*(Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out1,2)*powf(out2,2) + 70710000.0*(Fx*ag8_c*_k1*_k2*_l_arm*out4*powf(out2,2)*powf(out3,2))))/141420000.0)/(powf(_k1,2)*_k2*_l_arm*out4*(powf(out1,2)*powf(out2,2)*powf(out3,2) + powf(out1,2)*powf(out2,2)*powf(out4,2) + powf(out1,2)*powf(out3,2)*powf(out4,2) + powf(out2,2)*powf(out3,2)*powf(out4,2))*(ag5_c*out1 + ag6_c*out2 + ag7_c*out3 + ag8_c*out4));
+
+//        //            arcsin1 = 0;
+//                    arcsin2 = 0;
+//                    arcsin3 = 0;
+//                    arcsin4 = 0;
+
+        }else{
+            // Aqui não será calculado os ângulos dos servos.
+            ///////////////////////////////////////////////////////////////////////
+            /// Primeira parte do processo
+            ///////////////////////////////////////////////////////////////////////
+            // Obtendo os PWMs dos motores considerando somente Fz e Torque de Arfagem.
+            out1 =  (pow(ag5_c,2)*(10000.0*T_pitch + 7071.0*Fz*_l_arm))/(14142.0*ag5_c*_k1*_l_arm*((ag5_c*ag5_c) + pow(ag7_c,2)));
+            out2 = -(pow(ag6_c,2)*(10000.0*T_pitch - 7071.0*Fz*_l_arm))/(14142.0*ag6_c*_k1*_l_arm*((ag6_c*ag6_c) + pow(ag8_c,2)));
+            out3 =  (pow(ag7_c,2)*(10000.0*T_pitch + 7071.0*Fz*_l_arm))/(14142.0*ag7_c*_k1*_l_arm*((ag5_c*ag5_c) + pow(ag7_c,2)));
+            out4 = -(pow(ag8_c,2)*(10000.0*T_pitch - 7071.0*Fz*_l_arm))/(14142.0*ag8_c*_k1*_l_arm*((ag6_c*ag6_c) + pow(ag8_c,2)));
+
+            arcsin1 = _lastSrv5;
+            arcsin2 = _lastSrv6;
+            arcsin3 = _lastSrv7;
+            arcsin4 = _lastSrv8;
+
+//            arcsin1 = 0;
+//            arcsin2 = 0;
+//            arcsin3 = 0;
+//            arcsin4 = 0;
+        }
 
         // Obtendo os ângulos de inclinação dos servos.
-//        srv5    = asinf(arcsin1);
-//        srv6    = asinf(arcsin2);
-//        srv7    = asinf(arcsin3);
-//        srv8    = asinf(arcsin4);
+//        srv5    = asin(arcsin1);
+//        srv6    = asin(arcsin2);
+//        srv7    = asin(arcsin3);
+//        srv8    = asin(arcsin4);
 
         // Aproximação para pequenos ângulos.
         srv5    = arcsin1;
@@ -768,10 +840,10 @@ void AP_MotorsMatrix::tilt_angle_full_TRUAV(float &mtr1, float &mtr2, float &mtr
     srv8 = srv8*rad2deg*1.0;
 
     // Arredondando os valores do servomotores para inteiro.
-    srv5 = roundf(srv5);
-    srv6 = roundf(srv6);
-    srv7 = roundf(srv7);
-    srv8 = roundf(srv8);
+    srv5 = round(srv5);
+    srv6 = round(srv6);
+    srv7 = round(srv7);
+    srv8 = round(srv8);
 
     // Filtro para amenizar pequenas alterações no entorno da posição atual do servomotor.
     _last2_Srv5 = _last2_Srv5*rad2deg*1.0;
@@ -784,12 +856,6 @@ void AP_MotorsMatrix::tilt_angle_full_TRUAV(float &mtr1, float &mtr2, float &mtr
     srv7 = atenuate_servomtrs(srv7, _last2_Srv7, 1.0);
     srv8 = atenuate_servomtrs(srv8, _last2_Srv8, 1.0);
 }
-
-
-
-
-
-
 
 // output_test - spin a motor at the pwm value specified
 //  motor_seq is the motor's sequence number from 1 to the number of motors on the frame

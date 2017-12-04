@@ -158,6 +158,18 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 };
 
 
+void Copter::setup_MFS()
+{
+//    srv5 = 1580.0;
+//    srv6 = 1485.0;
+//    srv7 = 1490.0;
+//    srv8 = 1600.0;
+    srv5 = 0.0;
+    srv6 = 0.0;
+    srv7 = 0.0;
+    srv8 = 0.0;
+}
+
 void Copter::setup() 
 {
     cliSerial = hal.console;
@@ -169,6 +181,9 @@ void Copter::setup()
     StorageManager::set_layout_copter();
 
     init_ardupilot();
+
+    // MURILLO
+    setup_MFS();
 
     // initialise the main loop scheduler
     scheduler.init(&scheduler_tasks[0], ARRAY_SIZE(scheduler_tasks));
@@ -242,6 +257,14 @@ void Copter::loop()
     scheduler.run(time_available > MAIN_LOOP_MICROS ? 0u : time_available);
 }
 
+// MURILLO
+void Copter::update_srv_action(float srv51, float srv61, float srv71, float srv81)
+{
+    hal.rcout->write(8, uint16_t(srv51));  // Servo 5
+    hal.rcout->write(9, uint16_t(srv61));  // Servo 6
+    hal.rcout->write(10,uint16_t(srv71)); // Servo 7
+    hal.rcout->write(11,uint16_t(srv81)); // Servo 8
+}
 
 // Main loop - 400hz
 void Copter::fast_loop()
@@ -258,8 +281,18 @@ void Copter::fast_loop()
         motors_output(Pitch_WP_Test);
     }
     else
-    {
-        motors_output();
+    {        
+        var_srv = var_srv + 1;
+        if((var_srv%8)==0)
+        {
+            motors_output(srv5, srv6, srv7, srv8, 1);
+            update_srv_action(srv5, srv6, srv7, srv8);
+            var_srv  = 0;
+        }
+    else{
+            motors_output(srv5, srv6, srv7, srv8, 2);
+            update_srv_action(srv5, srv6, srv7, srv8);
+        }
     }
 
     // run EKF state estimator (expensive)

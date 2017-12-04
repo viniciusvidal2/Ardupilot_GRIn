@@ -54,8 +54,8 @@ protected:
 
     // MURILLO
     void                output_armed_stabilizing(float &vlr_yaw);
-    void                output_armed_stabilizing(float &srv5, float &srv6, float &srv7, float &srv8);
-    void                tilt_angle_full_TRUAV(float &mtr1, float &mtr2, float &mtr3, float &mtr4, float &srv5, float &srv6, float &srv7, float &srv8, float Fx, float Fz, float T_roll, float T_pitch, float T_yaw);
+    void                output_armed_stabilizing(double &srv5, double &srv6, double &srv7, double &srv8, int tp);
+    void                tilt_angle_full_TRUAV(int tp, double &mtr1, double &mtr2, double &mtr3, double &mtr4, double &srv5, double &srv6, double &srv7, double &srv8, double Fx, double Fz, double T_roll, double T_pitch, double T_yaw);
 
     // add_motor using raw roll, pitch, throttle and yaw factors
     void                add_motor_raw(int8_t motor_num, float roll_fac, float pitch_fac, float yaw_fac, uint8_t testing_order);

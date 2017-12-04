@@ -43,6 +43,7 @@ public:
     //  MURILLO //
     // output - sends commands to the motors
     virtual void        output(uint16_t pitch_WP);
+    virtual void        output(float &srv5, float &srv6, float &srv7, float &srv8, int tp);
 
     // output - sends commands to the motors
     virtual void        output();
@@ -137,10 +138,10 @@ protected:
 
     // MURILLO
     // Normaliza canal do pitch
-    float               norm_Pitch_Channel();
+    double norm_Pitch_Channel();
 
     // Atenuando oscilações dos servos com variação<mod.
-    float               atenuate_servomtrs(float vlr, float last_vlr, float mod);
+    double atenuate_servomtrs(double vlr, double last_vlr, float mod);
 
     // update the throttle input filter
     virtual void        update_throttle_filter();
