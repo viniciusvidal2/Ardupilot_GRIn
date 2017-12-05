@@ -20,7 +20,12 @@
  */
 
 #include "AP_MotorsMulticopter.h"
-#include <AP_HAL/AP_HAL.h>
+//#include <AP_HAL/AP_HAL.h>
+
+#include "../AP_HAL/AP_HAL.h"
+
+// MURILLO //
+//#include "Copter.h"
 
 extern const AP_HAL::HAL& hal;
 
@@ -202,8 +207,250 @@ AP_MotorsMulticopter::AP_MotorsMulticopter(uint16_t loop_rate, uint16_t speed_hz
     _throttle_radio_max = 1900;
 };
 
+///////////////////////
+// MURILLO //
+///////////////////////
+float AP_MotorsMulticopter::tilt_angle_Vx()
+{
+    float aux;
+    uint16_t chn_tilt_read;
+
+    // O canal 1 é o canal do pitch.
+    // O canal 2 é o canal do throttle.
+    chn_tilt_read = hal.rcin->read(1);
+
+    aux = (_min_chn_Pitch - (float)(chn_tilt_read))*_sat_servo_angle;
+    return aux;
+}
+
+///////////////////////
+// MURILLO //
+///////////////////////
+float AP_MotorsMulticopter::tilt_rate_Yaw()
+{
+    float aux;
+    uint16_t chn_tilt_read, chn_thr_read;
+
+    // O canal 1 é o canal do pitch.
+    // O canal 2 é o canal do throttle.
+    chn_tilt_read = hal.rcin->read(3);
+    chn_thr_read  = hal.rcin->read(2);
+
+    // Conferindo se o canal de throttle está no mínimo para não executar comandos de yaw por tilt dos servos.
+    if (chn_thr_read<=1150){
+        chn_tilt_read = _mid_chn_Pitch;
+    }
+
+    aux = (_mid_chn_Pitch - (float)(chn_tilt_read))*_sat_servo_angle;
+    return aux;
+}
+
+///////////////////////
+// MURILLO //
+///////////////////////
+float AP_MotorsMulticopter::norm_Pitch_Channel()
+{
+    float vlr, norm;
+
+    vlr = hal.rcin->read(1);
+
+    // Checking if Pitch Channel is turned off.
+    if(vlr<800.0){
+        norm = 0.0;
+    }else{
+        norm = _reversePitch*(_mid_chn_Pitch - vlr)/(_mid_chn_Pitch - _min_chn_Pitch);
+    }
+
+    return norm;
+}
+
+///////////////////////
+// MURILLO //
+///////////////////////
+float AP_MotorsMulticopter::atenuate_servomtrs(float vlr, float last_vlr, float mod)
+{
+    float new_vlr;
+
+    if((abs(vlr)-abs(last_vlr))<mod){
+        new_vlr = last_vlr;
+    }else{
+        new_vlr = vlr;
+    }
+
+    return new_vlr;
+}
+
+///////////////////////
+// MURILLO //
+///////////////////////
+void AP_MotorsMulticopter::load_external_parameters()
+{
+    //////////////////////////
+    // MURILLO
+    //////////////////////////
+    // Servomotor positions in TRUAV frame
+    //     7         5
+    //          x
+    //     6         8
+    // Configurando os comandos PWM que mantém os servos parados no meio do curso possível.
+    _mid_srv5 = 1580;   //1515    1535    1585
+    _mid_srv6 = 1485;   //1485
+    _mid_srv7 = 1490;   //1490
+    _mid_srv8 = 1600;   //1600
+
+    // Valor PWM do canal PITCH.
+    _min_chn_Pitch = 1108;
+    _max_chn_Pitch = 1928;
+
+    // Variáveis que comandam se alguns canais estão reverso.
+    _reversePitch = 1;
+    _reverseYaw   = 1;
+
+    // Constante de propulsão e torque reativo para a guinada.
+//    _k1 = 4.9033;
+    _k1 = 6.8647;
+    _k2 = _k1/50;
+
+    // Últimos valores calculados dos servos
+    _lastSrv5 = 0.0;
+    _lastSrv6 = 0.0;
+    _lastSrv7 = 0.0;
+    _lastSrv8 = 0.0;
+
+    // Comprimento do braço de alavanca.
+    _l_arm = 0.15;
+
+    // Valor PWM do canal PITCH.
+    _mid_chn_Pitch = _min_chn_Pitch + (_max_chn_Pitch - _min_chn_Pitch)/2.0;
+
+    // Saturação do curso possível dos servos.
+    _sat_servo_angle = 45;
+    _sat_servo_angle = _sat_servo_angle/100;
+}
+
+///////////////////////
+// MURILLO //
+///////////////////////
+// output - sends commands to the motors
+//void AP_MotorsMulticopter::output(uint16_t pitch_WP)
+//{
+//    float vlr;
+//    // Declarando as variáveis com os sinais PWMs a serem enviados para os servos.
+//    uint16_t srv5, srv6, srv7, srv8;
+
+//    // update throttle filter
+//    update_throttle_filter();
+
+//    // calc filtered battery voltage and lift_max
+//    update_lift_max_from_batt_voltage();
+
+//    // run spool logic
+//    output_logic();
+
+//    // calculate thrust
+//    output_armed_stabilizing();
+
+//    // apply any thrust compensation for the frame
+//    thrust_compensation();
+
+//    // MURILLO
+//    if(armed()==1){
+//        // Chamando o módulo que calcula o sinal PWM a ser enviado para os servos.
+////        vlr  = tilt_angle_Vx();
+//        vlr = pitch_WP;
+//        vlr = (_mid_chn_Pitch - vlr)*_sat_servo_angle;
+
+//        // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
+//        srv5 = (uint16_t)((float)(_mid_srv5) - vlr);
+//        srv6 = (uint16_t)((float)(_mid_srv6) + vlr);
+//        srv7 = (uint16_t)((float)(_mid_srv7) + vlr);
+//        srv8 = (uint16_t)((float)(_mid_srv8) - vlr);
+
+//        // convert rpy_thrust values to pwm
+//        output_to_motors(srv5, srv6, srv7, srv8);
+//    }else{
+//        load_external_parameters();
+//        // convert rpy_thrust values to pwm
+//        output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+//    }
+
+//    // output any booster throttle
+//    output_boost_throttle();
+//};
+
+///////////////////////
+// MURILLO //
+///////////////////////
 // output - sends commands to the motors
 void AP_MotorsMulticopter::output()
+{
+//    float vlr_yaw, vlr_pitch;
+    // Declarando as variáveis com os sinais PWMs a serem enviados para os servos.
+    //float srv5=0.0, srv6=0.0, srv7=0.0, srv8=0.0;
+
+    // update throttle filter
+    update_throttle_filter();
+
+    // calc filtered battery voltage and lift_max
+    update_lift_max_from_batt_voltage();
+
+    // run spool logic
+    output_logic();
+
+    // MURILLO
+    // Nesta parte aqui, as ações do controle de guinada atuam diretamente nos servos
+    // Chamando o módulo que calcula o sinal PWM a ser enviado para os servos.
+//    vlr_pitch  = tilt_angle_Vx();
+//    vlr_yaw    = tilt_rate_Yaw();
+
+    // calculate thrust
+    //output_armed_stabilizing(vlr_yaw);
+
+    // Servomotor positions in TRUAV frame
+    //     7         5
+    //          x
+    //     6         8
+    //output_armed_stabilizing(srv5, srv6, srv7, srv8);
+    output_armed_stabilizing();
+
+    // apply any thrust compensation for the frame
+    thrust_compensation();
+
+//    // MURILLO
+//    if(armed()==1){
+//        // O próximo teste verifica se o throttle tá no mínimo. Isto faz zerar os valores se saturar as variáveis alguma vez depois de armado.
+//        if((hal.rcin->read(2))>1200){
+//            // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
+//            srv5 = (uint16_t)((float)(_mid_srv5) - srv5*3*_sat_servo_angle);  // Servo azul
+//            srv6 = (uint16_t)((float)(_mid_srv6) + srv6*_sat_servo_angle);
+//            srv7 = (uint16_t)((float)(_mid_srv7) + srv7*_sat_servo_angle);
+//            srv8 = (uint16_t)((float)(_mid_srv8) - srv8*_sat_servo_angle);
+
+//            // convert rpy_thrust values to pwm
+//            output_to_motors(srv5, srv6, srv7, srv8);
+//            // output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+//        }else{
+//            load_external_parameters();
+//            // convert rpy_thrust values to pwm
+//            output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+//        }
+//    }else{
+//        load_external_parameters();
+//        // convert rpy_thrust values to pwm
+//        output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+//    }
+
+    output_to_motors();
+
+    // output any booster throttle
+    output_boost_throttle();
+}
+
+///////////////////////
+// MURILLO //
+///////////////////////
+// output - sends commands to the motors
+void AP_MotorsMulticopter::output(float &srv5, float &srv6, float &srv7, float &srv8)
 {
     // update throttle filter
     update_throttle_filter();
@@ -214,18 +461,115 @@ void AP_MotorsMulticopter::output()
     // run spool logic
     output_logic();
 
+    // MURILLO
+    // Nesta parte aqui, as ações do controle de guinada atuam diretamente nos servos
+    // Chamando o módulo que calcula o sinal PWM a ser enviado para os servos.
+//    vlr_pitch  = tilt_angle_Vx();
+//    vlr_yaw    = tilt_rate_Yaw();
+
     // calculate thrust
-    output_armed_stabilizing();
+    //output_armed_stabilizing(vlr_yaw);
+
+    // Servomotor positions in TRUAV frame
+    //     7         5
+    //          x
+    //     6         8
+    output_armed_stabilizing(srv5, srv6, srv7, srv8);
+//    output_armed_stabilizing();
 
     // apply any thrust compensation for the frame
     thrust_compensation();
-    
-    // convert rpy_thrust values to pwm
-    output_to_motors();
+
+    // MURILLO
+    if(armed()==1){
+        // O próximo teste verifica se o throttle tá no mínimo. Isto faz zerar os valores se saturar as variáveis alguma vez depois de armado.
+        if((hal.rcin->read(2))>1200){
+            // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
+            srv5 = (float)(_mid_srv5) - srv5*3*_sat_servo_angle;  // Servo azul
+            srv6 = (float)(_mid_srv6) + srv6*_sat_servo_angle;
+            srv7 = (float)(_mid_srv7) + srv7*_sat_servo_angle;
+            srv8 = (float)(_mid_srv8) - srv8*_sat_servo_angle;
+
+            // convert rpy_thrust values to pwm
+            output_to_motors();
+            // output_to_motors(srv5, srv6, srv7, srv8);
+            // output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+        }else{
+            load_external_parameters();
+            srv5 = (float)(_mid_srv5);
+            srv6 = (float)(_mid_srv6);
+            srv7 = (float)(_mid_srv7);
+            srv8 = (float)(_mid_srv8);
+            // convert rpy_thrust values to pwm
+            output_to_motors();
+            // output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+        }
+    }else{
+        load_external_parameters();
+        srv5 = (float)(_mid_srv5);
+        srv6 = (float)(_mid_srv6);
+        srv7 = (float)(_mid_srv7);
+        srv8 = (float)(_mid_srv8);
+        // convert rpy_thrust values to pwm
+        output_to_motors();
+        // output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+    }
 
     // output any booster throttle
     output_boost_throttle();
-};
+}
+
+///////////////////////
+// MURILLO //
+///////////////////////
+// output - sends commands to the motors
+void AP_MotorsMulticopter::output(uint16_t pitch_WP)
+{
+    float vlr_yaw, vlr_pitch;
+    // Declarando as variáveis com os sinais PWMs a serem enviados para os servos.
+    uint16_t srv5, srv6, srv7, srv8;
+
+    // update throttle filter
+    update_throttle_filter();
+
+    // calc filtered battery voltage and lift_max
+    update_lift_max_from_batt_voltage();
+
+    // run spool logic
+    output_logic();
+
+    // MURILLO
+    // Nesta parte aqui, as ações do controle de guinada atuam diretamente nos servos
+    // Chamando o módulo que calcula o sinal PWM a ser enviado para os servos.
+//    vlr_yaw    = tilt_rate_Yaw();
+
+    // calculate thrust
+    output_armed_stabilizing(vlr_yaw);
+
+    // apply any thrust compensation for the frame
+    thrust_compensation();
+
+    // MURILLO
+    if(armed()==1){
+        vlr_pitch = pitch_WP;
+        vlr_pitch = (_mid_chn_Pitch - vlr_pitch)*_sat_servo_angle;
+        // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
+        srv5 = (uint16_t)((float)(_mid_srv5) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle); // 350 dá certo
+        srv6 = (uint16_t)((float)(_mid_srv6) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
+        srv7 = (uint16_t)((float)(_mid_srv7) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
+        srv8 = (uint16_t)((float)(_mid_srv8) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
+
+        // convert rpy_thrust values to pwm
+        output_to_motors(srv5, srv6, srv7, srv8);
+    }else{
+        load_external_parameters();
+        // convert rpy_thrust values to pwm
+        output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+    }
+
+    // output any booster throttle
+    output_boost_throttle();
+}
 
 // output booster throttle, if any
 void AP_MotorsMulticopter::output_boost_throttle(void)
@@ -235,7 +579,6 @@ void AP_MotorsMulticopter::output_boost_throttle(void)
         SRV_Channels::set_output_scaled(SRV_Channel::k_boost_throttle, throttle*1000);        
     }
 }
-    
 
 // sends minimum values out to the motors
 void AP_MotorsMulticopter::output_min()
@@ -244,6 +587,15 @@ void AP_MotorsMulticopter::output_min()
     _spool_mode = SHUT_DOWN;
     output();
 }
+
+//// MURILLO
+//// sends minimum values out to the motors
+//void AP_MotorsMulticopter::output_min(uint32_t vlr_1)
+//{
+//    set_desired_spool_state(DESIRED_SHUT_DOWN);
+//    _spool_mode = SHUT_DOWN;
+//    output();
+//}
 
 // update the throttle input filter
 void AP_MotorsMulticopter::update_throttle_filter()

@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <AP_HAL/AP_HAL.h>
+#include "../libraries/AP_HAL/AP_HAL.h"
 
 // Common dependencies
 #include <AP_Common/AP_Common.h>
@@ -172,7 +172,9 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
-    uint32_t teste_wp = 233;
+    uint16_t Pitch_WP_Test;
+    float srv5, srv6, srv7, srv8;
+    int var_srv;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -1027,6 +1029,13 @@ private:
     bool init_arm_motors(bool arming_from_gcs);
     void init_disarm_motors();
     void motors_output();
+
+    //Murillo
+    void motors_output(float &srv51, float &srv61, float &srv71, float &srv81);
+    void motors_output(uint16_t pitch_WP);
+    void update_srv_action(float srv51, float srv61, float srv71, float srv81);
+    void setup_MFS();
+
     void lost_vehicle_check();
     void run_nav_updates(void);
     void calc_distance_and_bearing();

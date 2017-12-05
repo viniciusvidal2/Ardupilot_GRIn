@@ -40,6 +40,10 @@ public:
     // output_to_motors - sends minimum values out to the motors
     void                output_to_motors();
 
+    // MURILLO
+    // output_to_motors - sends minimum values out to the motors
+    void                output_to_motors(int srv_5, int srv_6, int srv_7, int srv_8);
+
     // get_motor_mask - returns a bitmask of which outputs are being used for motors (1 means being used)
     //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
     uint16_t            get_motor_mask();
@@ -47,6 +51,11 @@ public:
 protected:
     // output - sends commands to the motors
     void                output_armed_stabilizing();
+
+    // MURILLO
+    void                output_armed_stabilizing(float &vlr_yaw);
+    void                output_armed_stabilizing(float &srv5, float &srv6, float &srv7, float &srv8);
+    void                tilt_angle_full_TRUAV(float &mtr1, float &mtr2, float &mtr3, float &mtr4, float &srv5, float &srv6, float &srv7, float &srv8, float Fx, float Fz, float T_roll, float T_pitch, float T_yaw);
 
     // add_motor using raw roll, pitch, throttle and yaw factors
     void                add_motor_raw(int8_t motor_num, float roll_fac, float pitch_fac, float yaw_fac, uint8_t testing_order);
