@@ -450,7 +450,7 @@ void AP_MotorsMulticopter::output()
 // MURILLO //
 ///////////////////////
 // output - sends commands to the motors
-void AP_MotorsMulticopter::output(float &srv5, float &srv6, float &srv7, float &srv8)
+void AP_MotorsMulticopter::output(double &srv5, double &srv6, double &srv7, double &srv8)
 {
     // update throttle filter
     update_throttle_filter();
@@ -474,47 +474,58 @@ void AP_MotorsMulticopter::output(float &srv5, float &srv6, float &srv7, float &
     //     7         5
     //          x
     //     6         8
-    output_armed_stabilizing(srv5, srv6, srv7, srv8);
-//    output_armed_stabilizing();
+//    output_armed_stabilizing(srv5, srv6, srv7, srv8);
+    output_armed_stabilizing();
 
     // apply any thrust compensation for the frame
     thrust_compensation();
 
-    // MURILLO
+//    // MURILLO
     if(armed()==1){
-        // O próximo teste verifica se o throttle tá no mínimo. Isto faz zerar os valores se saturar as variáveis alguma vez depois de armado.
-        if((hal.rcin->read(2))>1200){
-            // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
-            srv5 = (float)(_mid_srv5) - srv5*3*_sat_servo_angle;  // Servo azul
-            srv6 = (float)(_mid_srv6) + srv6*_sat_servo_angle;
-            srv7 = (float)(_mid_srv7) + srv7*_sat_servo_angle;
-            srv8 = (float)(_mid_srv8) - srv8*_sat_servo_angle;
+//        // O próximo teste verifica se o throttle tá no mínimo. Isto faz zerar os valores se saturar as variáveis alguma vez depois de armado.
+//        if((hal.rcin->read(2))>1200){
+//            // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
+//            srv5 = (float)(_mid_srv5) - srv5*3*_sat_servo_angle;  // Servo azul
+//            srv6 = (float)(_mid_srv6) + srv6*_sat_servo_angle;
+//            srv7 = (float)(_mid_srv7) + srv7*_sat_servo_angle;
+//            srv8 = (float)(_mid_srv8) - srv8*_sat_servo_angle;
 
-            // convert rpy_thrust values to pwm
-            output_to_motors();
-            // output_to_motors(srv5, srv6, srv7, srv8);
-            // output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
-        }else{
-            load_external_parameters();
-            srv5 = (float)(_mid_srv5);
-            srv6 = (float)(_mid_srv6);
-            srv7 = (float)(_mid_srv7);
-            srv8 = (float)(_mid_srv8);
-            // convert rpy_thrust values to pwm
-            output_to_motors();
-            // output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
-        }
-    }else{
-        load_external_parameters();
-        srv5 = (float)(_mid_srv5);
-        srv6 = (float)(_mid_srv6);
-        srv7 = (float)(_mid_srv7);
-        srv8 = (float)(_mid_srv8);
-        // convert rpy_thrust values to pwm
-        output_to_motors();
+//            // convert rpy_thrust values to pwm
+//            output_to_motors();
+//            // output_to_motors(srv5, srv6, srv7, srv8);
+//            // output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+//        }else{
+//            load_external_parameters();
+//            srv5 = (float)(_mid_srv5);
+//            srv6 = (float)(_mid_srv6);
+//            srv7 = (float)(_mid_srv7);
+//            srv8 = (float)(_mid_srv8);
+//            // convert rpy_thrust values to pwm
+//            output_to_motors();
+//            // output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+//        }
+//    }else{
+//        load_external_parameters();
+//        srv5 = (float)(_mid_srv5);
+//        srv6 = (float)(_mid_srv6);
+//        srv7 = (float)(_mid_srv7);
+//        srv8 = (float)(_mid_srv8);
+//        // convert rpy_thrust values to pwm
+
+        srv5 = 450;
+        srv6 = 450;
+        srv7 = 450;
+        srv8 = 450;
+//        output_to_motors();
         // output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+    }else{
+        srv5 = 0;
+        srv6 = 0;
+        srv7 = 0;
+        srv8 = 0;
     }
-
+    // convert rpy_thrust values to pwm
+    output_to_motors();
     // output any booster throttle
     output_boost_throttle();
 }

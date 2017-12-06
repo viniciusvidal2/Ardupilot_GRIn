@@ -43,7 +43,7 @@ public:
     //  MURILLO //
     // output - sends commands to the motors
     virtual void        output(uint16_t pitch_WP);
-    virtual void        output(float &srv5, float &srv6, float &srv7, float &srv8);
+    virtual void        output(double &srv5, double &srv6, double &srv7, double &srv8);
 
     // output - sends commands to the motors
     virtual void        output();

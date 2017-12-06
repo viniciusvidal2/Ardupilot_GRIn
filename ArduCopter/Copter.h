@@ -173,9 +173,13 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     uint16_t Pitch_WP_Test;
-    float srv5, srv6, srv7, srv8;
-    int var_srv;
-
+    uint16_t mid_srv5, mid_srv6, mid_srv7, mid_srv8;
+    uint16_t min_chn_Pitch, max_chn_Pitch;
+    uint16_t reversePitch, reverseYaw;
+    uint16_t mid_chn_Pitch;
+    uint8_t var_srv;
+    double sat_servo_angle;
+    double srv5, srv6, srv7, srv8;
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -1031,9 +1035,9 @@ private:
     void motors_output();
 
     //Murillo
-    void motors_output(float &srv51, float &srv61, float &srv71, float &srv81);
-    void motors_output(uint16_t pitch_WP);
-    void update_srv_action(float srv51, float srv61, float srv71, float srv81);
+    void motors_output(double &srv51, double &srv61, double &srv71, double &srv81);
+//    void motors_output(uint16_t pitch_WP);
+    void update_srv_action(double srv51, double srv61, double srv71, double srv81);
     void setup_MFS();
 
     void lost_vehicle_check();

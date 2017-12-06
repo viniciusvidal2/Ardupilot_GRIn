@@ -320,58 +320,58 @@ void Copter::motors_output()
     hal.rcout->push();
 }
 
-// MURILLO //
-// motors_output - send output to motors library which will adjust and send to ESCs and servos
-void Copter::motors_output(uint16_t pitch_WP)
-{
-#if ADVANCED_FAILSAFE == ENABLED
-    // this is to allow the failsafe module to deliberately crash
-    // the vehicle. Only used in extreme circumstances to meet the
-    // OBC rules
-    if (g2.afs.should_crash_vehicle()) {
-        g2.afs.terminate_vehicle();
-        return;
-    }
-#endif
+//// MURILLO //
+//// motors_output - send output to motors library which will adjust and send to ESCs and servos
+//void Copter::motors_output(uint16_t pitch_WP)
+//{
+//#if ADVANCED_FAILSAFE == ENABLED
+//    // this is to allow the failsafe module to deliberately crash
+//    // the vehicle. Only used in extreme circumstances to meet the
+//    // OBC rules
+//    if (g2.afs.should_crash_vehicle()) {
+//        g2.afs.terminate_vehicle();
+//        return;
+//    }
+//#endif
 
-    // Update arming delay state
-    if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f || control_mode == THROW)) {
-        ap.in_arming_delay = false;
-    }
+//    // Update arming delay state
+//    if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f || control_mode == THROW)) {
+//        ap.in_arming_delay = false;
+//    }
 
-    // output any servo channels
-    SRV_Channels::calc_pwm();
+//    // output any servo channels
+//    SRV_Channels::calc_pwm();
 
-    // cork now, so that all channel outputs happen at once
-    hal.rcout->cork();
+//    // cork now, so that all channel outputs happen at once
+//    hal.rcout->cork();
 
-    // update output on any aux channels, for manual passthru
-    SRV_Channels::output_ch_all();
+//    // update output on any aux channels, for manual passthru
+//    SRV_Channels::output_ch_all();
 
-    // check if we are performing the motor test
-    if (ap.motor_test) {
-        motor_test_output();
-    } else {
-        bool interlock = motors->armed() && !ap.in_arming_delay && (!ap.using_interlock || ap.motor_interlock_switch) && !ap.motor_emergency_stop;
-        if (!motors->get_interlock() && interlock) {
-            motors->set_interlock(true);
-            Log_Write_Event(DATA_MOTORS_INTERLOCK_ENABLED);
-        } else if (motors->get_interlock() && !interlock) {
-            motors->set_interlock(false);
-            Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
-        }
+//    // check if we are performing the motor test
+//    if (ap.motor_test) {
+//        motor_test_output();
+//    } else {
+//        bool interlock = motors->armed() && !ap.in_arming_delay && (!ap.using_interlock || ap.motor_interlock_switch) && !ap.motor_emergency_stop;
+//        if (!motors->get_interlock() && interlock) {
+//            motors->set_interlock(true);
+//            Log_Write_Event(DATA_MOTORS_INTERLOCK_ENABLED);
+//        } else if (motors->get_interlock() && !interlock) {
+//            motors->set_interlock(false);
+//            Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
+//        }
 
-        // send output signals to motors
-        motors->output(pitch_WP);
-    }
+//        // send output signals to motors
+//        motors->output(pitch_WP);
+//    }
 
-    // push all channels
-    hal.rcout->push();
-}
+//    // push all channels
+//    hal.rcout->push();
+//}
 
 //MURILLO
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
-void Copter::motors_output(float &srv51, float &srv61, float &srv71, float &srv81)
+void Copter::motors_output(double &srv51, double &srv61, double &srv71, double &srv81)
 {
 #if ADVANCED_FAILSAFE == ENABLED
     // this is to allow the failsafe module to deliberately crash
