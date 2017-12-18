@@ -386,7 +386,8 @@ void AP_MotorsMulticopter::output()
 {
     float vlr_yaw, vlr_pitch;
     // Declarando as variáveis com os sinais PWMs a serem enviados para os servos.
-    uint16_t srv5, srv6, srv7, srv8;
+//    uint16_t srv5, srv6, srv7, srv8;
+    uint16_t srv5, srv7;
 
     // update throttle filter
     update_throttle_filter();
@@ -413,12 +414,12 @@ void AP_MotorsMulticopter::output()
     if(armed()==1){
         // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
         srv5 = (uint16_t)((float)(_mid_srv5) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle); // 350 dá certo
-        srv6 = (uint16_t)((float)(_mid_srv6) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
+//        srv6 = (uint16_t)((float)(_mid_srv6) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
         srv7 = (uint16_t)((float)(_mid_srv7) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
-        srv8 = (uint16_t)((float)(_mid_srv8) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
+//        srv8 = (uint16_t)((float)(_mid_srv8) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
 
         // convert rpy_thrust values to pwm
-        output_to_motors(srv5, srv6, srv7, srv8);
+        output_to_motors(srv5, _mid_srv6, srv7, _mid_srv8);
     }else{
         load_external_parameters();
         // convert rpy_thrust values to pwm
