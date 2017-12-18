@@ -280,9 +280,59 @@ void AP_MotorsMulticopter::load_external_parameters()
 // MURILLO //
 ///////////////////////
 // output - sends commands to the motors
+//void AP_MotorsMulticopter::output(uint16_t pitch_WP)
+//{
+//    float vlr;
+//    // Declarando as variáveis com os sinais PWMs a serem enviados para os servos.
+//    uint16_t srv5, srv6, srv7, srv8;
+
+//    // update throttle filter
+//    update_throttle_filter();
+
+//    // calc filtered battery voltage and lift_max
+//    update_lift_max_from_batt_voltage();
+
+//    // run spool logic
+//    output_logic();
+
+//    // calculate thrust
+//    output_armed_stabilizing();
+
+//    // apply any thrust compensation for the frame
+//    thrust_compensation();
+
+//    // MURILLO
+//    if(armed()==1){
+//        // Chamando o módulo que calcula o sinal PWM a ser enviado para os servos.
+////        vlr  = tilt_angle_Vx();
+//        vlr = pitch_WP;
+//        vlr = (_mid_chn - vlr)*_sat_servo_angle;
+
+//        // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
+//        srv5 = (uint16_t)((float)(_mid_srv5) - vlr);
+//        srv6 = (uint16_t)((float)(_mid_srv6) + vlr);
+//        srv7 = (uint16_t)((float)(_mid_srv7) + vlr);
+//        srv8 = (uint16_t)((float)(_mid_srv8) - vlr);
+
+//        // convert rpy_thrust values to pwm
+//        output_to_motors(srv5, srv6, srv7, srv8);
+//    }else{
+//        load_external_parameters();
+//        // convert rpy_thrust values to pwm
+//        output_to_motors(_mid_srv5, _mid_srv6, _mid_srv7, _mid_srv8);
+//    }
+
+//    // output any booster throttle
+//    output_boost_throttle();
+//};
+
+///////////////////////
+// MURILLO //
+///////////////////////
+// output - sends commands to the motors
 void AP_MotorsMulticopter::output(uint16_t pitch_WP)
 {
-    float vlr;
+    float vlr_yaw, vlr_pitch;
     // Declarando as variáveis com os sinais PWMs a serem enviados para os servos.
     uint16_t srv5, srv6, srv7, srv8;
 
@@ -295,24 +345,26 @@ void AP_MotorsMulticopter::output(uint16_t pitch_WP)
     // run spool logic
     output_logic();
 
+    // MURILLO
+    // Nesta parte aqui, as ações do controle de guinada atuam diretamente nos servos
+    // Chamando o módulo que calcula o sinal PWM a ser enviado para os servos.
+//    vlr_yaw    = tilt_rate_Yaw();
+
     // calculate thrust
-    output_armed_stabilizing();
+    output_armed_stabilizing(vlr_yaw);
 
     // apply any thrust compensation for the frame
     thrust_compensation();
 
     // MURILLO
     if(armed()==1){
-        // Chamando o módulo que calcula o sinal PWM a ser enviado para os servos.
-//        vlr  = tilt_angle_Vx();
-        vlr = pitch_WP;
-        vlr = (_mid_chn - vlr)*_sat_servo_angle;
-
+        vlr_pitch = pitch_WP;
+        vlr_pitch = (_mid_chn - vlr_pitch)*_sat_servo_angle;
         // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
-        srv5 = (uint16_t)((float)(_mid_srv5) - vlr);
-        srv6 = (uint16_t)((float)(_mid_srv6) + vlr);
-        srv7 = (uint16_t)((float)(_mid_srv7) + vlr);
-        srv8 = (uint16_t)((float)(_mid_srv8) - vlr);
+        srv5 = (uint16_t)((float)(_mid_srv5) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle); // 350 dá certo
+        srv6 = (uint16_t)((float)(_mid_srv6) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
+        srv7 = (uint16_t)((float)(_mid_srv7) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
+        srv8 = (uint16_t)((float)(_mid_srv8) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
 
         // convert rpy_thrust values to pwm
         output_to_motors(srv5, srv6, srv7, srv8);
