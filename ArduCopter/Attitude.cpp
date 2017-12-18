@@ -63,7 +63,7 @@ float Copter::get_pilot_desired_yaw_rate(int16_t stick_angle)
         if (yaw_request<20 && yaw_request>-20){
             yaw_request = 0;
         }else{
-            yaw_request = yaw_request*8;//g.acro_yaw_p;
+            yaw_request = yaw_request*10;//g.acro_yaw_p;
         }
 
 //        // yaw expo

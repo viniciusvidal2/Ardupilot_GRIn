@@ -254,7 +254,7 @@ void AP_MotorsMulticopter::load_external_parameters()
     // MURILLO
     //////////////////////////
     // Configurando os comandos PWM que mantém os servos parados no meio do curso possível.
-    _mid_srv5 = 1515;
+    _mid_srv5 = 1515;    // 1515
     _mid_srv6 = 1485;
     _mid_srv7 = 1490;
     _mid_srv8 = 1600;
@@ -266,7 +266,6 @@ void AP_MotorsMulticopter::load_external_parameters()
     // Variáveis que comandam se alguns canais estão reverso.
     _reversePitch = 1;
     _reverseYaw   = 1;
-
 
     // Valor PWM do canal PITCH.
     _mid_chn = min_chn + (max_chn - min_chn)/2;
