@@ -4,6 +4,10 @@
 
 #include "AP_Motors_Class.h"
 
+#define sqrt_2 1.4142f
+#define rad2deg   57.2958f
+#define deg2rad    0.0175f
+
 #ifndef AP_MOTORS_DENSITY_COMP
 #define AP_MOTORS_DENSITY_COMP 1
 #endif
@@ -48,7 +52,7 @@ public:
 
 //    // MURILLO
 //    // output_min - sends minimum values out to the motors
-//    void                output_min(uint32_t vlr_1);
+//    void                output_min(uint32_t vlr_1);    
 
     // set_yaw_headroom - set yaw headroom (yaw is given at least this amount of pwm)
     void                set_yaw_headroom(int16_t pwm) { _yaw_headroom = pwm; }
@@ -131,6 +135,13 @@ protected:
     // Parâmetros externos ao programa para os servos.
     void                load_external_parameters();
 
+    // MURILLO
+    // Normaliza canal do pitch
+    float               norm_Pitch_Channel();
+
+    // Atenuando oscilações dos servos com variação<mod.
+    float               atenuate_servomtrs(float vlr, float last_vlr, float mod);
+
     // update the throttle input filter
     virtual void        update_throttle_filter();
 
@@ -204,14 +215,15 @@ protected:
     int _mid_srv5;
     int _mid_srv6;
     int _mid_srv7;
-    int _mid_srv8;
+    int _mid_srv8;    
+    int _min_chn_Pitch;
+    int _max_chn_Pitch;
 
     int _reversePitch;
     int _reverseYaw;
 
     //uint16_t _chn_tilt_read;
-
-    float _mid_chn;
+    float _mid_chn_Pitch;
 
     float _sat_servo_angle;
 

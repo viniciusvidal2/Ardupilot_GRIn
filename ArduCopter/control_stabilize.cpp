@@ -47,19 +47,13 @@ void Copter::stabilize_run()
     // MURILLO //
     //////////////////////////////
 //    get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, aparm.angle_max);
-    if(hal.rcin->read(6)>1500){ // Marcado de E no rádio controle
-        get_pilot_desired_lean_angles(3000, 0, target_roll, target_pitch, aparm.angle_max); // SP = roll centigraus
-        target_yaw_rate = get_pilot_desired_yaw_rate(1500);     // SP = yaw spedd centigraus/seg
-    }else{
-        get_pilot_desired_lean_angles(channel_roll->get_control_in(), 0, target_roll, target_pitch, aparm.angle_max);
-        target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
-    }
+    get_pilot_desired_lean_angles(channel_roll->get_control_in(), 0, target_roll, target_pitch, aparm.angle_max);
 
     // get pilot's desired yaw rate
     //////////////////////////////
     // MURILLO //
     //////////////////////////////
-//    target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
+    target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
 //    target_yaw_rate = get_pilot_desired_yaw_rate(0);
 
     // get pilot's desired throttle

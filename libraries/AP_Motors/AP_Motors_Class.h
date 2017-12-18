@@ -177,6 +177,7 @@ protected:
 
     // MURILLO
     virtual void        output_armed_stabilizing(float &vlr_yaw)=0;
+    virtual void        output_armed_stabilizing(float &srv5, float &srv6, float &srv7, float &srv8)=0;
 
     // add a motor to the motor map
     void add_motor_num(int8_t motor_num);
@@ -212,6 +213,19 @@ protected:
     float               _throttle_avg_max;          // last throttle input from set_throttle_avg_max
     LowPassFilterFloat  _throttle_filter;           // throttle input filter
     spool_up_down_desired _spool_desired;           // desired spool state
+
+    // MURILLO
+    float _lastSrv5;
+    float _lastSrv6;
+    float _lastSrv7;
+    float _lastSrv8;
+    float _k1;
+    float _k2;
+    float _l_arm;
+    float _last2_Srv5;
+    float _last2_Srv6;
+    float _last2_Srv7;
+    float _last2_Srv8;
 
     // battery voltage, current and air pressure compensation variables
     float               _batt_voltage;          // latest battery voltage reading
