@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "../libraries/AP_HAL/AP_HAL.h"
+#include <AP_HAL/AP_HAL.h>
 
 // Common dependencies
 #include <AP_Common/AP_Common.h>
@@ -173,13 +173,7 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     uint16_t Pitch_WP_Test;
-    uint16_t mid_srv5, mid_srv6, mid_srv7, mid_srv8;
-    uint16_t min_chn_Pitch, max_chn_Pitch;
-    uint16_t reversePitch, reverseYaw;
-    uint16_t mid_chn_Pitch;
-    uint8_t var_srv;
-    double sat_servo_angle;
-    double srv5, srv6, srv7, srv8;
+
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -1032,14 +1026,8 @@ private:
     void auto_disarm_check();
     bool init_arm_motors(bool arming_from_gcs);
     void init_disarm_motors();
+    void motors_output(uint16_t pitch_WP);
     void motors_output();
-
-    //Murillo
-    void motors_output(double &srv51, double &srv61, double &srv71, double &srv81);
-//    void motors_output(uint16_t pitch_WP);
-    void update_srv_action(double srv51, double srv61, double srv71, double srv81);
-    void setup_MFS();
-
     void lost_vehicle_check();
     void run_nav_updates(void);
     void calc_distance_and_bearing();

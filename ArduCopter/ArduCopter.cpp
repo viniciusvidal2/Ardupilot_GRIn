@@ -158,39 +158,6 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 };
 
 
-void Copter::setup_MFS()
-{
-    // Servomotor positions in TRUAV frame
-    //     7         5
-    //          x
-    //     6         8
-    mid_srv5 = 1615;
-    mid_srv6 = 1485;
-    mid_srv7 = 1490;
-    mid_srv8 = 1600;
-
-    srv5 = 0;
-    srv6 = 0;
-    srv7 = 0;
-    srv8 = 0;
-
-    // Valor PWM do canal PITCH.
-    min_chn_Pitch = 1108;
-    max_chn_Pitch = 1928;
-
-    // Variáveis que comandam se alguns canais estão reverso.
-    reversePitch = 1;
-    reverseYaw   = 1;
-
-    // Valor PWM do canal PITCH.
-    mid_chn_Pitch = (uint16_t)(round((double)(min_chn_Pitch) + ((double)(max_chn_Pitch) - (double)(min_chn_Pitch))/2));
-
-    // Saturação do curso possível dos servos.
-    sat_servo_angle = 50.0;
-    sat_servo_angle = sat_servo_angle/100;
-
-}
-
 void Copter::setup() 
 {
     cliSerial = hal.console;
@@ -202,9 +169,6 @@ void Copter::setup()
     StorageManager::set_layout_copter();
 
     init_ardupilot();
-
-    // MURILLO
-    setup_MFS();
 
     // initialise the main loop scheduler
     scheduler.init(&scheduler_tasks[0], ARRAY_SIZE(scheduler_tasks));
@@ -278,21 +242,6 @@ void Copter::loop()
     scheduler.run(time_available > MAIN_LOOP_MICROS ? 0u : time_available);
 }
 
-// MURILLO
-void Copter::update_srv_action(double srv51, double srv61, double srv71, double srv81)
-{
-    double a5, a6, a7, a8;
-
-    a5 = (double)(mid_srv5) - srv51*2.7*sat_servo_angle;  // Servo azul
-    a6 = (double)(mid_srv6) + srv61*sat_servo_angle;
-    a7 = (double)(mid_srv7) + srv71*sat_servo_angle;
-    a8 = (double)(mid_srv8) - srv81*sat_servo_angle;
-
-    hal.rcout->write(8,  (uint16_t)(a5));  // Servo 5
-    hal.rcout->write(9,  (uint16_t)(a6));  // Servo 6
-    hal.rcout->write(10, (uint16_t)(a7));  // Servo 7
-    hal.rcout->write(11, (uint16_t)(a8));  // Servo 8
-}
 
 // Main loop - 400hz
 void Copter::fast_loop()
@@ -306,21 +255,11 @@ void Copter::fast_loop()
     // send outputs to the motors library immediately
     if (control_mode==AUTO)
     {
-        motors_output();
-//                motors_output(Pitch_WP_Test);
+        motors_output(Pitch_WP_Test);
     }
     else
     {
-        //motors_output();
-        motors_output(srv5, srv6, srv7, srv8);
-
-        if((var_srv%8)==0)
-        {
-            update_srv_action(srv5, srv6, srv7, srv8);
-            var_srv  = 0;
-        }else{
-            var_srv = var_srv + 1;
-        }
+        motors_output();
     }
 
     // run EKF state estimator (expensive)
