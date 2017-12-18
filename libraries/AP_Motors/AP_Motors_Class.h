@@ -175,6 +175,9 @@ protected:
     virtual void        rc_enable_ch(uint8_t chan);
     virtual uint32_t    rc_map_mask(uint32_t mask) const;
 
+    // MURILLO
+    virtual void        output_armed_stabilizing(float &vlr_yaw)=0;
+
     // add a motor to the motor map
     void add_motor_num(int8_t motor_num);
     

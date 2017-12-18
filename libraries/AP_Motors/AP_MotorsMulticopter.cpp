@@ -264,14 +264,15 @@ void AP_MotorsMulticopter::load_external_parameters()
     max_chn  = 1928;
 
     // Variáveis que comandam se alguns canais estão reverso.
-    _reversePitch =  1;
-    _reverseYaw   = -1;
+    _reversePitch = 1;
+    _reverseYaw   = 1;
+
 
     // Valor PWM do canal PITCH.
     _mid_chn = min_chn + (max_chn - min_chn)/2;
 
     // Saturação do curso possível dos servos.
-    _sat_servo_angle = 20;
+    _sat_servo_angle = 50;
     _sat_servo_angle = _sat_servo_angle/100;
 }
 
@@ -325,7 +326,6 @@ void AP_MotorsMulticopter::output(uint16_t pitch_WP)
     output_boost_throttle();
 };
 
-// MURILLO //
 ///////////////////////
 // MURILLO //
 ///////////////////////
@@ -345,23 +345,25 @@ void AP_MotorsMulticopter::output()
     // run spool logic
     output_logic();
 
+    // MURILLO
+    // Nesta parte aqui, as ações do controle de guinada atuam diretamente nos servos
+    // Chamando o módulo que calcula o sinal PWM a ser enviado para os servos.
+    vlr_pitch  = tilt_angle_Vx();
+//    vlr_yaw    = tilt_rate_Yaw();
+
     // calculate thrust
-    output_armed_stabilizing();
+    output_armed_stabilizing(vlr_yaw);
 
     // apply any thrust compensation for the frame
     thrust_compensation();
 
     // MURILLO
     if(armed()==1){
-        // Chamando o módulo que calcula o sinal PWM a ser enviado para os servos.
-        vlr_pitch  = tilt_angle_Vx();
-        vlr_yaw    = tilt_rate_Yaw();
-
         // Calculando o valor a ser mudado em cada servo considerando suas respectivas posições centrais.
-        srv5 = (uint16_t)((float)(_mid_srv5) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw);
-        srv6 = (uint16_t)((float)(_mid_srv6) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw);
-        srv7 = (uint16_t)((float)(_mid_srv7) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw);
-        srv8 = (uint16_t)((float)(_mid_srv8) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw);
+        srv5 = (uint16_t)((float)(_mid_srv5) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle); // 350 dá certo
+        srv6 = (uint16_t)((float)(_mid_srv6) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
+        srv7 = (uint16_t)((float)(_mid_srv7) + _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
+        srv8 = (uint16_t)((float)(_mid_srv8) - _reversePitch*vlr_pitch + _reverseYaw*vlr_yaw*350*_sat_servo_angle);
 
         // convert rpy_thrust values to pwm
         output_to_motors(srv5, srv6, srv7, srv8);

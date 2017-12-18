@@ -44,18 +44,20 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
 float Copter::get_pilot_desired_yaw_rate(int16_t stick_angle)
 {
     float yaw_request;
+    float y_in, y_in3, y_out;
 
     // calculate yaw rate request
     if (g2.acro_y_expo <= 0) {
         yaw_request = stick_angle * g.acro_yaw_p;
     } else {
         // expo variables
-        float y_in, y_in3, y_out;
+        //float y_in, y_in3, y_out;
 
         // range check expo
         if (g2.acro_y_expo > 1.0f || g2.acro_y_expo < 0.5f) {
             g2.acro_y_expo = 1.0f;
         }
+
 
         // yaw expo
         y_in = float(stick_angle)/ROLL_PITCH_YAW_INPUT_MAX;
