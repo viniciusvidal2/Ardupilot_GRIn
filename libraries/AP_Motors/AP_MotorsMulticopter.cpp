@@ -272,7 +272,7 @@ void AP_MotorsMulticopter::load_external_parameters()
     _mid_chn = min_chn + (max_chn - min_chn)/2;
 
     // Saturação do curso possível dos servos.
-    _sat_servo_angle = 50;
+    _sat_servo_angle = 25;
     _sat_servo_angle = _sat_servo_angle/100;
 }
 
