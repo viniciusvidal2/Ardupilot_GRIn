@@ -618,13 +618,13 @@ void Rover::obter_bearing_correto(void)
         // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
         angulo_atual = (atan2(vel.y, vel.x) >= 0) ? atan2(vel.y, vel.x) : atan2(vel.y, vel.x)+2*M_PI; // [RAD]
         angulo_atual = degrees(angulo_atual);
-//        angulo_atual = 2.5f;
+        angulo_atual = 2.5f;
     }
 
     // Procurando algum ponto que estejamos dentro
     AP_Mission::Mission_Command temp_cmd;
 
-    if (mission.num_commands() > 0) // Se ha missao alem do home
+    if (mission.num_commands() > 0 && gps.status() >= AP_GPS::GPS_OK_FIX_3D) // Se ha missao alem do home
     {
         int contador = 1; // Pula o 0, que eh o HOME
         estamos_dentro = false;
@@ -651,7 +651,7 @@ void Rover::obter_bearing_correto(void)
         next_navigation_leg_cd = angulo_atual * 100.0f; // Aqui faz entao apontar pra frente, por desencargo [centidegrees]
         angulo_atual = (float)ahrs.yaw_sensor/100.0f;;
         angulo_pitch_altura = 0; // Manter horizontal
-//        angulo_atual = 3.45f;
+        angulo_atual = 2.5f;
 
         return; // Se nao houver missao cancela o metodo
     }

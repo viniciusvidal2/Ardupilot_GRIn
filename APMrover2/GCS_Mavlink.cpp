@@ -77,7 +77,7 @@ void Rover::send_attitude(mavlink_channel_t chan)
         millis(),
         ahrs.roll,
         ahrs.pitch,
-        radians(angulo_atual), // Traco vermelho do Mission Planner, orientacao
+        angulo_atual,//radians(angulo_atual), // Traco vermelho do Mission Planner, orientacao
 //        ahrs.yaw,
         omega.x,
         omega.y,
