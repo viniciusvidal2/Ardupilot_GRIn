@@ -413,7 +413,7 @@ private:
     /// VINICIUS - dados para orientacao do trem
     ///
     struct Location ponto_alvo = next_WP; // Pura inicializacao
-    float angulo_atual;           // Angulo de orientacao a partir de bussola ou GPS, depende da situacao [DEGREES]
+    float angulo_atual;           // Angulo de orientacao a partir de bussola ou GPS, depende da situacao [CENTIDEGREES]
     float angulo_pitch_altura;    // Angulo calculado com a diferenca de altitude e a distancia para o ponto, varia o pitch [RAD]
     bool  estamos_dentro = false;
     float distancia_controlada;   // Distancia medida dos pontos, principalmente do mais proximo quando dentro do raio

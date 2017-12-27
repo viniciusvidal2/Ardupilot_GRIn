@@ -618,7 +618,7 @@ void Rover::obter_bearing_correto(void)
         // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
         angulo_atual = (atan2(vel.y, vel.x) >= 0) ? atan2(vel.y, vel.x) : atan2(vel.y, vel.x)+2*M_PI; // [RAD]
         angulo_atual = degrees(angulo_atual);
-        angulo_atual = 2.5f;
+        //angulo_atual = 2.5f;
     }
 
     // Procurando algum ponto que estejamos dentro
@@ -628,12 +628,12 @@ void Rover::obter_bearing_correto(void)
     {
         int contador = 1; // Pula o 0, que eh o HOME
         estamos_dentro = false;
-        while (!estamos_dentro && contador <= mission.num_commands())
+        while (!estamos_dentro && contador <= mission.num_commands()) // Enquanto nao encontramos algum ponto que estejamos muito proximos dentre todos
         {
             mission.read_cmd_from_storage(contador, temp_cmd);
             // Cada waypoint deve ter seu raio definido no parametro p1 (primeiro quadrado MISSIOM PLANNER)
-            // 10 por seguranca caso se esqueca disso, para nao ter problema no codigo
-            raio_limite = ((float)(temp_cmd.p1) > 0) ? (float)(temp_cmd.p1) : 10;
+            // 15 por seguranca caso se esqueca disso, para nao ter problema no codigo
+            raio_limite = ((float)(temp_cmd.p1) > 0) ? (float)(temp_cmd.p1) : 15;
 
             distancia_controlada = get_distance(current_loc, temp_cmd.content.location);
 
@@ -651,7 +651,7 @@ void Rover::obter_bearing_correto(void)
         next_navigation_leg_cd = angulo_atual * 100.0f; // Aqui faz entao apontar pra frente, por desencargo [centidegrees]
         angulo_atual = (float)ahrs.yaw_sensor/100.0f;;
         angulo_pitch_altura = 0; // Manter horizontal
-        angulo_atual = 2.5f;
+        //angulo_atual = 2.5f;
 
         return; // Se nao houver missao cancela o metodo
     }
@@ -662,7 +662,6 @@ void Rover::obter_bearing_correto(void)
         next_navigation_leg_cd = angulo_atual * 100.0f;
         angulo_pitch_altura = 0; // Manter horizontal
     } else { // Aqui entramos no raio de acao, variaveis desejadas atualizadas
-        //angulo_pitch_altura = temp_cmd.content.location.alt;
         // A altitude do waypoint esta em centimetros, a altura atual tambem, entao levar a distancia ao waypoint para centimetros antes de tirar tangente
         angulo_pitch_altura = atan2((float)(temp_cmd.content.location.alt - (float)g.altura_carro), (float)distancia_controlada*100); // Angulo de pitch sobre a altura do poste
         next_navigation_leg_cd = get_bearing_cd(current_loc, ponto_alvo); // Aqui estamos apontando para o waypoint e enviando para o servo

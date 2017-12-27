@@ -177,13 +177,13 @@ void Rover::send_servo_out(mavlink_channel_t chan)
 void Rover::send_vfr_hud(mavlink_channel_t chan)
 {
     mavlink_msg_vfr_hud_send(
-        chan,
-        gps.ground_speed(),
-        ahrs.groundspeed(),
-        (ahrs.yaw_sensor / 100) % 360,
-        static_cast<uint16_t>(100 * fabsf(SRV_Channels::get_output_norm(SRV_Channel::k_throttle))),
-        current_loc.alt / 100.0f,
-        0);
+        chan,                                                                                              /// CORRESPONDENCIAS NA LEITURA DO MAVROS
+        angulo_pitch_altura, //1.5,//gps.ground_speed(),                                                   /// airspeed -> angulo de pitch que temos que inclinar
+        angulo_atual, //2.5,//ahrs.groundspeed(),                                                          /// groundspeed -> angulo que estamos apontando em yaw
+        next_navigation_leg_cd, //3.5,//(ahrs.yaw_sensor / 100) % 360,                                     /// heading (so manda inteiro, atencao) -> angulo que devemos apontar para o wp
+        4.5,//static_cast<uint16_t>(100 * fabsf(SRV_Channels::get_output_norm(SRV_Channel::k_throttle))),  /// nao foi, mais testes necessarios
+        5.5,//current_loc.alt / 100.0f,                                                                    /// altitude
+        6.5);//0);                                                                                         /// climb
 }
 
 // report simulator state
