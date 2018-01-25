@@ -206,6 +206,9 @@ private:
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
 
+    RC_Channel *channel_aux; //Cria um espaço de memoria para o canal auxiliar
+
+
     // Dataflash
     DataFlash_Class DataFlash;
 
@@ -660,6 +663,7 @@ private:
     static const AP_Param::Info var_info[];
     static const struct LogStructure log_structure[];
 
+    void setout();
     void compass_accumulate(void);
     void compass_cal_update(void);
     void barometer_accumulate(void);
