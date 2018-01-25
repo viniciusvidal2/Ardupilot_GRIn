@@ -26,6 +26,7 @@
 #include <AP_Mission/AP_Mission.h>
 #include <StorageManager/StorageManager.h>
 #include <AP_Terrain/AP_Terrain.h>
+#include <AP_NavEKF/AP_NavEKF.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
 #include <AP_RangeFinder/AP_RangeFinder.h>
 #include <AP_Scheduler/AP_Scheduler.h>
@@ -47,7 +48,11 @@ RC_Channel rc7(6), rsc(8), h1(0), h2(1), h3(2), h4(3);
 
 // uncomment the row below depending upon what frame you are using
 //AP_MotorsTri	motors(400);
-AP_MotorsMatrix   motors(400);
+AP_MotorsQuad   motors(400);
+//AP_MotorsHexa	motors(400);
+//AP_MotorsY6	motors(400);
+//AP_MotorsOcta	motors(400);
+//AP_MotorsOctaQuad	motors(400);
 //AP_MotorsHeli_Single motors(rc7, rsc, h1, h2, h3, h4, 400);
 //AP_MotorsSingle motors(400);
 //AP_MotorsCoax motors(400);
@@ -55,26 +60,27 @@ AP_MotorsMatrix   motors(400);
 // setup
 void setup()
 {
-    hal.console->printf("AP_Motors library test ver 1.0\n");
+    hal.console->println("AP_Motors library test ver 1.0");
 
     // motor initialisation
     motors.set_update_rate(490);
-    motors.init(AP_Motors::MOTOR_FRAME_QUAD, AP_Motors::MOTOR_FRAME_TYPE_X);
+    motors.set_frame_orientation(AP_MOTORS_X_FRAME);
+    motors.Init();
 #if HELI_TEST == 0
     motors.set_throttle_range(1000,2000);
-    motors.set_throttle_avg_max(0.5f);
+    motors.set_hover_throttle(500);
 #endif
     motors.enable();
     motors.output_min();
 
     // setup radio
-	rc3.set_radio_min(1000);
+	 rc3.set_radio_min(1000);
     rc3.set_radio_max(2000);
 
     // set rc channel ranges
     rc1.set_angle(4500);
     rc2.set_angle(4500);
-    rc3.set_range(1000);
+    rc3.set_range(130, 1000);
     rc4.set_angle(4500);
 
     hal.scheduler->delay(1000);
@@ -86,7 +92,7 @@ void loop()
     int16_t value;
 
     // display help
-    hal.console->printf("Press 't' to run motor orders test, 's' to run stability patch test.  Be careful the motors will spin!\n");
+    hal.console->println("Press 't' to run motor orders test, 's' to run stability patch test.  Be careful the motors will spin!");
 
     // wait for user to enter something
     while( !hal.console->available() ) {
@@ -108,7 +114,7 @@ void loop()
 // stability_test
 void motor_order_test()
 {
-    hal.console->printf("testing motor order\n");
+    hal.console->println("testing motor order");
     motors.armed(true);
     for (int8_t i=1; i <= AP_MOTORS_MAX_NUM_MOTORS; i++) {
         hal.console->printf("Motor %d\n",(int)i);
@@ -118,7 +124,7 @@ void motor_order_test()
         hal.scheduler->delay(2000);
     }
     motors.armed(false);
-    hal.console->printf("finished test.\n");
+    hal.console->println("finished test.");
 
 }
 
@@ -204,7 +210,7 @@ void stability_test()
     motors.set_throttle(0);
     motors.armed(false);
 
-    hal.console->printf("finished test.\n");
+    hal.console->println("finished test.");
 }
 
 void update_motors()

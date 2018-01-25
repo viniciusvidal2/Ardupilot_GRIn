@@ -241,12 +241,12 @@ void Copter::loop()
     scheduler.run(time_available > MAIN_LOOP_MICROS ? 0u : time_available);
 }
 
-void Copter::setout()
-{
-    //    Imprime o valor de PWM na saida serial
-    cliSerial->printf("PWM: %d \n  ",channel_aux->read());
+//void Copter::setout()
+//{
+//    //    Imprime o valor de PWM na saida serial
+//    cliSerial->printf("PWM: %d \n  ",channel_aux->read());
 
-}
+//}
 
 // Main loop - 400hz
 void Copter::fast_loop()
@@ -271,7 +271,7 @@ void Copter::fast_loop()
     read_inertia();
 
     //funcao criada por Mathaus para imprimir o valor de PWM do quinto motor na saída serial
-    setout();
+//    setout();
 
     // check if ekf has reset target heading
     check_ekf_yaw_reset();
