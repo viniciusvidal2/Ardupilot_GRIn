@@ -127,8 +127,23 @@ void AP_MotorsMatrix::output_to_motors()
 
     // send output to each motor
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-        if (motor_enabled[i]) {
-            rc_write(i, motor_out[i]);
+        if (motor_enabled[i])
+        {
+            if(i!=AP_MOTORS_MOT_5)
+            {
+                rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
+
+            }else
+            {
+                if(armed()){
+                rc_write(i,hal.rcin->read(5)); //(mathaus)
+                }else{
+                    rc_write(i,get_pwm_output_min());
+                }
+            }
+        }else
+        {
+            rc_write(i,get_pwm_output_min());
         }
     }
 }
