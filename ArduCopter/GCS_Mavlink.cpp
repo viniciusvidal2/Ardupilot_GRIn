@@ -174,7 +174,7 @@ void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan)
         0);
 }
 
-// report simulator state
+// report simulator stat4e
 void NOINLINE Copter::send_simstate(mavlink_channel_t chan)
 {
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
@@ -198,7 +198,7 @@ void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
         ahrs.groundspeed(),
         (ahrs.yaw_sensor / 100) % 360,
         (int16_t)(motors->get_throttle() * 100),
-        current_loc.alt / 100.0f,
+        channel_pitch->get_control_in(),
         climb_rate / 100.0f);
 }
 

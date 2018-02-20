@@ -33,6 +33,8 @@ void Copter::stabilize_run()
         return;
     }
 
+    //channel_pitch->get_control_in();
+
     // clear landing flag
     set_land_complete(false);
 
@@ -43,7 +45,7 @@ void Copter::stabilize_run()
 
     // convert pilot input to lean angles
     // To-Do: convert get_pilot_desired_lean_angles to return angles as floats
-    get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, aparm.angle_max);
+    get_pilot_desired_lean_angles(channel_roll->get_control_in(), 0*channel_pitch->get_control_in(), target_roll, target_pitch, aparm.angle_max); //(mathaus) alteração feita aqui 0
 
     // get pilot's desired yaw rate
     target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());

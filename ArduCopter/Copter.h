@@ -206,7 +206,7 @@ private:
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
 
-    RC_Channel *channel_aux; //Cria um espaço de memoria para o canal auxiliar
+    RC_Channel *channel_aux;  // (mathaus) Cria um espaço de memoria para o canal auxiliar
 
 
     // Dataflash
@@ -663,7 +663,8 @@ private:
     static const AP_Param::Info var_info[];
     static const struct LogStructure log_structure[];
 
-    void setout();
+    void update_tractor_health(); //mathaus
+    void setout(); //mathaus
     void compass_accumulate(void);
     void compass_cal_update(void);
     void barometer_accumulate(void);
@@ -1031,6 +1032,7 @@ private:
     bool init_arm_motors(bool arming_from_gcs);
     void init_disarm_motors();
     void motors_output();
+    void motors_output(uint16_t &chan); //(mathaus)
     void lost_vehicle_check();
     void run_nav_updates(void);
     void calc_distance_and_bearing();

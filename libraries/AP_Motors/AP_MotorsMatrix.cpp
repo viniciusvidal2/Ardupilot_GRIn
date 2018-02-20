@@ -85,6 +85,72 @@ void AP_MotorsMatrix::enable()
     }
 }
 
+void AP_MotorsMatrix::output_to_motors(uint16_t &var) //mathaus
+{
+    int8_t i;
+    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motor
+
+    switch (_spool_mode) {
+        case SHUT_DOWN: {
+            // sends minimum values out to the motors
+            // set motor output based on thrust requests
+            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+                if (motor_enabled[i]) {
+                    if (_disarm_disable_pwm && _disarm_safety_timer == 0 && !armed()) {
+                        motor_out[i] = 0;
+                    } else {
+                        motor_out[i] = get_pwm_output_min();
+                    }
+                }
+            }
+            break;
+        }
+        case SPIN_WHEN_ARMED:
+            // sends output to motors when armed but not flying
+            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+                if (motor_enabled[i]) {
+                    motor_out[i] = calc_spin_up_to_pwm();
+                }
+            }
+            break;
+        case SPOOL_UP:
+        case THROTTLE_UNLIMITED:
+        case SPOOL_DOWN:
+            // set motor output based on thrust requests
+            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+                if (motor_enabled[i]) {
+                    motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
+                }
+            }
+            break;
+    }
+
+    // send output to each motor
+    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+        if (motor_enabled[i])
+        {
+            if(i!=AP_MOTORS_MOT_5)
+            {
+                rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
+
+            }else
+            {
+                if(armed()){
+                //rc_write(i, copter.channel_pitch->get_control_in());
+                rc_write(i,hal.rcin->read(5)); //(mathaus)
+
+                }else{
+                    rc_write(i,0);
+                }
+            }
+        }else
+        {
+            rc_write(i,get_pwm_output_min());
+        }
+    }
+}
+
+
 void AP_MotorsMatrix::output_to_motors()
 {
     int8_t i;
@@ -136,7 +202,9 @@ void AP_MotorsMatrix::output_to_motors()
             }else
             {
                 if(armed()){
-                rc_write(i,hal.rcin->read(5)); //(mathaus)
+                //rc_write(i, copter.channel_pitch->get_control_in());
+                rc_write(i,hal.rcin->read(1)); //(mathaus)
+
                 }else{
                     rc_write(i,get_pwm_output_min());
                 }

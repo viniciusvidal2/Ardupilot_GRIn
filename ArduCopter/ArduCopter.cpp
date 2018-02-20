@@ -82,6 +82,8 @@
   and the maximum time they are expected to take (in microseconds)
  */
 const AP_Scheduler::Task Copter::scheduler_tasks[] = {
+   // SCHED_TASK(setout,             50,    200), //mathaus
+    SCHED_TASK(update_tractor_health, 5, 1500),
     SCHED_TASK(rc_loop,              100,    130),
     SCHED_TASK(throttle_loop,         50,     75),
     SCHED_TASK(update_GPS,            50,    200),
@@ -160,6 +162,9 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 
 void Copter::setup() 
 {
+
+
+    hal.uartE->begin(57600);
     cliSerial = hal.console;
 
     // Load the default values of variables listed in var_info[]s
@@ -186,7 +191,7 @@ void Copter::barometer_accumulate(void)
     barometer.accumulate();
 }
 
-// Testando um commit no meu Branch Mathaus
+// Testando um commit no meu Branch
 void Copter::perf_update(void)
 {
     if (should_log(MASK_LOG_PM))
@@ -244,10 +249,11 @@ void Copter::loop()
 }
 
 
-void Copter::setout()
+void Copter::setout() //mathaus
 {
     //    Imprime o valor de PWM na saida serial
-    cliSerial->printf("PWM: %d \n  ",channel_aux->read());
+    hal.uartA->printf("Hello on UART at %d seconds\n",channel_pitch->get_control_in());
+    //cliSerial->printf("PWM: %d \n  ",channel_pitch->get_control_in());
 
 }
 
@@ -261,7 +267,8 @@ void Copter::fast_loop()
     attitude_control->rate_controller_run();
 
     // send outputs to the motors library immediately
-    motors_output();
+    uint16_t aux = (uint16_t) (channel_pitch->get_control_in()); //Mathaus
+    motors_output(aux);
 
     // run EKF state estimator (expensive)
     // --------------------
@@ -276,7 +283,7 @@ void Copter::fast_loop()
     read_inertia();
 
     // (mathaus) funcao criada para imprimir o valor de PWM do quinto motor na saída serial
-    setout();
+    //setout();
 
     // check if ekf has reset target heading or position
     check_ekf_reset();

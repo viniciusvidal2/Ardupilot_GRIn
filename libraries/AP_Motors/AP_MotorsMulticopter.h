@@ -38,6 +38,7 @@ public:
 
     // output - sends commands to the motors
     virtual void        output();
+    virtual void        output(uint16_t &var1);
 
     // output_min - sends minimum values out to the motors
     void                output_min();
@@ -106,6 +107,10 @@ protected:
 
     // output_to_motors - sends commands to the motors
     virtual void        output_to_motors() = 0;
+
+    // mathaus
+    // output_to_motors - sends commands to the motors
+    virtual void        output_to_motors(uint16_t &var) = 0;
 
     // update the throttle input filter
     virtual void        update_throttle_filter();
