@@ -208,6 +208,9 @@ private:
 
     RC_Channel *channel_aux; //Cria um espaço de memoria para o canal auxiliar
 
+    RC_Channel *channel_aux_tune; // Cria um espeaço de memória para a leitura de uma chave auxiliar para salvar os ganhos do autotune
+
+    int channel_7_value=0;
 
     // Dataflash
     DataFlash_Class DataFlash;
@@ -723,6 +726,7 @@ private:
     void send_simstate(mavlink_channel_t chan);
     void send_hwstatus(mavlink_channel_t chan);
     void send_vfr_hud(mavlink_channel_t chan);
+    void send_vfr_hud(mavlink_channel_t chan, int value);
     void send_current_waypoint(mavlink_channel_t chan);
     void send_proximity(mavlink_channel_t chan, uint16_t count_max);
     void send_rpm(mavlink_channel_t chan);

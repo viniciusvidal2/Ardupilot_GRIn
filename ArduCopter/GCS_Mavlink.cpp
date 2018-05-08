@@ -191,16 +191,29 @@ void NOINLINE Copter::send_hwstatus(mavlink_channel_t chan)
 }
 
 void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
-{
+{//current_loc.alt / 100.0f,
     mavlink_msg_vfr_hud_send(
         chan,
         gps.ground_speed(),
         ahrs.groundspeed(),
         (ahrs.yaw_sensor / 100) % 360,
         (int16_t)(motors->get_throttle() * 100),
-        current_loc.alt / 100.0f,
+        channel_7_value,
         climb_rate / 100.0f);
 }
+
+//Mathaus \/\/\/\/\/\/
+//void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan, int value)
+//{
+//    mavlink_msg_vfr_hud_send(
+//        chan,
+//        gps.ground_speed(),
+//        ahrs.groundspeed(),
+//        (ahrs.yaw_sensor / 100) % 360,
+//        (int16_t)(motors->get_throttle() * 100),
+//        value,
+//        climb_rate / 100.0f);
+//}
 
 void NOINLINE Copter::send_current_waypoint(mavlink_channel_t chan)
 {

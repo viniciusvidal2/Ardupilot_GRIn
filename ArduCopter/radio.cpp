@@ -27,6 +27,7 @@ void Copter::init_rc_in()
     channel_yaw      = RC_Channels::rc_channel(rcmap.yaw()-1);
 
     channel_aux      = RC_Channels::rc_channel(5);       //(mathaus) Adiciona um canal para o controle do quinto motor
+    channel_aux_tune = RC_Channels::rc_channel(6);       //(mathaus) Adiciona um canal para salvar os valores do autotune.
 
     // set rc channel ranges
     channel_roll->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
@@ -36,8 +37,10 @@ void Copter::init_rc_in()
 
     channel_aux->set_angle(ROLL_PITCH_YAW_INPUT_MAX); //(mathaus) Seta o angulo maximo de entrada
 
+    channel_aux_tune->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
 
     //set auxiliary servo ranges
+    RC_Channels::rc_channel(CH_6)->set_range(1000);
     RC_Channels::rc_channel(CH_5)->set_range(1000); //(mathaus) Onde pode-se alterar o range dos motores auxiliares
     RC_Channels::rc_channel(CH_6)->set_range(1000);
     RC_Channels::rc_channel(CH_7)->set_range(1000);
