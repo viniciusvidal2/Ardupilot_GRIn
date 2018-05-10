@@ -63,7 +63,7 @@
 #define AUTOTUNE_RP_ACCEL_MIN           4000.0f     // Minimum acceleration for Roll and Pitch
 #define AUTOTUNE_Y_ACCEL_MIN            1000.0f     // Minimum acceleration for Yaw
 #define AUTOTUNE_Y_FILT_FREQ              10.0f     // Autotune filter frequency when testing Yaw
-#define AUTOTUNE_SUCCESS_COUNT                2     // The number of successful iterations we need to freeze at current gains    Mathaus: original = 4
+#define AUTOTUNE_SUCCESS_COUNT                4     // The number of successful iterations we need to freeze at current gains
 #define AUTOTUNE_D_UP_DOWN_MARGIN          0.2f     // The margin below the target that we tune D in
 #define AUTOTUNE_RD_BACKOFF                1.0f     // Rate D gains are reduced to 50% of their maximum value discovered during tuning
 #define AUTOTUNE_RP_BACKOFF                1.0f     // Rate P gains are reduced to 97.5% of their maximum value discovered during tuning
@@ -111,7 +111,7 @@ enum AutoTuneStepType {
 enum AutoTuneAxisType {
     AUTOTUNE_AXIS_ROLL = 0,                 // roll axis is being tuned (either angle or rate)
     AUTOTUNE_AXIS_PITCH = 1,                // pitch axis is being tuned (either angle or rate)
-    AUTOTUNE_AXIS_YAW = 2,                  // yaw axis is being tuned (either angle or rate)
+    AUTOTUNE_AXIS_YAW = 2,                  // pitch axis is being tuned (either angle or rate)
 };
 
 // mini steps performed while in Tuning mode, Testing step
@@ -179,42 +179,42 @@ bool Copter::autotune_init(bool ignore_checks)
     bool success = true;
 
     switch (autotune_state.mode) {
-    case AUTOTUNE_MODE_FAILED:
-        // autotune has been run but failed so reset state to uninitialized
-        autotune_state.mode = AUTOTUNE_MODE_UNINITIALISED;
-        // no break to allow fall through to restart the tuning
+        case AUTOTUNE_MODE_FAILED:
+            // autotune has been run but failed so reset state to uninitialized
+            autotune_state.mode = AUTOTUNE_MODE_UNINITIALISED;
+            // no break to allow fall through to restart the tuning
 
-    case AUTOTUNE_MODE_UNINITIALISED:
-        // autotune has never been run
-        success = autotune_start(false);
-        if (success) {
-            // so store current gains as original gains
-            autotune_backup_gains_and_initialise();                 //Mathaus--> Olhar essa função
-            // advance mode to tuning
-            autotune_state.mode = AUTOTUNE_MODE_TUNING;
-            // send message to ground station that we've started tuning
-            autotune_update_gcs(AUTOTUNE_MESSAGE_STARTED);
-        }
-        break;
+        case AUTOTUNE_MODE_UNINITIALISED:
+            // autotune has never been run
+            success = autotune_start(false);
+            if (success) {
+                // so store current gains as original gains
+                autotune_backup_gains_and_initialise();
+                // advance mode to tuning
+                autotune_state.mode = AUTOTUNE_MODE_TUNING;
+                // send message to ground station that we've started tuning
+                autotune_update_gcs(AUTOTUNE_MESSAGE_STARTED);
+            }
+            break;
 
-    case AUTOTUNE_MODE_TUNING:
-        // we are restarting tuning after the user must have switched ch7/ch8 off so we restart tuning where we left off
-        success = autotune_start(false);
-        if (success) {
-            // reset gains to tuning-start gains (i.e. low I term)
-            autotune_load_intra_test_gains();
-            // write dataflash log even and send message to ground station
-            Log_Write_Event(DATA_AUTOTUNE_RESTART);
-            autotune_update_gcs(AUTOTUNE_MESSAGE_STARTED);
-        }
-        break;
+        case AUTOTUNE_MODE_TUNING:
+            // we are restarting tuning after the user must have switched ch7/ch8 off so we restart tuning where we left off
+            success = autotune_start(false);
+            if (success) {
+                // reset gains to tuning-start gains (i.e. low I term)
+                autotune_load_intra_test_gains();
+                // write dataflash log even and send message to ground station
+                Log_Write_Event(DATA_AUTOTUNE_RESTART);
+                autotune_update_gcs(AUTOTUNE_MESSAGE_STARTED);
+            }
+            break;
 
-    case AUTOTUNE_MODE_SUCCESS:
-        // we have completed a tune and the pilot wishes to test the new gains in the current flight mode
-        // so simply apply tuning gains (i.e. do not change flight mode)
-        autotune_load_tuned_gains();            //Mathaus --> aplica os ganhos encontrados
-        Log_Write_Event(DATA_AUTOTUNE_PILOT_TESTING);
-        break;
+        case AUTOTUNE_MODE_SUCCESS:
+            // we have completed a tune and the pilot wishes to test the new gains in the current flight mode
+            // so simply apply tuning gains (i.e. do not change flight mode)
+            autotune_load_tuned_gains();
+            Log_Write_Event(DATA_AUTOTUNE_PILOT_TESTING);
+            break;
     }
 
     // only do position hold if starting autotune from LOITER or POSHOLD
@@ -246,7 +246,7 @@ bool Copter::autotune_start(bool ignore_checks)
 {
     // only allow flip from Stabilize, AltHold,  PosHold or Loiter modes
     if (control_mode != STABILIZE && control_mode != ALT_HOLD &&
-            control_mode != LOITER && control_mode != POSHOLD) {
+        control_mode != LOITER && control_mode != POSHOLD) {
         return false;
     }
 
@@ -385,7 +385,7 @@ void Copter::autotune_do_gcs_announcements()
         GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "AutoTune: p=%f accel=%f", (double)tune_sp, (double)tune_accel);
         break;
     }
-    GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "AutoTune: success %u/%u", autotune_counter, AUTOTUNE_SUCCESS_COUNT);     //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< olhar mavlink pra ver se aqui salva os ganhos
+    GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "AutoTune: success %u/%u", autotune_counter, AUTOTUNE_SUCCESS_COUNT);
 
     autotune_announce_time = now;
 }
@@ -497,7 +497,6 @@ void Copter::autotune_run()
         pos_control->set_alt_target_from_climb_rate_ff(target_climb_rate, G_Dt, false);
         pos_control->update_z_controller();
     }
-
 }
 
 bool Copter::autotune_check_level(const Copter::AUTOTUNE_LEVEL_ISSUE issue, const float current, const float maximum) const
@@ -550,17 +549,6 @@ bool Copter::autotune_currently_level()
 // autotune_attitude_controller - sets attitude control targets during tuning
 void Copter::autotune_attitude_control()
 {
-    // Mathaus - alterando para permitir salvar os ganhos antes do tempo determinado.
-    channel_7_value = hal.rcin->read(7);
-
-    if(channel_7_value> 1500)
-    {
-        autotune_state.mode = AUTOTUNE_MODE_SUCCESS;
-        autotune_save_tuning_gains();
-        autotune_state.mode = AUTOTUNE_MODE_TUNING;
-    }
-
-
     rotation_rate = 0.0f;        // rotation rate in radians/second
     lean_angle = 0.0f;
     const float direction_sign = autotune_state.positive_direction ? 1.0f : -1.0f;
@@ -611,7 +599,7 @@ void Copter::autotune_attitude_control()
             } else {
                 rotation_rate_filt.reset(0);
             }
-            break;
+        break;
         case AUTOTUNE_AXIS_PITCH:
             autotune_target_rate = constrain_float(ToDeg(attitude_control->max_rate_step_bf_pitch())*100.0f, AUTOTUNE_TARGET_MIN_RATE_RLLPIT_CDS, AUTOTUNE_TARGET_RATE_RLLPIT_CDS);
             autotune_target_angle = constrain_float(ToDeg(attitude_control->max_angle_step_bf_pitch())*100.0f, AUTOTUNE_TARGET_MIN_ANGLE_RLLPIT_CD, AUTOTUNE_TARGET_ANGLE_RLLPIT_CD);
@@ -787,7 +775,7 @@ void Copter::autotune_attitude_control()
                 break;
             }
             break;
-            // Check results after mini-step to decrease rate D gain
+        // Check results after mini-step to decrease rate D gain
         case AUTOTUNE_TYPE_RD_DOWN:
             switch (autotune_state.axis) {
             case AUTOTUNE_AXIS_ROLL:
@@ -801,7 +789,7 @@ void Copter::autotune_attitude_control()
                 break;
             }
             break;
-            // Check results after mini-step to increase rate P gain
+        // Check results after mini-step to increase rate P gain
         case AUTOTUNE_TYPE_RP_UP:
             switch (autotune_state.axis) {
             case AUTOTUNE_AXIS_ROLL:
@@ -815,7 +803,7 @@ void Copter::autotune_attitude_control()
                 break;
             }
             break;
-            // Check results after mini-step to increase stabilize P gain
+        // Check results after mini-step to increase stabilize P gain
         case AUTOTUNE_TYPE_SP_DOWN:
             switch (autotune_state.axis) {
             case AUTOTUNE_AXIS_ROLL:
@@ -829,7 +817,7 @@ void Copter::autotune_attitude_control()
                 break;
             }
             break;
-            // Check results after mini-step to increase stabilize P gain
+        // Check results after mini-step to increase stabilize P gain
         case AUTOTUNE_TYPE_SP_UP:
             switch (autotune_state.axis) {
             case AUTOTUNE_AXIS_ROLL:
@@ -925,11 +913,11 @@ void Copter::autotune_attitude_control()
                 }
 
                 // if we've just completed all axes we have successfully completed the autotune
-                // change to TESTING mode to allow user to fly with new gains
+                    // change to TESTING mode to allow user to fly with new gains
                 if (autotune_complete) {
                     autotune_state.mode = AUTOTUNE_MODE_SUCCESS;
                     autotune_update_gcs(AUTOTUNE_MESSAGE_SUCCESS);
-                    Log_Write_Event(DATA_AUTOTUNE_SUCCESS);             //MAthaus ---> termina o autotune por aqui
+                    Log_Write_Event(DATA_AUTOTUNE_SUCCESS);
                     AP_Notify::events.autotune_complete = 1;
                 } else {
                     AP_Notify::events.autotune_next_axis = 1;
@@ -1058,7 +1046,7 @@ void Copter::autotune_load_tuned_gains()
     }
     if (autotune_roll_enabled()) {
         if (!is_zero(tune_roll_rp)) {
-            attitude_control->get_rate_roll_pid().kP(tune_roll_rp);            //     -->>> Mathaus onde é possibel carregar os ganho tunados
+            attitude_control->get_rate_roll_pid().kP(tune_roll_rp);
             attitude_control->get_rate_roll_pid().kI(tune_roll_rp*AUTOTUNE_PI_RATIO_FINAL);
             attitude_control->get_rate_roll_pid().kD(tune_roll_rd);
             attitude_control->get_angle_roll_p().kP(tune_roll_sp);
@@ -1119,25 +1107,25 @@ void Copter::autotune_load_intra_test_gains()
 void Copter::autotune_load_twitch_gains()
 {
     switch (autotune_state.axis) {
-    case AUTOTUNE_AXIS_ROLL:
-        attitude_control->get_rate_roll_pid().kP(tune_roll_rp);
-        attitude_control->get_rate_roll_pid().kI(tune_roll_rp*0.01f);
-        attitude_control->get_rate_roll_pid().kD(tune_roll_rd);
-        attitude_control->get_angle_roll_p().kP(tune_roll_sp);
-        break;
-    case AUTOTUNE_AXIS_PITCH:
-        attitude_control->get_rate_pitch_pid().kP(tune_pitch_rp);
-        attitude_control->get_rate_pitch_pid().kI(tune_pitch_rp*0.01f);
-        attitude_control->get_rate_pitch_pid().kD(tune_pitch_rd);
-        attitude_control->get_angle_pitch_p().kP(tune_pitch_sp);
-        break;
-    case AUTOTUNE_AXIS_YAW:
-        attitude_control->get_rate_yaw_pid().kP(tune_yaw_rp);
-        attitude_control->get_rate_yaw_pid().kI(tune_yaw_rp*0.01f);
-        attitude_control->get_rate_yaw_pid().kD(0.0f);
-        attitude_control->get_rate_yaw_pid().filt_hz(tune_yaw_rLPF);
-        attitude_control->get_angle_yaw_p().kP(tune_yaw_sp);
-        break;
+        case AUTOTUNE_AXIS_ROLL:
+            attitude_control->get_rate_roll_pid().kP(tune_roll_rp);
+            attitude_control->get_rate_roll_pid().kI(tune_roll_rp*0.01f);
+            attitude_control->get_rate_roll_pid().kD(tune_roll_rd);
+            attitude_control->get_angle_roll_p().kP(tune_roll_sp);
+            break;
+        case AUTOTUNE_AXIS_PITCH:
+            attitude_control->get_rate_pitch_pid().kP(tune_pitch_rp);
+            attitude_control->get_rate_pitch_pid().kI(tune_pitch_rp*0.01f);
+            attitude_control->get_rate_pitch_pid().kD(tune_pitch_rd);
+            attitude_control->get_angle_pitch_p().kP(tune_pitch_sp);
+            break;
+        case AUTOTUNE_AXIS_YAW:
+            attitude_control->get_rate_yaw_pid().kP(tune_yaw_rp);
+            attitude_control->get_rate_yaw_pid().kI(tune_yaw_rp*0.01f);
+            attitude_control->get_rate_yaw_pid().kD(0.0f);
+            attitude_control->get_rate_yaw_pid().filt_hz(tune_yaw_rLPF);
+            attitude_control->get_angle_yaw_p().kP(tune_yaw_sp);
+            break;
     }
 }
 
@@ -1146,7 +1134,7 @@ void Copter::autotune_load_twitch_gains()
 void Copter::autotune_save_tuning_gains()
 {
     // if we successfully completed tuning
-    if (autotune_state.mode == AUTOTUNE_MODE_SUCCESS) {  //----->Mathaus -- AQUI está a resposta
+    if (autotune_state.mode == AUTOTUNE_MODE_SUCCESS) {
 
         if (!attitude_control->get_bf_feedforward()) {
             attitude_control->bf_feedforward_save(true);
@@ -1231,21 +1219,21 @@ void Copter::autotune_save_tuning_gains()
 void Copter::autotune_update_gcs(uint8_t message_id)
 {
     switch (message_id) {
-    case AUTOTUNE_MESSAGE_STARTED:
-        gcs_send_text(MAV_SEVERITY_INFO,"AutoTune: Started");
-        break;
-    case AUTOTUNE_MESSAGE_STOPPED:
-        gcs_send_text(MAV_SEVERITY_INFO,"AutoTune: Stopped");
-        break;
-    case AUTOTUNE_MESSAGE_SUCCESS:
-        gcs_send_text(MAV_SEVERITY_INFO,"AutoTune: Success");
-        break;
-    case AUTOTUNE_MESSAGE_FAILED:
-        gcs_send_text(MAV_SEVERITY_NOTICE,"AutoTune: Failed");
-        break;
-    case AUTOTUNE_MESSAGE_SAVED_GAINS:
-        gcs_send_text(MAV_SEVERITY_INFO,"AutoTune: Saved gains");
-        break;
+        case AUTOTUNE_MESSAGE_STARTED:
+            gcs_send_text(MAV_SEVERITY_INFO,"AutoTune: Started");
+            break;
+        case AUTOTUNE_MESSAGE_STOPPED:
+            gcs_send_text(MAV_SEVERITY_INFO,"AutoTune: Stopped");
+            break;
+        case AUTOTUNE_MESSAGE_SUCCESS:
+            gcs_send_text(MAV_SEVERITY_INFO,"AutoTune: Success");
+            break;
+        case AUTOTUNE_MESSAGE_FAILED:
+            gcs_send_text(MAV_SEVERITY_NOTICE,"AutoTune: Failed");
+            break;
+        case AUTOTUNE_MESSAGE_SAVED_GAINS:
+            gcs_send_text(MAV_SEVERITY_INFO,"AutoTune: Saved gains");
+            break;
     }
 }
 
@@ -1298,7 +1286,7 @@ void Copter::autotune_twitching_test(float measurement, float target, float &mea
 
     if (millis() >= autotune_step_stop_time) {
         // we have passed the maximum stop time
-        autotune_state.step = AUTOTUNE_STEP_UPDATE_GAINS;   // Mathaus: acredito que alterando autotune_step_stop_time é possível acabar o autotuning mais rápido
+        autotune_state.step = AUTOTUNE_STEP_UPDATE_GAINS;
     }
 }
 

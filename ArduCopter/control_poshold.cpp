@@ -215,7 +215,7 @@ void Copter::poshold_run()
 
         // convert inertial nav earth-frame velocities to body-frame
         // To-Do: move this to AP_Math (or perhaps we already have a function to do this)
-        vel_fw    =  vel.x*ahrs.cos_yaw() + vel.y*ahrs.sin_yaw();
+        vel_fw = vel.x*ahrs.cos_yaw() + vel.y*ahrs.sin_yaw();
         vel_right = -vel.x*ahrs.sin_yaw() + vel.y*ahrs.cos_yaw();
         
         // If not in LOITER, retrieve latest wind compensation lean angles related to current yaw

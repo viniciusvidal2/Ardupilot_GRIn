@@ -75,7 +75,7 @@ void Copter::drift_run()
     float pitch_vel2 = MIN(fabsf(pitch_vel), 2000);
     target_yaw_rate = ((float)target_roll/1.0f) * (1.0f - (pitch_vel2 / 5000.0f)) * g.acro_yaw_p;
 
-    roll_vel  = constrain_float(roll_vel , -DRIFT_SPEEDLIMIT, DRIFT_SPEEDLIMIT);
+    roll_vel = constrain_float(roll_vel, -DRIFT_SPEEDLIMIT, DRIFT_SPEEDLIMIT);
     pitch_vel = constrain_float(pitch_vel, -DRIFT_SPEEDLIMIT, DRIFT_SPEEDLIMIT);
     
     roll_input = roll_input * .96f + (float)channel_yaw->get_control_in() * .04f;
@@ -92,7 +92,6 @@ void Copter::drift_run()
         // .14/ (.03 * 100) = 4.6 seconds till full breaking
         breaker += .03f;
         breaker = MIN(breaker, DRIFT_SPEEDGAIN);
-        breaker = 0.0f; //mathaus
         target_pitch = pitch_vel * breaker;
     }else{
         breaker = 0.0f;
@@ -120,8 +119,7 @@ float Copter::get_throttle_assist(float velz, float pilot_throttle_scaled)
         thr_assist = 1.2f - ((float)fabsf(pilot_throttle_scaled - 0.5f) / 0.24f);
         thr_assist = constrain_float(thr_assist, 0.0f, 1.0f) * -DRIFT_THR_ASSIST_GAIN * velz;
 
-        // ensure throttle assist never adjusts the throttle by more than 300 pwminput_euler_angle_roll_pitch_euler_rate_yaw
-
+        // ensure throttle assist never adjusts the throttle by more than 300 pwm
         thr_assist = constrain_float(thr_assist, -DRIFT_THR_ASSIST_MAX, DRIFT_THR_ASSIST_MAX);
     }
     

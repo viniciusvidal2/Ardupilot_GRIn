@@ -4,6 +4,11 @@
 
 #include "AP_Motors_Class.h"
 
+#define sqrt_2     1.4142f
+#define sqrt_2_2   0.7071f
+#define rad2deg   57.2958f
+#define deg2rad    0.0175f
+
 #ifndef AP_MOTORS_DENSITY_COMP
 #define AP_MOTORS_DENSITY_COMP 1
 #endif
@@ -36,11 +41,20 @@ public:
     // Constructor
     AP_MotorsMulticopter(uint16_t loop_rate, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT);
 
+    //  MURILLO //
+    // output - sends commands to the motors
+    virtual void        output(uint16_t pitch_WP);
+    virtual void        output(float &motor1, float &motor2, float &motor3, float &motor4, float &F_x1, float &F_z1, float &T_r1, float &T_p1, float &T_y1, float &srv5, float &srv6, float &srv7, float &srv8, int tp);
+
     // output - sends commands to the motors
     virtual void        output();
 
     // output_min - sends minimum values out to the motors
     void                output_min();
+
+//    // MURILLO
+//    // output_min - sends minimum values out to the motors
+//    void                output_min(uint32_t vlr_1);    
 
     // set_yaw_headroom - set yaw headroom (yaw is given at least this amount of pwm)
     void                set_yaw_headroom(int16_t pwm) { _yaw_headroom = pwm; }
@@ -106,6 +120,34 @@ protected:
 
     // output_to_motors - sends commands to the motors
     virtual void        output_to_motors() = 0;
+
+    // MURILLO
+    // output_to_motors - sends commands to the motors
+    virtual void        output_to_motors(int srv_5, int srv_6, int srv_7, int srv_8) = 0;
+
+    // MURILLO
+    // Calcula o ângulo de inclinação dos 4 servos.
+    float               tilt_angle_Vx();
+
+    // MURILLO
+    // Calcula o ângulo de inclinação dos 4 servos.
+    float               tilt_rate_Yaw();
+
+    // MURILLO
+    // Parâmetros externos ao programa para os servos.
+    void                load_external_parameters();
+
+    // MURILLO
+    // Normaliza canal do pitch de -1 a 1.
+    float norm_Pitch_Channel(float vlr);
+
+    // MURILLO
+    // Coloca faixa de valores antigo em uma de valores novos
+    float norm_VLR_inputs2(float inpt, float med_n, float max_n);
+    float norm_VLR_inputs1(float vlr, float min_n, float max_n);
+
+    // Atenuando oscilações dos servos com variação<mod.
+    double atenuate_servomtrs(double vlr, double last_vlr, float mod);
 
     // update the throttle input filter
     virtual void        update_throttle_filter();
@@ -173,6 +215,24 @@ protected:
     bool                motor_enabled[AP_MOTORS_MAX_NUM_MOTORS];    // true if motor is enabled
     int16_t             _throttle_radio_min;        // minimum PWM from RC input's throttle channel (i.e. minimum PWM input from receiver, RC3_MIN)
     int16_t             _throttle_radio_max;        // maximum PWM from RC input's throttle channel (i.e. maximum PWM input from receiver, RC3_MAX)
+
+    ////////////////////////
+    // MURILLO
+    ////////////////////////
+    int _mid_srv5;
+    int _mid_srv6;
+    int _mid_srv7;
+    int _mid_srv8;    
+    int _min_chn_Pitch;
+    int _max_chn_Pitch;
+
+    int _reversePitch;
+    int _reverseYaw;
+
+    //uint16_t _chn_tilt_read;
+    float _mid_chn_Pitch;
+
+    float _sat_servo_angle;
 
     // spool variables
     spool_up_down_mode  _spool_mode;         // motor's current spool mode

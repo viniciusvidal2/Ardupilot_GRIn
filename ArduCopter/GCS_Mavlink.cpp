@@ -86,16 +86,26 @@ NOINLINE void Copter::send_heartbeat(mavlink_channel_t chan)
 
 NOINLINE void Copter::send_attitude(mavlink_channel_t chan)
 {
-    const Vector3f &gyro = ins.get_gyro();
+    //const Vector3f &gyro = ins.get_gyro();
     mavlink_msg_attitude_send(
         chan,
         millis(),
+        //srv5*3.1416/180.0,
         ahrs.roll,
+        //srv6*3.1416/180.0,
         ahrs.pitch,
+        //srv7*3.1416/180.0,
         ahrs.yaw,
-        gyro.x,
-        gyro.y,
-        gyro.z);
+        //srv8*3.1416/180.0,
+//        motor1*3.1416/180.0,
+        srv5*3.1416/180.0,
+        //gyro.x,
+//        motor2*3.1416/180.0,
+        srv6*3.1416/180.0,
+        //gyro.y,
+//        motor3*3.1416/180.0);
+        srv7*3.1416/180.0);
+        //gyro.z);
 }
 
 #if AC_FENCE == ENABLED
@@ -108,13 +118,13 @@ NOINLINE void Copter::send_fence_status(mavlink_channel_t chan)
 
 NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan)
 {
-    int16_t battery_current = -1;
-    int8_t battery_remaining = -1;
+//    int16_t battery_current = -1;
+//    int8_t battery_remaining = -1;
 
-    if (battery.has_current() && battery.healthy()) {
-        battery_remaining = battery.capacity_remaining_pct();
-        battery_current = battery.current_amps() * 100;
-    }
+//    if (battery.has_current() && battery.healthy()) {
+//        battery_remaining = battery.capacity_remaining_pct();
+//        battery_current = battery.current_amps() * 100;
+//    }
 
     update_sensor_status_flags();
     
@@ -124,10 +134,14 @@ NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan)
         control_sensors_enabled,
         control_sensors_health,
         (uint16_t)(scheduler.load_average(MAIN_LOOP_MICROS) * 1000),
-        battery.voltage() * 1000, // mV
-        battery_current,        // in 10mA units
-        battery_remaining,      // in %
-        0, // comm drops %,
+        (int8_t)(motor2*100.0),
+                //battery.voltage() * 1000, // mV
+        (int8_t)(motor1*100.0),
+//        battery_current,        // in 10mA units
+        (int8_t)(motor3*100.0),
+                //        battery_remaining,      // in %
+        (int8_t)(motor4*100.0),
+                //        0, // comm drops %,
         0, // comm drops in pkts,
         0, 0, 0, 0);
 }
@@ -153,7 +167,10 @@ void NOINLINE Copter::send_location(mavlink_channel_t chan)
         current_loc.lng,                // in 1E7 degrees
         (ahrs.get_home().alt + current_loc.alt) * 10UL,      // millimeters above sea level
         current_loc.alt * 10,           // millimeters above ground
-        vel.x,                          // X speed cm/s (+ve North)
+//        motor4*100,
+//        (float)(channel_pitch->get_control_in()),
+        srv8*100,
+        //vel.x,                          // X speed cm/s (+ve North)
         vel.y,                          // Y speed cm/s (+ve East)
         vel.z,                          // Z speed cm/s (+ve up)
         ahrs.yaw_sensor);               // compass heading in 1/100 degree
@@ -161,15 +178,22 @@ void NOINLINE Copter::send_location(mavlink_channel_t chan)
 
 void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan)
 {
-    const Vector3f &targets = attitude_control->get_att_target_euler_cd();
+//    const Vector3f &targets = attitude_control->get_att_target_euler_cd();
     mavlink_msg_nav_controller_output_send(
         chan,
-        targets.x / 1.0e2f,
-        targets.y / 1.0e2f,
-        targets.z / 1.0e2f,
+        T_r*1.0e3f,
+//        targets.x / 1.0e2f,
+        T_p*1.0e3f,
+//        targets.y / 1.0e2f,
+        T_y*1.0e6f,
+//        targets.z / 1.0e2f,
         wp_bearing / 1.0e2f,
-        (float)teste_wp,// * 1.0e3f, //wp_distance / 1.0e2f,
-        pos_control->get_alt_error() / 1.0e2f,
+//        (float)teste_wp,// * 1.0e3f, //wp_distance / 1.0e2f,
+        F_z*1.0e4f,
+//        wp_distance / 1.0e2f,
+//        srv5*1.0e3f,
+        F_x*1.0e3f,
+        //pos_control->get_alt_error() / 1.0e2f,
         0,
         0);
 }
@@ -191,29 +215,16 @@ void NOINLINE Copter::send_hwstatus(mavlink_channel_t chan)
 }
 
 void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
-{//current_loc.alt / 100.0f,
+{
     mavlink_msg_vfr_hud_send(
         chan,
         gps.ground_speed(),
         ahrs.groundspeed(),
         (ahrs.yaw_sensor / 100) % 360,
         (int16_t)(motors->get_throttle() * 100),
-        channel_7_value,
+        current_loc.alt / 100.0f,
         climb_rate / 100.0f);
 }
-
-//Mathaus \/\/\/\/\/\/
-//void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan, int value)
-//{
-//    mavlink_msg_vfr_hud_send(
-//        chan,
-//        gps.ground_speed(),
-//        ahrs.groundspeed(),
-//        (ahrs.yaw_sensor / 100) % 360,
-//        (int16_t)(motors->get_throttle() * 100),
-//        value,
-//        climb_rate / 100.0f);
-//}
 
 void NOINLINE Copter::send_current_waypoint(mavlink_channel_t chan)
 {

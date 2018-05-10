@@ -158,6 +158,45 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 };
 
 
+void Copter::setup_MFS()
+{
+//    srv5 = 1580.0;
+//    srv6 = 1485.0;
+//    srv7 = 1490.0;
+//    srv8 = 1600.0;
+    srv5 = 0.0;
+    srv6 = 0.0;
+    srv7 = 0.0;
+    srv8 = 0.0;
+
+    F_x = 0.0;
+    F_z = 0.0;
+    T_r = 0.0;
+    T_p = 0.0;
+    T_y = 0.0;
+
+    motor1 = 0.0;
+    motor2 = 0.0;
+    motor3 = 0.0;
+    motor4 = 0.0;
+
+    var_srv = 0;
+
+    // Servomotor positions in TRUAV frame
+    //     7         5
+    //          x
+    //     6         8
+    // Configurando os comandos PWM que mantém os servos parados no meio do curso possível.
+//    _mid_srv5 = 1915;   //1515    1535    1585
+//    _mid_srv6 = 1485;   //1485
+//    _mid_srv7 = 1490;   //1490
+//    _mid_srv8 = 1600;   //1600
+
+//    // Saturação do curso possível dos servos.
+//    _sat_servo_angle = 50;
+//    _sat_servo_angle = _sat_servo_angle/100;
+}
+
 void Copter::setup() 
 {
     cliSerial = hal.console;
@@ -169,6 +208,9 @@ void Copter::setup()
     StorageManager::set_layout_copter();
 
     init_ardupilot();
+
+    // MURILLO
+    setup_MFS();
 
     // initialise the main loop scheduler
     scheduler.init(&scheduler_tasks[0], ARRAY_SIZE(scheduler_tasks));
@@ -186,7 +228,6 @@ void Copter::barometer_accumulate(void)
     barometer.accumulate();
 }
 
-// Testando um commit no meu Branch Mathaus
 void Copter::perf_update(void)
 {
     if (should_log(MASK_LOG_PM))
@@ -243,12 +284,67 @@ void Copter::loop()
     scheduler.run(time_available > MAIN_LOOP_MICROS ? 0u : time_available);
 }
 
-
-void Copter::setout()
+// MURILLO
+void Copter::update_srv_action(float srv51, float srv61, float srv71, float srv81)
 {
-    //    Imprime o valor de PWM na saida serial
-    cliSerial->printf("PWM: %d \n  ",channel_aux->read());
+//    srv51 = _mid_srv5 - srv51*3*_sat_servo_angle;  // Servo azul
+//    srv61 = _mid_srv6 + srv61*_sat_servo_angle;
+//    srv71 = _mid_srv7 + srv71*_sat_servo_angle;
+//    srv81 = _mid_srv8 - srv81*_sat_servo_angle;
 
+    // Servomotor positions in TRUAV frame
+    //     7         5
+    //          x
+    //     6         8
+
+    float _mid_srv5  = 1365.0;   //1750 (Diminuir move para frente)     1850
+    float _mid_srv6  = 1365.0;   //1450 (Diminuir move para trás)
+    float _mid_srv7  = 1440.0;   //1375 (Diminuir move para trás)
+    float _mid_srv8  = 1460.0;   //1525 (Diminuir move para frente)
+    float srv_dead_b = 5.0;
+
+    srv51 = _mid_srv5 - srv51*srv_dead_b;  // Servo azul
+    srv61 = _mid_srv6 + srv61*srv_dead_b;
+    srv71 = _mid_srv7 + srv71*srv_dead_b;
+    srv81 = _mid_srv8 - srv81*srv_dead_b;
+
+    //    // Arredondando os valores do servomotores para inteiro.
+    srv51 = roundf(srv51);
+    srv61 = roundf(srv61);
+    srv71 = roundf(srv71);
+    srv81 = roundf(srv81);
+
+    //    // Arredondando os valores do servomotores para inteiro.
+    //    srv5 = round(srv5);
+    //    srv6 = round(srv6);
+    //    srv7 = round(srv7);
+    //    srv8 = round(srv8);
+
+    hal.rcout->write(8, uint16_t(srv51));  // Servo 5
+    hal.rcout->write(9, uint16_t(srv61));  // Servo 6
+    hal.rcout->write(10,uint16_t(srv71));  // Servo 7
+    hal.rcout->write(11,uint16_t(srv81));  // Servo 8
+}
+
+float Copter::norm_Pitch_Channel(float vlr)
+{
+    float norm;
+
+    float _min_chn_Pitch, _mid_chn_Pitch, _max_chn_Pitch;
+
+    _min_chn_Pitch = 1108.0;
+    _max_chn_Pitch = 1928.0;
+
+    _mid_chn_Pitch = _min_chn_Pitch + (_max_chn_Pitch - _min_chn_Pitch)/2.0;
+
+    // Checking if Pitch Channel is turned off.
+    if(vlr<800.0){
+        norm = 0.0;
+    }else{
+        norm = (_mid_chn_Pitch - vlr)/(_mid_chn_Pitch - _min_chn_Pitch);
+    }
+
+    return norm;
 }
 
 // Main loop - 400hz
@@ -261,7 +357,23 @@ void Copter::fast_loop()
     attitude_control->rate_controller_run();
 
     // send outputs to the motors library immediately
-    motors_output();
+    if ((control_mode==STABILIZE)||(control_mode==ALT_HOLD))
+    {
+        Pitch_WP_Test = hal.rcin->read(1);
+        F_x = norm_Pitch_Channel((float)(Pitch_WP_Test));
+//        (float)(hal.rcin->read(5)) Leitura do canal 6 no mission planner, que é o Seletor VR no Futaba T8J. Ou seja, lê 1 a menos.
+    }
+
+    var_srv = var_srv + 1;
+    if((var_srv%8)==0)
+    {
+        motors_output(motor1, motor2, motor3, motor4, F_x, F_z, T_r, T_p, T_y, srv5, srv6, srv7, srv8, 1);
+        var_srv  = 0;
+    }
+    else{
+        motors_output(motor1, motor2, motor3, motor4, F_x, F_z, T_r, T_p, T_y, srv5, srv6, srv7, srv8, 2);
+    }
+    update_srv_action(srv5, srv6, srv7, srv8);
 
     // run EKF state estimator (expensive)
     // --------------------
@@ -274,9 +386,6 @@ void Copter::fast_loop()
     // Inertial Nav
     // --------------------
     read_inertia();
-
-    // (mathaus) funcao criada para imprimir o valor de PWM do quinto motor na saída serial
-    setout();
 
     // check if ekf has reset target heading or position
     check_ekf_reset();

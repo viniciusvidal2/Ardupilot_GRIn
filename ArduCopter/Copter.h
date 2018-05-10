@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <AP_HAL/AP_HAL.h>
+#include "../libraries/AP_HAL/AP_HAL.h"
 
 // Common dependencies
 #include <AP_Common/AP_Common.h>
@@ -172,7 +172,13 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
-    uint32_t teste_wp = 233;
+    uint16_t Pitch_WP_Test;    
+    float srv5=0.0, srv6=0.0, srv7=0.0, srv8=0.0;
+    float F_x=0.0, F_z=0.0, T_r=0.0, T_p=0.0, T_y=0.0;
+    float motor1=0.0, motor2=0.0, motor3=0.0, motor4=0.0;
+//    double _sat_servo_angle=0.0;
+//    double _mid_srv5=0, _mid_srv6=0, _mid_srv7=0, _mid_srv8=0;
+    int var_srv=0;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -205,12 +211,6 @@ private:
     RC_Channel *channel_pitch;
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
-
-    RC_Channel *channel_aux; //Cria um espaço de memoria para o canal auxiliar
-
-    RC_Channel *channel_aux_tune; // Cria um espeaço de memória para a leitura de uma chave auxiliar para salvar os ganhos do autotune
-
-    int channel_7_value=0;
 
     // Dataflash
     DataFlash_Class DataFlash;
@@ -666,7 +666,6 @@ private:
     static const AP_Param::Info var_info[];
     static const struct LogStructure log_structure[];
 
-    void setout();
     void compass_accumulate(void);
     void compass_cal_update(void);
     void barometer_accumulate(void);
@@ -726,7 +725,6 @@ private:
     void send_simstate(mavlink_channel_t chan);
     void send_hwstatus(mavlink_channel_t chan);
     void send_vfr_hud(mavlink_channel_t chan);
-    void send_vfr_hud(mavlink_channel_t chan, int value);
     void send_current_waypoint(mavlink_channel_t chan);
     void send_proximity(mavlink_channel_t chan, uint16_t count_max);
     void send_rpm(mavlink_channel_t chan);
@@ -1035,6 +1033,14 @@ private:
     bool init_arm_motors(bool arming_from_gcs);
     void init_disarm_motors();
     void motors_output();
+
+    //Murillo
+    void motors_output(float &mt1, float &mt2, float &mt3, float &mt4, float &F_x1, float &F_z1, float &T_r1, float &T_p1, float &T_y1, float &srv51, float &srv61, float &srv71, float &srv81, int tp);
+    void motors_output(uint16_t pitch_WP);
+    void update_srv_action(float srv51, float srv61, float srv71, float srv81);
+    float norm_Pitch_Channel(float vlr);
+    void setup_MFS();
+
     void lost_vehicle_check();
     void run_nav_updates(void);
     void calc_distance_and_bearing();

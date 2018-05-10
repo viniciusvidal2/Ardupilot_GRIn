@@ -25,6 +25,7 @@ void Copter::stabilize_run()
     float target_roll, target_pitch;
     float target_yaw_rate;
     float pilot_throttle_scaled;
+//    int Stab_Type;
 
     // if not armed set throttle to zero and exit immediately
     if (!motors->armed() || ap.throttle_zero || !motors->get_interlock()) {
@@ -43,16 +44,62 @@ void Copter::stabilize_run()
 
     // convert pilot input to lean angles
     // To-Do: convert get_pilot_desired_lean_angles to return angles as floats
-    get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, aparm.angle_max);
+    //////////////////////////////
+    // MURILLO //
+    //////////////////////////////
+//    get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, aparm.angle_max);
+
+//    target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
+
+    get_pilot_desired_lean_angles(channel_roll->get_control_in(), 0, target_roll, target_pitch, aparm.angle_max);
+
+    // MURILLO
+    // Checking aux channel 5 to request roll SP.
+//    if(((float)(hal.rcin->read(4))>1400.00)&&(float)(hal.rcin->read(4))<1700.00){
+//        get_pilot_desired_lean_angles(3000, 0, target_roll, target_pitch, aparm.angle_max);
+//        attitude_control->input_euler_angle_roll_pitch_yaw(target_roll, target_pitch, 9000, true, get_smoothing_gain());
+//    }else
+//    {
+//        if((float)(hal.rcin->read(4))>=1700.00){
+//        get_pilot_desired_lean_angles(-3000, 0, target_roll, target_pitch, aparm.angle_max);
+//        attitude_control->input_euler_angle_roll_pitch_yaw(target_roll, target_pitch, -9000, true, get_smoothing_gain());
+//        }
+//        else{
+//            get_pilot_desired_lean_angles(channel_roll->get_control_in(), 0, target_roll, target_pitch, aparm.angle_max);
+//            attitude_control->input_euler_angle_roll_pitch_yaw(target_roll, target_pitch, 0, true, get_smoothing_gain());
+//            //            attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
+//        }
+//    }
 
     // get pilot's desired yaw rate
+    //////////////////////////////
+    // MURILLO //
+    //////////////////////////////
     target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
 
     // get pilot's desired throttle
     pilot_throttle_scaled = get_pilot_desired_throttle(channel_throttle->get_control_in());
 
-    // call attitude controller
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
+
+
+
+    // MURILLO
+    // 1 -- Stabilize flight mode with yaw angular velocity control
+    // 2 -- Stabilize flight mode with yaw angular position control
+//    if((float)(hal.rcin->read(5))>1500.00){
+//        Stab_Type = 2;
+//    }else
+//    {
+//        Stab_Type = 1;
+//    }
+
+//    if(Stab_Type==1){
+        // call attitude controller
+//        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
+//    }else{
+//        attitude_control->input_euler_angle_roll_pitch_yaw(target_roll, target_pitch, target_yaw_rate, true, get_smoothing_gain());
+//    }
 
     // body-frame rate controller is run directly from 100hz loop
 
