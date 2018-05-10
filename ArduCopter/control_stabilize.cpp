@@ -23,7 +23,7 @@ bool Copter::stabilize_init(bool ignore_checks)
 void Copter::stabilize_run()
 {
     float target_roll, target_pitch;
-    float target_yaw_rate;
+//    float target_yaw_rate;
     float pilot_throttle_scaled;
 //    int Stab_Type;
 
@@ -75,12 +75,14 @@ void Copter::stabilize_run()
     //////////////////////////////
     // MURILLO //
     //////////////////////////////
-    target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
+//    target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
 
     // get pilot's desired throttle
     pilot_throttle_scaled = get_pilot_desired_throttle(channel_throttle->get_control_in());
 
-    attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
+    attitude_control->input_euler_angle_roll_pitch_yaw(target_roll, target_pitch, 0, true, get_smoothing_gain());
+
+//    attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
 
 
 
