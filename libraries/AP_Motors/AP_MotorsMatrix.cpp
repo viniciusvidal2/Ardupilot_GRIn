@@ -85,7 +85,7 @@ void AP_MotorsMatrix::enable()
     }
 }
 
-void AP_MotorsMatrix::output_to_motors(uint16_t &var) //mathaus
+void AP_MotorsMatrix::output_to_motors(float &var) //mathaus
 {
     int8_t i;
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motor
@@ -119,32 +119,39 @@ void AP_MotorsMatrix::output_to_motors(uint16_t &var) //mathaus
             // set motor output based on thrust requests
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
-                    motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
+                    if(i==AP_MOTORS_MOT_5)
+                    {
+                        motor_out[i] = calc_thrust_to_pwm(var);
+                    }else{
+                        motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
+                    }
+
                 }
             }
             break;
     }
 
     // send output to each motor
-    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++)
+    {
         if (motor_enabled[i])
         {
-            if(i!=AP_MOTORS_MOT_5)
-            {
+//            if(i!=AP_MOTORS_MOT_5)
+//            {
                 rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
 
-            }else
-            {
-                if(armed()){
-                //rc_write(i, copter.channel_pitch->get_control_in());
-                rc_write(i,hal.rcin->read(5)); //(mathaus)
+//            }else
+//            {
+//                if(armed()){
+//                //rc_write(i, copter.channel_pitch->get_control_in());
+//                rc_write(i,hal.rcin->read(5)); //(mathaus)
 
-                }else{
-                    rc_write(i,0);
-                }
-            }
-        }else
-        {
+//                }else{
+//                    rc_write(i,0);
+//                }
+//            }
+//        }else
+//        {
             rc_write(i,get_pwm_output_min());
         }
     }

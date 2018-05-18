@@ -237,6 +237,7 @@ void Copter::auto_wp_start(const Location_Class& dest_loc)
 //      called by auto_run at 100hz or more
 void Copter::auto_wp_run()
 {
+//    int32_t pitch_to_Thro5M;
     // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
     if (!motors->armed() || !ap.auto_armed || !motors->get_interlock()) {
         // To-Do: reset waypoint origin to current location because copter is probably on the ground so we don't want it lurching left or right on take-off
@@ -273,14 +274,56 @@ void Copter::auto_wp_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
-    // call attitude controller
-    if (auto_yaw_mode == AUTO_YAW_HOLD) {
-        // roll & pitch from waypoint controller, yaw rate from pilot
-        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
+    // MURILLO
+    // Teste para calcular a ação do motor 5. Só é calculado se a distância até o waypoint for maior que 5 metros.
+    // Do contrário, o veículo será operado da mesma forma.
+    if(wp_distance>=500){
+
+        // MURILLO
+        // Coleta a ação de controle para inclinar PITCH em direção ao SP, de forma normalizada.
+        // O sinal - é para transformar o sinal em positivo, pois movimentos para frente são gerados por PITCH negativo.
+        pitch_to_Thro5M = - (wp_nav->get_pitch())/(aparm.angle_max);
+
+        // MURILLO
+        // Se o sinal normalizado coletado for negativo, o motor não liga por não tem reversão, enviando 0 para o motor 5.
+        // Não vai ser feito nada até que a guinada seja corrigida, faceando com o próximo waypoint.
+        // À medida que ficar alinhado, o sinal normalizado a ser coletado passará a ser positivo, o que faz ligar o motor 5.
+        if(pitch_to_Thro5M<0){
+            pitch_to_Thro5M = 0;
+        }
+
+        // MURILLO
+        // Executa as operações tradicionais de controle de posição, porém mantendo PITCH em 0 graus.
+        // Fiz estas mudanças pensando somente na possibilidade de voar sempre olhando para o próximo waypoint,
+        // ou seja, AUTO_YAW_HOLD==0.
+        // call attitude controller
+        if (auto_yaw_mode == AUTO_YAW_HOLD) {
+            // roll & pitch from waypoint controller, yaw rate from pilot
+            attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
+        }else{
+            // MURILLO
+            // roll from waypoint controller, yaw heading from auto_heading(). 0 pitch
+            attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), 0 , get_auto_heading(),true, get_smoothing_gain());
+        }
+        // Se a distância do way
     }else{
-        // roll, pitch from waypoint controller, yaw heading from auto_heading()
-        attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), get_auto_heading(),true, get_smoothing_gain());
+        // MURILLO
+        // Enviar 0 para o Motor 5
+        pitch_to_Thro5M = 0;
+
+        // call attitude controller
+        if (auto_yaw_mode == AUTO_YAW_HOLD) {
+            // roll & pitch from waypoint controller, yaw rate from pilot
+            attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
+        }else{
+            // roll, pitch from waypoint controller, yaw heading from auto_heading()
+            attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), get_auto_heading(),true, get_smoothing_gain());
+        }
     }
+
+    // Se precisar ....
+    // get_wp_distance_to_destination()
+
 }
 
 // auto_spline_start - initialises waypoint controller to implement flying to a particular destination using the spline controller

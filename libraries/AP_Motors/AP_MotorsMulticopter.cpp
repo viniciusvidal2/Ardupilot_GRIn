@@ -204,7 +204,7 @@ AP_MotorsMulticopter::AP_MotorsMulticopter(uint16_t loop_rate, uint16_t speed_hz
 
 
 // output - sends commands to the motors
-void AP_MotorsMulticopter::output(uint16_t &var1) //(mathaus)
+void AP_MotorsMulticopter::output(float &var1) //(mathaus)
 {
     // update throttle filter
     update_throttle_filter();

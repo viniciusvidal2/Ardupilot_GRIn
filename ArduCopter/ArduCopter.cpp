@@ -82,8 +82,6 @@
   and the maximum time they are expected to take (in microseconds)
  */
 const AP_Scheduler::Task Copter::scheduler_tasks[] = {
-   // SCHED_TASK(setout,             50,    200), //mathaus
-    SCHED_TASK(update_tractor_health, 5, 1500),
     SCHED_TASK(rc_loop,              100,    130),
     SCHED_TASK(throttle_loop,         50,     75),
     SCHED_TASK(update_GPS,            50,    200),
@@ -249,14 +247,6 @@ void Copter::loop()
 }
 
 
-void Copter::setout() //mathaus
-{
-    //    Imprime o valor de PWM na saida serial
-    hal.uartA->printf("Hello on UART at %d seconds\n",channel_pitch->get_control_in());
-    //cliSerial->printf("PWM: %d \n  ",channel_pitch->get_control_in());
-
-}
-
 // Main loop - 400hz
 void Copter::fast_loop()
 {
@@ -267,8 +257,8 @@ void Copter::fast_loop()
     attitude_control->rate_controller_run();
 
     // send outputs to the motors library immediately
-    uint16_t aux = (uint16_t) (channel_pitch->get_control_in()); //Mathaus
-    motors_output(aux);
+//    uint16_t aux = (uint16_t) (channel_pitch->get_control_in()); //Mathaus
+    motors_output();
 
     // run EKF state estimator (expensive)
     // --------------------
@@ -281,9 +271,6 @@ void Copter::fast_loop()
     // Inertial Nav
     // --------------------
     read_inertia();
-
-    // (mathaus) funcao criada para imprimir o valor de PWM do quinto motor na saída serial
-    //setout();
 
     // check if ekf has reset target heading or position
     check_ekf_reset();
