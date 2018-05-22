@@ -150,8 +150,8 @@ void AP_MotorsMatrix::output_to_motors(float &var) //mathaus
 //                    rc_write(i,0);
 //                }
 //            }
-//        }else
-//        {
+        }else
+        {
             rc_write(i,get_pwm_output_min());
         }
     }
