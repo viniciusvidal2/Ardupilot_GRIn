@@ -233,11 +233,16 @@ void Copter::auto_wp_start(const Location_Class& dest_loc)
     }
 }
 
+// Mathaus
+// declaração de variáveis para obtenção de velocidade no eixo X (foward)
+
+float vel_fw, vel_right;
+
 // auto_wp_run - runs the auto waypoint controller
 //      called by auto_run at 100hz or more
 void Copter::auto_wp_run()
 {
-//    int32_t pitch_to_Thro5M;
+    //    int32_t pitch_to_Thro5M;
     // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
     if (!motors->armed() || !ap.auto_armed || !motors->get_interlock()) {
         // To-Do: reset waypoint origin to current location because copter is probably on the ground so we don't want it lurching left or right on take-off
@@ -274,6 +279,16 @@ void Copter::auto_wp_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
+
+    //MATHAUS
+    //
+    const Vector3f& vel = inertial_nav.get_velocity();
+
+    vel_fw    =  vel.x*ahrs.cos_yaw() + vel.y*ahrs.sin_yaw();
+    vel_right = -vel.x*ahrs.sin_yaw() + vel.y*ahrs.cos_yaw();
+
+    // y=0.0013* pow(x,4)-0.1089*pow(x,3)+3.3749*pow(x,2)+47.529*x+259.96;
+
     // MURILLO
     // Teste para calcular a ação do motor 5. Só é calculado se a distância até o waypoint for maior que 5 metros.
     // Do contrário, o veículo será operado da mesma forma.
@@ -303,7 +318,7 @@ void Copter::auto_wp_run()
         }else{
             // MURILLO
             // roll from waypoint controller, yaw heading from auto_heading(). 0 pitch
-            attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), 0 , get_auto_heading(),true, get_smoothing_gain());
+            attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), 500 , get_auto_heading(),true, get_smoothing_gain()); //alteração para tentar a aerodinamica
         }
         // Se a distância do way
     }else{
@@ -329,7 +344,7 @@ void Copter::auto_wp_run()
 // auto_spline_start - initialises waypoint controller to implement flying to a particular destination using the spline controller
 //  seg_end_type can be SEGMENT_END_STOP, SEGMENT_END_STRAIGHT or SEGMENT_END_SPLINE.  If Straight or Spline the next_destination should be provided
 void Copter::auto_spline_start(const Location_Class& destination, bool stopped_at_start,
-                               AC_WPNav::spline_segment_end_type seg_end_type, 
+                               AC_WPNav::spline_segment_end_type seg_end_type,
                                const Location_Class& next_destination)
 {
     auto_mode = Auto_Spline;
@@ -634,22 +649,22 @@ uint8_t Copter::get_default_auto_yaw_mode(bool rtl)
 {
     switch (g.wp_yaw_behavior) {
 
-        case WP_YAW_BEHAVIOR_NONE:
+    case WP_YAW_BEHAVIOR_NONE:
+        return AUTO_YAW_HOLD;
+
+    case WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP_EXCEPT_RTL:
+        if (rtl) {
             return AUTO_YAW_HOLD;
-
-        case WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP_EXCEPT_RTL:
-            if (rtl) {
-                return AUTO_YAW_HOLD;
-            }else{
-                return AUTO_YAW_LOOK_AT_NEXT_WP;
-            }
-
-        case WP_YAW_BEHAVIOR_LOOK_AHEAD:
-            return AUTO_YAW_LOOK_AHEAD;
-
-        case WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP:
-        default:
+        }else{
             return AUTO_YAW_LOOK_AT_NEXT_WP;
+        }
+
+    case WP_YAW_BEHAVIOR_LOOK_AHEAD:
+        return AUTO_YAW_LOOK_AHEAD;
+
+    case WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP:
+    default:
+        return AUTO_YAW_LOOK_AT_NEXT_WP;
     }
 }
 
