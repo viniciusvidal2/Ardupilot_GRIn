@@ -93,7 +93,7 @@ NOINLINE void Copter::send_attitude(mavlink_channel_t chan)
         ahrs.roll,
         ahrs.pitch,
         ahrs.yaw,
-        gyro.x,
+        pitch_to_Thro5M/100.0,//gyro.x,
         gyro.y,
         gyro.z);
 }

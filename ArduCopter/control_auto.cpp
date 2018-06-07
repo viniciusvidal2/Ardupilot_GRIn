@@ -283,11 +283,16 @@ void Copter::auto_wp_run()
     //MATHAUS
     //
     const Vector3f& vel = inertial_nav.get_velocity();
-
+    //calcula a velocidade para frente e lateral no frame do corpo do drone
     vel_fw    =  vel.x*ahrs.cos_yaw() + vel.y*ahrs.sin_yaw();
     vel_right = -vel.x*ahrs.sin_yaw() + vel.y*ahrs.cos_yaw();
 
-    // y=0.0013* pow(x,4)-0.1089*pow(x,3)+3.3749*pow(x,2)+47.529*x+259.96;
+    if (vel_fw >= 700) //700 pois está em cm/s
+    {
+         y = 0.0013*pow(x,4) - 0.1089*pow(x,3) + 3.3749*pow(x,2) - 47.529*x + 259.96;
+    }
+
+
 
     // MURILLO
     // Teste para calcular a ação do motor 5. Só é calculado se a distância até o waypoint for maior que 5 metros.
@@ -297,7 +302,7 @@ void Copter::auto_wp_run()
         // MURILLO
         // Coleta a ação de controle para inclinar PITCH em direção ao SP, de forma normalizada.
         // O sinal - é para transformar o sinal em positivo, pois movimentos para frente são gerados por PITCH negativo.
-        pitch_to_Thro5M = - (wp_nav->get_pitch())/(aparm.angle_max);
+        pitch_to_Thro5M = - ((float)(wp_nav->get_pitch()))/((float)(aparm.angle_max));
 
         // MURILLO
         // Se o sinal normalizado coletado for negativo, o motor não liga por não tem reversão, enviando 0 para o motor 5.
@@ -318,7 +323,7 @@ void Copter::auto_wp_run()
         }else{
             // MURILLO
             // roll from waypoint controller, yaw heading from auto_heading(). 0 pitch
-            attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), 500 , get_auto_heading(),true, get_smoothing_gain()); //alteração para tentar a aerodinamica
+            attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), 0 , get_auto_heading(),true, get_smoothing_gain()); //alteração para tentar a aerodinamica
         }
         // Se a distância do way
     }else{

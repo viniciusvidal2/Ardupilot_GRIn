@@ -260,6 +260,11 @@ void Copter::fast_loop()
 //    uint16_t aux = (uint16_t) (channel_pitch->get_control_in()); //Mathaus
     motors_output();
 
+    //MURILLO
+    if(control_mode!=AUTO){
+        pitch_to_Thro5M =0.0;
+    }
+
     // run EKF state estimator (expensive)
     // --------------------
     read_AHRS();
