@@ -236,7 +236,7 @@ void Copter::auto_wp_start(const Location_Class& dest_loc)
 // Mathaus
 // declaração de variáveis para obtenção de velocidade no eixo X (foward)
 
-float vel_fw, vel_right;
+float vel_fw, vel_right, y;
 
 // auto_wp_run - runs the auto waypoint controller
 //      called by auto_run at 100hz or more
@@ -289,7 +289,7 @@ void Copter::auto_wp_run()
 
     if (vel_fw >= 700) //700 pois está em cm/s
     {
-         y = 0.0013*pow(x,4) - 0.1089*pow(x,3) + 3.3749*pow(x,2) - 47.529*x + 259.96;
+         y = 0.0013*pow(vel_fw,4) - 0.1089*pow(vel_fw,3) + 3.3749*pow(vel_fw,2) - 47.529*vel_fw + 259.96;
     }
 
 
