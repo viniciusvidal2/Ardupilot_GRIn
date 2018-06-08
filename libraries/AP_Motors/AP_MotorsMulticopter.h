@@ -130,6 +130,9 @@ protected:
     // convert thrust (0~1) range back to pwm range
     int16_t             calc_thrust_to_pwm(float thrust_in) const;
 
+    // convert thrust (0~1) range back to pwm range  Mathaus
+    int16_t             calc_thrust_to_pwm_5M(float thrust_in) const;
+
     // calculate spin up to pwm range
     int16_t             calc_spin_up_to_pwm() const;
 

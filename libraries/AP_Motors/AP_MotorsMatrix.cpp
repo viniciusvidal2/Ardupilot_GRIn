@@ -121,7 +121,7 @@ void AP_MotorsMatrix::output_to_motors(float &var) //mathaus
                 if (motor_enabled[i]) {
                     if(i==AP_MOTORS_MOT_5)
                     {
-                        motor_out[i] = calc_thrust_to_pwm(var);
+                        motor_out[i] =  calc_thrust_to_pwm_5M(var);//calc_thrust_to_pwm(var);  Mathaus
                     }else{
                         motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
                     }

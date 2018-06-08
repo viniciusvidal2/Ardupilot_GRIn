@@ -287,9 +287,14 @@ void Copter::auto_wp_run()
     vel_fw    =  vel.x*ahrs.cos_yaw() + vel.y*ahrs.sin_yaw();
     vel_right = -vel.x*ahrs.sin_yaw() + vel.y*ahrs.cos_yaw();
 
-    if (vel_fw >= 700) //700 pois está em cm/s
+
+    if (vel_fw >= 1000) //1000 pois está em cm/s
     {
          y = 0.0013*pow(vel_fw,4) - 0.1089*pow(vel_fw,3) + 3.3749*pow(vel_fw,2) - 47.529*vel_fw + 259.96;
+         y = 100.0*y; // Transformando para centidegrees
+    } else{
+
+        y = 0;
     }
 
 
@@ -323,7 +328,7 @@ void Copter::auto_wp_run()
         }else{
             // MURILLO
             // roll from waypoint controller, yaw heading from auto_heading(). 0 pitch
-            attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), 0 , get_auto_heading(),true, get_smoothing_gain()); //alteração para tentar a aerodinamica
+            attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), (int)(roundf(y)) , get_auto_heading(),true, get_smoothing_gain()); //alteração para tentar a aerodinamica
         }
         // Se a distância do way
     }else{

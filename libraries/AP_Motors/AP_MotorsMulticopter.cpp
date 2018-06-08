@@ -375,6 +375,19 @@ float AP_MotorsMulticopter::get_compensation_gain() const
     return ret;
 }
 
+
+
+
+
+//-----------------------Calcula o PWM para o quinto motor----------------------------------
+
+int16_t AP_MotorsMulticopter::calc_thrust_to_pwm_5M(float thrust_in) const
+{
+    thrust_in = constrain_float(thrust_in, 0.0f, 1.0f);
+    return get_pwm_output_min() + (get_pwm_output_max()-get_pwm_output_min()) * (thrust_in);
+}
+//------------------------------------------------------------------------------------------
+
 int16_t AP_MotorsMulticopter::calc_thrust_to_pwm(float thrust_in) const
 {
     thrust_in = constrain_float(thrust_in, 0.0f, 1.0f);
