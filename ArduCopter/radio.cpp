@@ -26,19 +26,20 @@ void Copter::init_rc_in()
     channel_throttle = RC_Channels::rc_channel(rcmap.throttle()-1);
     channel_yaw      = RC_Channels::rc_channel(rcmap.yaw()-1);
 
-    channel_aux      = RC_Channels::rc_channel(5);       //(mathaus) Adiciona um canal para o controle do quinto motor
+    canalservo      = RC_Channels::rc_channel(5);       //(mathaus) Adiciona um canal para o controle do quinto motor
 
     // set rc channel ranges
-    channel_roll->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
+    channel_roll->set_angle(ROLL_PITCH_YAW_INPUT_MAX);      // Utilizado para andar lateralmente com o barco sem mudar a orientação
     channel_pitch->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
-    channel_yaw->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
-    channel_throttle->set_range(1000);
+    channel_yaw->set_angle(ROLL_PITCH_YAW_INPUT_MAX);      // vai ser usado para rotacionar o  barco
+    channel_throttle->set_range(1000);                     // utilizado para a força em X
 
-    channel_aux->set_angle(ROLL_PITCH_YAW_INPUT_MAX); //(mathaus) Seta o angulo maximo de entrada
+    canalservo->set_angle(ROLL_PITCH_YAW_INPUT_MAX); //(mathaus) Seta o angulo maximo de entrada
 
 
     //set auxiliary servo ranges
-    RC_Channels::rc_channel(CH_5)->set_range(1000); //(mathaus) Onde pode-se alterar o range dos motores auxiliares
+    //(mathaus) Onde pode-se alterar o range dos motores auxiliares
+    RC_Channels::rc_channel(CH_5)->set_range(1000);
     RC_Channels::rc_channel(CH_6)->set_range(1000);
     RC_Channels::rc_channel(CH_7)->set_range(1000);
     RC_Channels::rc_channel(CH_8)->set_range(1000);

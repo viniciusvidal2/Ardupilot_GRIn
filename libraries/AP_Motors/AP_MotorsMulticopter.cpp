@@ -204,7 +204,7 @@ AP_MotorsMulticopter::AP_MotorsMulticopter(uint16_t loop_rate, uint16_t speed_hz
 
 
 // output - sends commands to the motors
-void AP_MotorsMulticopter::output(float &var1) //(mathaus)
+void AP_MotorsMulticopter::output(float &srv1, float &srv2, float &srv3, float &srv4) //(mathaus)
 {
     // update throttle filter
     update_throttle_filter();
@@ -222,7 +222,7 @@ void AP_MotorsMulticopter::output(float &var1) //(mathaus)
     thrust_compensation();
 
     // convert rpy_thrust values to pwm
-    output_to_motors(var1);
+    output_to_motors(srv1,srv2,srv3,srv4);
 
     // output any booster throttle
     output_boost_throttle();
@@ -379,7 +379,7 @@ float AP_MotorsMulticopter::get_compensation_gain() const
 
 
 
-//-----------------------Calcula o PWM para o quinto motor----------------------------------
+//-----------------------Calcula o PWM para os quatro servomotores aqui ----------------------------------
 
 int16_t AP_MotorsMulticopter::calc_thrust_to_pwm_5M(float thrust_in) const
 {

@@ -85,76 +85,98 @@ void AP_MotorsMatrix::enable()
     }
 }
 
-void AP_MotorsMatrix::output_to_motors(float &var) //mathaus
+
+void update_srv_action(float srv1, float srv2, float srv3, float srv4)
+{
+
+    //   A entrada deve ser em angulo pois aqui dentro será convertido para PWM
+
+    // Servomotor positions in TRUAV frame
+    //     3         1
+    //          x
+    //     2         4
+
+//    float _mid_srv1  = 1560.0;   //1750 (Diminuir move para frente)     1850
+//    float _mid_srv2  = 1500.0;   //1450 (Diminuir move para trás)
+//    float _mid_srv3  = 1520.0;   //1375 (Diminuir move para trás)
+//    float _mid_srv4  = 1470.0;   //1525 (Diminuir move para frente)
+
+
+//    // Fator de conversão para o angulo do servo em PWM
+// //    float srv_dead_b = 5.0;
+
+//    float srv_dead_b = 1.0;
+
+//    srv1 = 0*_mid_srv1 + srv1*srv_dead_b;
+//    srv2 = 0*_mid_srv2 + srv2*srv_dead_b;
+//    srv3 = 0*_mid_srv3 + srv3*srv_dead_b;
+//    srv4 = 0*_mid_srv4 + srv4*srv_dead_b;
+
+    // Arredondando os valores do servomotores para inteiro.
+    srv1 = roundf(srv1);
+    srv2 = roundf(srv2);
+    srv3 = roundf(srv3);
+    srv4 = roundf(srv4);
+
+    hal.rcout->write(8, uint16_t(srv1));  // Servo 5
+    hal.rcout->write(9, uint16_t(srv2));  // Servo 6
+    hal.rcout->write(10,uint16_t(srv3));  // Servo 7
+    hal.rcout->write(11,uint16_t(srv4));  // Servo 8
+}
+
+
+
+
+void AP_MotorsMatrix::output_to_motors(float &srv1,float &srv2,float &srv3,float &srv4) //mathaus
 {
     int8_t i;
+    //    float SVR [] {srv1, srv2,srv3,srv4};
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motor
 
     switch (_spool_mode) {
-        case SHUT_DOWN: {
-            // sends minimum values out to the motors
-            // set motor output based on thrust requests
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    if (_disarm_disable_pwm && _disarm_safety_timer == 0 && !armed()) {
-                        motor_out[i] = 0;
-                    } else {
-                        motor_out[i] = get_pwm_output_min();
-                    }
+    case SHUT_DOWN: {
+        // sends minimum values out to the motors
+        // set motor output based on thrust requests
+        for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+            if (motor_enabled[i]) {
+                if (_disarm_disable_pwm && _disarm_safety_timer == 0 && !armed()) {
+                    motor_out[i] = 0;
+                } else {
+                    motor_out[i] = get_pwm_output_min();
                 }
             }
-            break;
         }
-        case SPIN_WHEN_ARMED:
-            // sends output to motors when armed but not flying
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = calc_spin_up_to_pwm();
-                }
-            }
-            break;
-        case SPOOL_UP:
-        case THROTTLE_UNLIMITED:
-        case SPOOL_DOWN:
-            // set motor output based on thrust requests
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    if(i==AP_MOTORS_MOT_5)
-                    {
-                        motor_out[i] =  calc_thrust_to_pwm_5M(var);//calc_thrust_to_pwm(var);  Mathaus
-                    }else{
-                        motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
-                    }
-
-                }
-            }
-            break;
+        break;
     }
-
+    case SPIN_WHEN_ARMED:
+        // sends output to motors when armed but not flying
+        for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+            if (motor_enabled[i]) {
+                motor_out[i] = calc_spin_up_to_pwm();
+            }
+        }
+        break;
+    case SPOOL_UP:
+    case THROTTLE_UNLIMITED:
+    case SPOOL_DOWN:
+        // set motor output based on thrust requests
+        for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+            if(motor_enabled[i])
+            {
+                motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
+            }
+        }
+        break;
+    }
     // send output to each motor
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++)
     {
         if (motor_enabled[i])
         {
-//            if(i!=AP_MOTORS_MOT_5)
-//            {
-                rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
-
-//            }else
-//            {
-//                if(armed()){
-//                //rc_write(i, copter.channel_pitch->get_control_in());
-//                rc_write(i,hal.rcin->read(5)); //(mathaus)
-
-//                }else{
-//                    rc_write(i,0);
-//                }
-//            }
-        }else
-        {
-            rc_write(i,get_pwm_output_min());
+            rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
         }
     }
+    update_srv_action(srv1, srv2,  srv3, srv4);
 }
 
 
@@ -477,7 +499,7 @@ void AP_MotorsMatrix::setup_motors(motor_frame_class frame_class, motor_frame_ty
                     add_motor(AP_MOTORS_MOT_2, -135, AP_MOTORS_MATRIX_YAW_FACTOR_CCW, 3);
                     add_motor(AP_MOTORS_MOT_3,  -45, AP_MOTORS_MATRIX_YAW_FACTOR_CW,  4);
                     add_motor(AP_MOTORS_MOT_4,  135, AP_MOTORS_MATRIX_YAW_FACTOR_CW,  2);
-                    add_motor(AP_MOTORS_MOT_5,    0,                              0,  5); //(mathaus) Adicionando quinto motor
+//                    add_motor(AP_MOTORS_MOT_5,    0,                              0,  5); //(mathaus) Adicionando quinto motor
                     success = true;
 //                    break;
 //                case MOTOR_FRAME_TYPE_V:

@@ -269,6 +269,63 @@ void Copter::init_disarm_motors()
 }
 
 
+float Copter::servo_pwm_to_angle(int PWM)
+{
+    //valor que o servo entende como 0 graus
+   float srv_min_angle = 0.0;
+
+    //valor que o servo entende como 180
+   float srv_max_angle = 180.0;
+
+     //valor de pwm que o servo entende como 0 graus
+    float srv_min_pwm = 964.0;
+
+     //valor de pwm que o servo entende como 180
+    float srv_max_pwm = 2064.0;
+
+    float angle = (PWM - srv_min_pwm) * (srv_max_angle-srv_min_angle)/(srv_max_pwm-srv_min_pwm);
+//    float angle = (PWM - srv_min_pwm)*(srv_max_angle-srv_min_angle)/(srv_max_pwm-srv_min_pwm);
+
+    return angle - 90.0;
+
+
+}
+
+
+int Copter::servo_angle_to_pwm(float angle)
+{
+    //Entrada de angulo deve ser  de -90 a 90
+    angle = constrain_float(angle,-90.0,90.0);
+
+    angle = angle + 90.0;
+
+    //valor que o servo entende como 0 graus
+   float srv_min_angle = 0.0;
+
+    //valor de pwm que o servo entende como 180
+   float srv_max_angle = 180;
+
+     //valor que o servo entende como 0 graus
+    float srv_min_pwm = 480.0;
+
+     //valor de pwm que o servo entende como 180
+    float srv_max_pwm = 2440.0;
+
+    int pwm =  srv_min_pwm + angle * (srv_max_pwm - srv_min_pwm)/(srv_max_angle - srv_min_angle);
+
+    return pwm;
+}
+
+void Copter::read_servo_angle()
+{
+    servo_m1 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
+    servo_m2 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
+    servo_m3 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
+    servo_m4 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
+
+}
+
+
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
 void Copter::motors_output() //(mathaus)
 {
@@ -310,7 +367,10 @@ void Copter::motors_output() //(mathaus)
         }
 
         // send output signals to motors
-        motors->output(pitch_to_Thro5M);
+        //        motors->output();
+        read_servo_angle();
+
+        motors->output(servo_m1,servo_m2,servo_m3,servo_m4);
     }
 
     // push all channels
@@ -318,7 +378,7 @@ void Copter::motors_output() //(mathaus)
 }
 
 
-// motors_output - send output to motors library which will adjust and send to ESCs and servos
+//// motors_output - send output to motors library which will adjust and send to ESCs and servos
 //void Copter::motors_output()
 //{
 //#if ADVANCED_FAILSAFE == ENABLED
@@ -359,7 +419,7 @@ void Copter::motors_output() //(mathaus)
 //        }
 
 //        // send output signals to motors
-//        motors->output();
+//         motors->output(servo_m1,servo_m2,servo_m3,servo_m4);
 //    }
 
 //    // push all channels
