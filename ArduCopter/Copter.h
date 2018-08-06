@@ -164,8 +164,8 @@ private:
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::MultiCopter aparm;
 
-    float pitch_to_Thro5M=0.0;
-    float teste_wp=0.0;
+    float pitch_to_Thro5M = 0.0;
+    float teste_wp = 0.0;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -177,6 +177,8 @@ private:
     float servo_m2 = 0.0;
     float servo_m3 = 0.0;
     float servo_m4 = 0.0;
+
+    float theta_motor = 0.0;
 
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -209,6 +211,7 @@ private:
     RC_Channel *channel_yaw;
 
     RC_Channel *channel_aux;
+
     RC_Channel *canalservo;
 
     // Dataflash
@@ -666,11 +669,13 @@ private:
     static const struct LogStructure log_structure[];
 
 
+    // Mathaus
     void read_servo_angle();
-
     int  servo_angle_to_pwm(float ang);
     float servo_pwm_to_angle(int PWM);
+    int servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm);
 
+    //
     void compass_accumulate(void);
     void compass_cal_update(void);
     void barometer_accumulate(void);

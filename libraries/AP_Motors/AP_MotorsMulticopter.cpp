@@ -228,6 +228,7 @@ void AP_MotorsMulticopter::output(float &srv1, float &srv2, float &srv3, float &
     output_boost_throttle();
 };
 
+
 // output - sends commands to the motors
 void AP_MotorsMulticopter::output()
 {

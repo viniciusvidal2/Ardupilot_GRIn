@@ -44,7 +44,7 @@ void Copter::arm_motors_check()
             auto_disarm_begin = millis();
         }
 
-    // full left
+        // full left
     }else if (tmp < -4000) {
         if (!mode_has_manual_throttle(control_mode) && !ap.land_complete) {
             arming_counter = 0;
@@ -61,7 +61,7 @@ void Copter::arm_motors_check()
             init_disarm_motors();
         }
 
-    // Yaw is centered so reset arming counter
+        // Yaw is centered so reset arming counter
     }else{
         arming_counter = 0;
     }
@@ -272,25 +272,47 @@ void Copter::init_disarm_motors()
 float Copter::servo_pwm_to_angle(int PWM)
 {
     //valor que o servo entende como 0 graus
-   float srv_min_angle = 0.0;
+    float srv_min_angle = 0.0;
 
     //valor que o servo entende como 180
-   float srv_max_angle = 180.0;
+    float srv_max_angle = 180.0;
 
-     //valor de pwm que o servo entende como 0 graus
-    float srv_min_pwm = 964.0;
+    //valor de pwm que o controle entende como 0 graus
+    float crtl_min_pwm = canalservo->get_radio_min(); //964.0;
 
-     //valor de pwm que o servo entende como 180
-    float srv_max_pwm = 2064.0;
+    //valor de pwm que o controle entende como 180
+    float crtl_max_pwm = canalservo->get_radio_max(); //2064.0;
 
-    float angle = (PWM - srv_min_pwm) * (srv_max_angle-srv_min_angle)/(srv_max_pwm-srv_min_pwm);
-//    float angle = (PWM - srv_min_pwm)*(srv_max_angle-srv_min_angle)/(srv_max_pwm-srv_min_pwm);
+    float angle = (PWM - crtl_min_pwm) * (srv_max_angle-srv_min_angle)/(crtl_max_pwm-crtl_min_pwm);
+    //    float angle = (PWM - srv_min_pwm)*(srv_max_angle-srv_min_angle)/(srv_max_pwm-srv_min_pwm);
 
     return angle - 90.0;
 
-
 }
 
+int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm)
+{
+    //Entrada de angulo deve ser  de -90 a 90
+    angle = constrain_float(angle,-90.0,90.0);
+
+    angle = angle + 90.0;
+
+    //valor que o servo entende como 0 graus
+    float srv_min_angle = 0.0;
+
+    //valor de pwm que o servo entende como 180
+    float srv_max_angle = 180;
+
+    //valor que o servo entende como 0 graus
+    //    float srv_min_pwm = 480.0;
+
+    //     //valor de pwm que o servo entende como 180
+    //    float srv_max_pwm = 2440.0;
+
+    int pwm =  srv_min_pwm + angle * (srv_max_pwm - srv_min_pwm)/(srv_max_angle - srv_min_angle);
+
+    return pwm;
+}
 
 int Copter::servo_angle_to_pwm(float angle)
 {
@@ -300,15 +322,15 @@ int Copter::servo_angle_to_pwm(float angle)
     angle = angle + 90.0;
 
     //valor que o servo entende como 0 graus
-   float srv_min_angle = 0.0;
+    float srv_min_angle = 0.0;
 
     //valor de pwm que o servo entende como 180
-   float srv_max_angle = 180;
+    float srv_max_angle = 180;
 
-     //valor que o servo entende como 0 graus
+    //valor que o servo entende como 0 graus
     float srv_min_pwm = 480.0;
 
-     //valor de pwm que o servo entende como 180
+    //valor de pwm que o servo entende como 180
     float srv_max_pwm = 2440.0;
 
     int pwm =  srv_min_pwm + angle * (srv_max_pwm - srv_min_pwm)/(srv_max_angle - srv_min_angle);
@@ -318,10 +340,15 @@ int Copter::servo_angle_to_pwm(float angle)
 
 void Copter::read_servo_angle()
 {
-    servo_m1 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
-    servo_m2 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
-    servo_m3 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
-    servo_m4 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
+    servo_m1 = servo_angle_to_pwm(theta_motor);
+    servo_m2 = servo_angle_to_pwm(theta_motor);
+    servo_m3 = servo_angle_to_pwm(theta_motor);
+    servo_m4 = servo_angle_to_pwm(theta_motor);
+
+    //    servo_m1 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
+    //    servo_m2 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
+    //    servo_m3 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
+    //    servo_m4 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
 
 }
 
@@ -332,7 +359,7 @@ void Copter::motors_output() //(mathaus)
 #if ADVANCED_FAILSAFE == ENABLED
     // this is to allow the failsafe module to deliberately crash
     // the vehicle. Only used in extreme circumstances to meet the
-    // OBC rules
+    // OBC rulese
     if (g2.afs.should_crash_vehicle()) {
         g2.afs.terminate_vehicle();
         return;
@@ -401,10 +428,10 @@ void Copter::motors_output() //(mathaus)
 
 //    // cork now, so that all channel outputs happen at once
 //    hal.rcout->cork();
-    
+
 //    // update output on any aux channels, for manual passthru
 //    SRV_Channels::output_ch_all();
-    
+
 //    // check if we are performing the motor test
 //    if (ap.motor_test) {
 //        motor_test_output();

@@ -36,6 +36,14 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     // return
     roll_out = roll_in;
     pitch_out = pitch_in;
+
+    // Mathaus
+    if(pitch_in>0.00001 ||pitch_in<-0.00001)
+    {
+        theta_motor = atan2(channel_roll->get_radio_in(),channel_pitch->get_radio_in());
+    }else{
+        theta_motor = 0.0;
+    }
 }
 
 // get_pilot_desired_heading - transform pilot's yaw input into a
