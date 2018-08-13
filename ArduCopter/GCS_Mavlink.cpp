@@ -94,7 +94,7 @@ NOINLINE void Copter::send_attitude(mavlink_channel_t chan)
         ahrs.pitch,
         servo_m1,//ahrs.yaw,
         servo_m2,//pitch_to_Thro5M/100.0,//gyro.x,
-        servo_m3,//gyro.y,
+        theta_motor,//gyro.y,
         servo_m4);//gyro.z);
 }
 
