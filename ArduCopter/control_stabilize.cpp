@@ -30,10 +30,14 @@ void Copter::stabilize_run()
     if (!motors->armed() || ap.throttle_zero || !motors->get_interlock()) {
         motors->set_desired_spool_state(AP_Motors::DESIRED_SPIN_WHEN_ARMED);
         attitude_control->set_throttle_out_unstabilized(0,true,g.throttle_filt);
+        pitch_to_Thro5M = 0.0; //Mathaus
         return;
     }
 
-    //channel_pitch->get_control_in();
+    //Mathaus
+
+    pitch_to_Thro5M = (float)(channel_aux->get_radio_in()-channel_aux->get_radio_min())/(channel_aux->get_radio_max()-channel_aux->get_radio_min());
+
 
     // clear landing flag
     set_land_complete(false);
