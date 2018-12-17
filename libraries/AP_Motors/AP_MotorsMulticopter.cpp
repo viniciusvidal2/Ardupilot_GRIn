@@ -226,7 +226,7 @@ void AP_MotorsMulticopter::output(float &srv1, float &srv2, float &srv3, float &
 
     // output any booster throttle
     output_boost_throttle();
-};
+}
 
 
 // output - sends commands to the motors
@@ -252,7 +252,7 @@ void AP_MotorsMulticopter::output()
 
     // output any booster throttle
     output_boost_throttle();
-};
+}
 
 // output booster throttle, if any
 void AP_MotorsMulticopter::output_boost_throttle(void)

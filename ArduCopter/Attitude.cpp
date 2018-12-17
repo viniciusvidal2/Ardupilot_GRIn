@@ -37,19 +37,174 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     roll_out = roll_in;
     pitch_out = pitch_in;
 
-    // Mathaus
+    // Mathaus ( zerando a atitude de rollagem e arfagem)
+    roll_out = roll_out*0;
+    pitch_out = pitch_out*0;
 
-    float_t med_roll = round(channel_roll->get_radio_min()+((channel_roll->get_radio_max()-channel_roll->get_radio_min())/2));
+    // Mathaus -- onde deve ser chamada a função
+   // get_pilot_desired_force_to_boat_M();
+
+}
+
+// Mathaus
+//Função para transformar os comandos de roll pitch e yaw em comandos de força para o barco.
+
+void Copter:: get_pilot_desired_force_to_boat()
+{
+    //A intensidade da força total é controlada pelo stick to throtle.
+    //Essa abordagem considera que o stick direito controla a distribuição da Força ( através do ângulo theta).
+    //O ângulo theta é alterado na dinâmica correspondente a rolagem.
+    //O Yaw é controlado da mesma maneira que em um quadrotor, contudo, o código foi construido de forma empirica.
+
+    double med_roll  = round(channel_roll->get_radio_min()+((channel_roll->get_radio_max()-channel_roll->get_radio_min())/2));
+
+    theta_motor =  (channel_roll->get_radio_in() - med_roll)*(-90.0/(med_roll - channel_roll->get_radio_min()));
+
+
+    double med_yaw = round(channel_yaw->get_radio_min()+((channel_yaw->get_radio_max()-channel_yaw->get_radio_min())/2));
+    double theta_yaw = (channel_yaw->get_radio_in() - med_yaw)*(-90.0/(med_yaw - channel_yaw->get_radio_min()));
+
+
+    theta_motor1 = theta_motor + theta_yaw;
+    theta_motor2 = theta_motor - theta_yaw;
+    theta_motor3 = theta_motor + theta_yaw;
+    theta_motor4 = theta_motor - theta_yaw;
+
+    //Saturações
+    if(servo_m1>90) servo_m1 = 90.0;
+    if(servo_m1<-90) servo_m1 = -90.0;
+
+    if(servo_m2>90) servo_m2 = 90.0;
+    if(servo_m2<-90) servo_m2 = -90.0;
+
+    if(servo_m3>90) servo_m3 = 90.0;
+    if(servo_m3<-90) servo_m3 = -90.0;
+
+    if(servo_m4>90) servo_m4 = 90.0;
+    if(servo_m4<-90) servo_m4 = -90.0;
+}
+
+void Copter:: get_pilot_desired_force_to_boat(float roll, float pitch, float yaw)
+{
+    //implementação que LEO quer!
+    //Essa abordagem considera que o stick direito controla a força em X e Y.
+    //a posição do stick determina a intensidade da foça nos eixos onde, o ponto médio é o (0,0).
+    //O Yaw é controlado da mesma maneira que em um quadrotor, contudo, o código foi construido de forma empirica.
+
+    float_t med_roll  = round(channel_roll->get_radio_min()+((channel_roll->get_radio_max()-channel_roll->get_radio_min())/2));
     float_t med_pitch = round(channel_pitch->get_radio_min()+((channel_pitch->get_radio_max()-channel_pitch->get_radio_min())/2));
 
+    theta_motor = atan2(-(channel_roll->get_radio_in() - med_roll),(channel_pitch->get_radio_in()-med_pitch)) *18000/M_PI;
 
-//    if(pitch_in>0.00000001 ||pitch_in<-0.00000001)
-//    {
-        theta_motor = atan2(-(channel_roll->get_radio_in() - med_roll),(channel_pitch->get_radio_in()-med_pitch)) *180.0/M_PI;
-//    }else{
-//        theta_motor = 0.0;
-//    }
+
+    float_t med_yaw = round(channel_yaw->get_radio_min()+((channel_yaw->get_radio_max()-channel_yaw->get_radio_min())/2));
+    float_t theta_yaw = (channel_yaw->get_radio_in() - med_yaw)*(90/(med_yaw - channel_yaw->get_radio_min()));
+
+
+    servo_m1 = theta_motor + theta_yaw;
+    servo_m2 = theta_motor - theta_yaw;
+    servo_m3 = theta_motor + theta_yaw;
+    servo_m4 = theta_motor - theta_yaw;
+
+    //Saturações
+    if(servo_m1>90) servo_m1 = 90;
+    if(servo_m1<-90) servo_m1 = -90;
+
+    if(servo_m2>90) servo_m2 = 90;
+    if(servo_m2<-90) servo_m2 = -90;
+
+    if(servo_m3>90) servo_m3 = 90;
+    if(servo_m3<-90) servo_m3 = -90;
+
+    if(servo_m4>90) servo_m4 = 90;
+    if(servo_m4<-90) servo_m4 = -90;
 }
+
+void Copter:: alocation_matrix()
+{
+
+    //Seno do angulo atual
+    s_th_m1 = sin(theta_motor1*(M_PI/18000));
+    s_th_m2 = sin(theta_motor2*(M_PI/18000));
+    s_th_m3 = sin(theta_motor3*(M_PI/18000));
+    s_th_m4 = sin(theta_motor4*(M_PI/18000));
+    //Cosseno do angulo atual
+    c_th_m1 = cos(theta_motor1*(M_PI/18000));
+    c_th_m2 = cos(theta_motor2*(M_PI/18000));
+    c_th_m3 = cos(theta_motor3*(M_PI/18000));
+    c_th_m4 = cos(theta_motor4*(M_PI/18000));
+
+    //PWM calculado a partir da força e dos angulos
+    PWM[0] = (sqrt(((sq(FX) + sq(FY))*(sq(c_th_m1) + sq(s_th_m1)))/(sq(k1)*sq(sq(c_th_m1) + sq(c_th_m2) + sq(c_th_m3) + sq(c_th_m4) + sq(s_th_m1) + sq(s_th_m2) + sq(s_th_m3) + sq(s_th_m4)))));
+    PWM[1] = (sqrt(((sq(FX) + sq(FY))*(sq(c_th_m2) + sq(s_th_m2)))/(sq(k1)*sq(sq(c_th_m1) + sq(c_th_m2) + sq(c_th_m3) + sq(c_th_m4) + sq(s_th_m1) + sq(s_th_m2) + sq(s_th_m3) + sq(s_th_m4)))));
+    PWM[2] = (sqrt(((sq(FX) + sq(FY))*(sq(c_th_m3) + sq(s_th_m3)))/(sq(k1)*sq(sq(c_th_m1) + sq(c_th_m2) + sq(c_th_m3) + sq(c_th_m4) + sq(s_th_m1) + sq(s_th_m2) + sq(s_th_m3) + sq(s_th_m4)))));
+    PWM[3] = (sqrt(((sq(FX) + sq(FY))*(sq(c_th_m4) + sq(s_th_m4)))/(sq(k1)*sq(sq(c_th_m1) + sq(c_th_m2) + sq(c_th_m3) + sq(c_th_m4) + sq(s_th_m1) + sq(s_th_m2) + sq(s_th_m3) + sq(s_th_m4)))));
+
+    PWM1 = PWM[0];
+    PWM2 = PWM[1];
+    PWM3 = PWM[2];
+    PWM4 = PWM[3];
+    // Arco seno do angulo calculado a partir da força e do novo PWM
+    ARC_seno[0] = (PWM1*(2*Ly*N*pow(PWM2,4)*sq(c_th_m2) + 2*Ly*N*pow(PWM4,4)*sq(c_th_m4) + 2*FY*sq(Ly)*pow(PWM2,4)*sq(c_th_m2) + 2*FY*sq(Ly)*pow(PWM4,4)*sq(c_th_m4) + 2*Ly*N*sq(PWM1)*sq(PWM2)*sq(c_th_m1) + 2*Ly*N*sq(PWM1)*sq(PWM4)*sq(c_th_m1) + 2*Ly*N*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 2*Ly*N*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 2*Ly*N*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 2*Ly*N*sq(PWM3)*sq(PWM4)*sq(c_th_m3) - 2*FX*Lx*Ly*pow(PWM2,4)*c_th_m2 + 2*FX*Lx*Ly*pow(PWM4,4)*c_th_m4 + FY*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM4)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM1)*sq(PWM4)*sq(c_th_m4) + FY*sq(Lx)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + FY*sq(Lx)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(c_th_m1) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM4)*sq(c_th_m1) + 2*FY*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 2*FY*sq(Ly)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 2*FY*sq(Ly)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 2*FY*sq(Ly)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*FX*Lx*Ly*sq(PWM1)*sq(PWM2)*c_th_m1 + 2*FX*Lx*Ly*sq(PWM1)*sq(PWM4)*c_th_m1 - 2*FX*Lx*Ly*sq(PWM2)*sq(PWM3)*c_th_m3 - 2*FX*Lx*Ly*sq(PWM2)*sq(PWM4)*c_th_m2 + 2*FX*Lx*Ly*sq(PWM2)*sq(PWM4)*c_th_m4 - 2*FX*Lx*Ly*sq(PWM3)*sq(PWM4)*c_th_m3 + 2*FY*sq(Lx)*sq(PWM1)*sq(PWM2)*c_th_m1*c_th_m2 + 2*FY*sq(Lx)*sq(PWM1)*sq(PWM3)*c_th_m1*c_th_m3 - 2*FY*sq(Lx)*sq(PWM1)*sq(PWM4)*c_th_m1*c_th_m4 - 2*FY*sq(Lx)*sq(PWM2)*sq(PWM3)*c_th_m2*c_th_m3 + 2*FY*sq(Lx)*sq(PWM2)*sq(PWM4)*c_th_m2*c_th_m4 + 2*FY*sq(Lx)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4))/(k1*(sq(Lx)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m2) + sq(Lx)*sq(PWM1)*pow(PWM3,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m2) + sq(Lx)*pow(PWM1,4)*sq(PWM3)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM3,4)*sq(c_th_m3) + sq(Lx)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m2) + sq(Lx)*pow(PWM1,4)*sq(PWM3)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m2) + sq(Lx)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m3) + sq(Lx)*sq(PWM2)*pow(PWM4,4)*sq(c_th_m2) + sq(Lx)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM4)*sq(c_th_m2) + sq(Lx)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m4) + sq(Lx)*sq(PWM2)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM4)*sq(c_th_m4) + sq(Lx)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m3) + sq(Lx)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m2) + 4*sq(Ly)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m1) + 4*sq(Ly)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m4) + 4*sq(Ly)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*pow(PWM2,4)*c_th_m1*c_th_m2 + 2*sq(Lx)*pow(PWM1,4)*sq(PWM2)*c_th_m1*c_th_m2 + 2*sq(Lx)*sq(PWM1)*pow(PWM3,4)*c_th_m1*c_th_m3 + 2*sq(Lx)*pow(PWM1,4)*sq(PWM3)*c_th_m1*c_th_m3 - 2*sq(Lx)*sq(PWM1)*pow(PWM4,4)*c_th_m1*c_th_m4 - 2*sq(Lx)*sq(PWM2)*pow(PWM3,4)*c_th_m2*c_th_m3 - 2*sq(Lx)*pow(PWM1,4)*sq(PWM4)*c_th_m1*c_th_m4 - 2*sq(Lx)*pow(PWM2,4)*sq(PWM3)*c_th_m2*c_th_m3 + 2*sq(Lx)*sq(PWM2)*pow(PWM4,4)*c_th_m2*c_th_m4 + 2*sq(Lx)*pow(PWM2,4)*sq(PWM4)*c_th_m2*c_th_m4 + 2*sq(Lx)*sq(PWM3)*pow(PWM4,4)*c_th_m3*c_th_m4 + 2*sq(Lx)*pow(PWM3,4)*sq(PWM4)*c_th_m3*c_th_m4 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m1*c_th_m2 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m1*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m1*c_th_m2 - 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m2*c_th_m3 - 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m1*c_th_m4 + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m1*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m2*c_th_m4 - 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m1*c_th_m4 - 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m2*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4 + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m2*c_th_m4 + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4));
+    ARC_seno[1] = (PWM2*(2*FY*sq(Ly)*pow(PWM1,4)*sq(c_th_m1) - 2*Ly*N*pow(PWM3,4)*sq(c_th_m3) - 2*Ly*N*pow(PWM1,4)*sq(c_th_m1) + 2*FY*sq(Ly)*pow(PWM3,4)*sq(c_th_m3) - 2*Ly*N*sq(PWM1)*sq(PWM2)*sq(c_th_m2) - 2*Ly*N*sq(PWM1)*sq(PWM3)*sq(c_th_m1) - 2*Ly*N*sq(PWM1)*sq(PWM3)*sq(c_th_m3) - 2*Ly*N*sq(PWM2)*sq(PWM3)*sq(c_th_m2) - 2*Ly*N*sq(PWM1)*sq(PWM4)*sq(c_th_m4) - 2*Ly*N*sq(PWM3)*sq(PWM4)*sq(c_th_m4) - 2*FX*Lx*Ly*pow(PWM1,4)*c_th_m1 + 2*FX*Lx*Ly*pow(PWM3,4)*c_th_m3 + FY*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM4)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM1)*sq(PWM4)*sq(c_th_m4) + FY*sq(Lx)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + FY*sq(Lx)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(c_th_m2) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(c_th_m1) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(c_th_m3) + 2*FY*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM4)*sq(c_th_m4) + 2*FY*sq(Ly)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*FX*Lx*Ly*sq(PWM1)*sq(PWM2)*c_th_m2 - 2*FX*Lx*Ly*sq(PWM1)*sq(PWM3)*c_th_m1 + 2*FX*Lx*Ly*sq(PWM1)*sq(PWM3)*c_th_m3 + 2*FX*Lx*Ly*sq(PWM2)*sq(PWM3)*c_th_m2 - 2*FX*Lx*Ly*sq(PWM1)*sq(PWM4)*c_th_m4 - 2*FX*Lx*Ly*sq(PWM3)*sq(PWM4)*c_th_m4 + 2*FY*sq(Lx)*sq(PWM1)*sq(PWM2)*c_th_m1*c_th_m2 + 2*FY*sq(Lx)*sq(PWM1)*sq(PWM3)*c_th_m1*c_th_m3 - 2*FY*sq(Lx)*sq(PWM1)*sq(PWM4)*c_th_m1*c_th_m4 - 2*FY*sq(Lx)*sq(PWM2)*sq(PWM3)*c_th_m2*c_th_m3 + 2*FY*sq(Lx)*sq(PWM2)*sq(PWM4)*c_th_m2*c_th_m4 + 2*FY*sq(Lx)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4))/(k1*(sq(Lx)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m2) + sq(Lx)*sq(PWM1)*pow(PWM3,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m2) + sq(Lx)*pow(PWM1,4)*sq(PWM3)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM3,4)*sq(c_th_m3) + sq(Lx)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m2) + sq(Lx)*pow(PWM1,4)*sq(PWM3)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m2) + sq(Lx)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m3) + sq(Lx)*sq(PWM2)*pow(PWM4,4)*sq(c_th_m2) + sq(Lx)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM4)*sq(c_th_m2) + sq(Lx)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m4) + sq(Lx)*sq(PWM2)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM4)*sq(c_th_m4) + sq(Lx)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m3) + sq(Lx)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m2) + 4*sq(Ly)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m1) + 4*sq(Ly)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m4) + 4*sq(Ly)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*pow(PWM2,4)*c_th_m1*c_th_m2 + 2*sq(Lx)*pow(PWM1,4)*sq(PWM2)*c_th_m1*c_th_m2 + 2*sq(Lx)*sq(PWM1)*pow(PWM3,4)*c_th_m1*c_th_m3 + 2*sq(Lx)*pow(PWM1,4)*sq(PWM3)*c_th_m1*c_th_m3 - 2*sq(Lx)*sq(PWM1)*pow(PWM4,4)*c_th_m1*c_th_m4 - 2*sq(Lx)*sq(PWM2)*pow(PWM3,4)*c_th_m2*c_th_m3 - 2*sq(Lx)*pow(PWM1,4)*sq(PWM4)*c_th_m1*c_th_m4 - 2*sq(Lx)*pow(PWM2,4)*sq(PWM3)*c_th_m2*c_th_m3 + 2*sq(Lx)*sq(PWM2)*pow(PWM4,4)*c_th_m2*c_th_m4 + 2*sq(Lx)*pow(PWM2,4)*sq(PWM4)*c_th_m2*c_th_m4 + 2*sq(Lx)*sq(PWM3)*pow(PWM4,4)*c_th_m3*c_th_m4 + 2*sq(Lx)*pow(PWM3,4)*sq(PWM4)*c_th_m3*c_th_m4 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m1*c_th_m2 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m1*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m1*c_th_m2 - 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m2*c_th_m3 - 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m1*c_th_m4 + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m1*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m2*c_th_m4 - 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m1*c_th_m4 - 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m2*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4 + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m2*c_th_m4 + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4));
+    ARC_seno[2] = (PWM3*(2*Ly*N*pow(PWM2,4)*sq(c_th_m2) + 2*Ly*N*pow(PWM4,4)*sq(c_th_m4) + 2*FY*sq(Ly)*pow(PWM2,4)*sq(c_th_m2) + 2*FY*sq(Ly)*pow(PWM4,4)*sq(c_th_m4) + 2*Ly*N*sq(PWM1)*sq(PWM2)*sq(c_th_m1) + 2*Ly*N*sq(PWM1)*sq(PWM4)*sq(c_th_m1) + 2*Ly*N*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 2*Ly*N*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 2*Ly*N*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 2*Ly*N*sq(PWM3)*sq(PWM4)*sq(c_th_m3) - 2*FX*Lx*Ly*pow(PWM2,4)*c_th_m2 + 2*FX*Lx*Ly*pow(PWM4,4)*c_th_m4 + FY*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM4)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM1)*sq(PWM4)*sq(c_th_m4) + FY*sq(Lx)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + FY*sq(Lx)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(c_th_m1) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM4)*sq(c_th_m1) + 2*FY*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 2*FY*sq(Ly)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 2*FY*sq(Ly)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 2*FY*sq(Ly)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*FX*Lx*Ly*sq(PWM1)*sq(PWM2)*c_th_m1 + 2*FX*Lx*Ly*sq(PWM1)*sq(PWM4)*c_th_m1 - 2*FX*Lx*Ly*sq(PWM2)*sq(PWM3)*c_th_m3 - 2*FX*Lx*Ly*sq(PWM2)*sq(PWM4)*c_th_m2 + 2*FX*Lx*Ly*sq(PWM2)*sq(PWM4)*c_th_m4 - 2*FX*Lx*Ly*sq(PWM3)*sq(PWM4)*c_th_m3 + 2*FY*sq(Lx)*sq(PWM1)*sq(PWM2)*c_th_m1*c_th_m2 + 2*FY*sq(Lx)*sq(PWM1)*sq(PWM3)*c_th_m1*c_th_m3 - 2*FY*sq(Lx)*sq(PWM1)*sq(PWM4)*c_th_m1*c_th_m4 - 2*FY*sq(Lx)*sq(PWM2)*sq(PWM3)*c_th_m2*c_th_m3 + 2*FY*sq(Lx)*sq(PWM2)*sq(PWM4)*c_th_m2*c_th_m4 + 2*FY*sq(Lx)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4))/(k1*(sq(Lx)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m2) + sq(Lx)*sq(PWM1)*pow(PWM3,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m2) + sq(Lx)*pow(PWM1,4)*sq(PWM3)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM3,4)*sq(c_th_m3) + sq(Lx)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m2) + sq(Lx)*pow(PWM1,4)*sq(PWM3)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m2) + sq(Lx)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m3) + sq(Lx)*sq(PWM2)*pow(PWM4,4)*sq(c_th_m2) + sq(Lx)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM4)*sq(c_th_m2) + sq(Lx)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m4) + sq(Lx)*sq(PWM2)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM4)*sq(c_th_m4) + sq(Lx)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m3) + sq(Lx)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m2) + 4*sq(Ly)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m1) + 4*sq(Ly)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m4) + 4*sq(Ly)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*pow(PWM2,4)*c_th_m1*c_th_m2 + 2*sq(Lx)*pow(PWM1,4)*sq(PWM2)*c_th_m1*c_th_m2 + 2*sq(Lx)*sq(PWM1)*pow(PWM3,4)*c_th_m1*c_th_m3 + 2*sq(Lx)*pow(PWM1,4)*sq(PWM3)*c_th_m1*c_th_m3 - 2*sq(Lx)*sq(PWM1)*pow(PWM4,4)*c_th_m1*c_th_m4 - 2*sq(Lx)*sq(PWM2)*pow(PWM3,4)*c_th_m2*c_th_m3 - 2*sq(Lx)*pow(PWM1,4)*sq(PWM4)*c_th_m1*c_th_m4 - 2*sq(Lx)*pow(PWM2,4)*sq(PWM3)*c_th_m2*c_th_m3 + 2*sq(Lx)*sq(PWM2)*pow(PWM4,4)*c_th_m2*c_th_m4 + 2*sq(Lx)*pow(PWM2,4)*sq(PWM4)*c_th_m2*c_th_m4 + 2*sq(Lx)*sq(PWM3)*pow(PWM4,4)*c_th_m3*c_th_m4 + 2*sq(Lx)*pow(PWM3,4)*sq(PWM4)*c_th_m3*c_th_m4 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m1*c_th_m2 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m1*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m1*c_th_m2 - 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m2*c_th_m3 - 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m1*c_th_m4 + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m1*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m2*c_th_m4 - 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m1*c_th_m4 - 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m2*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4 + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m2*c_th_m4 + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4));
+    ARC_seno[3] = (PWM4*(2*FY*sq(Ly)*pow(PWM1,4)*sq(c_th_m1) - 2*Ly*N*pow(PWM3,4)*sq(c_th_m3) - 2*Ly*N*pow(PWM1,4)*sq(c_th_m1) + 2*FY*sq(Ly)*pow(PWM3,4)*sq(c_th_m3) - 2*Ly*N*sq(PWM1)*sq(PWM2)*sq(c_th_m2) - 2*Ly*N*sq(PWM1)*sq(PWM3)*sq(c_th_m1) - 2*Ly*N*sq(PWM1)*sq(PWM3)*sq(c_th_m3) - 2*Ly*N*sq(PWM2)*sq(PWM3)*sq(c_th_m2) - 2*Ly*N*sq(PWM1)*sq(PWM4)*sq(c_th_m4) - 2*Ly*N*sq(PWM3)*sq(PWM4)*sq(c_th_m4) - 2*FX*Lx*Ly*pow(PWM1,4)*c_th_m1 + 2*FX*Lx*Ly*pow(PWM3,4)*c_th_m3 + FY*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM4)*sq(c_th_m1) + FY*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + FY*sq(Lx)*sq(PWM1)*sq(PWM4)*sq(c_th_m4) + FY*sq(Lx)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + FY*sq(Lx)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + FY*sq(Lx)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(c_th_m2) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(c_th_m1) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(c_th_m3) + 2*FY*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + 2*FY*sq(Ly)*sq(PWM1)*sq(PWM4)*sq(c_th_m4) + 2*FY*sq(Ly)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*FX*Lx*Ly*sq(PWM1)*sq(PWM2)*c_th_m2 - 2*FX*Lx*Ly*sq(PWM1)*sq(PWM3)*c_th_m1 + 2*FX*Lx*Ly*sq(PWM1)*sq(PWM3)*c_th_m3 + 2*FX*Lx*Ly*sq(PWM2)*sq(PWM3)*c_th_m2 - 2*FX*Lx*Ly*sq(PWM1)*sq(PWM4)*c_th_m4 - 2*FX*Lx*Ly*sq(PWM3)*sq(PWM4)*c_th_m4 + 2*FY*sq(Lx)*sq(PWM1)*sq(PWM2)*c_th_m1*c_th_m2 + 2*FY*sq(Lx)*sq(PWM1)*sq(PWM3)*c_th_m1*c_th_m3 - 2*FY*sq(Lx)*sq(PWM1)*sq(PWM4)*c_th_m1*c_th_m4 - 2*FY*sq(Lx)*sq(PWM2)*sq(PWM3)*c_th_m2*c_th_m3 + 2*FY*sq(Lx)*sq(PWM2)*sq(PWM4)*c_th_m2*c_th_m4 + 2*FY*sq(Lx)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4))/(k1*(sq(Lx)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m2) + sq(Lx)*sq(PWM1)*pow(PWM3,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m2) + sq(Lx)*pow(PWM1,4)*sq(PWM3)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m1) + sq(Lx)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m1) + sq(Lx)*sq(PWM1)*pow(PWM3,4)*sq(c_th_m3) + sq(Lx)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m2) + sq(Lx)*pow(PWM1,4)*sq(PWM3)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m2) + sq(Lx)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m3) + sq(Lx)*sq(PWM2)*pow(PWM4,4)*sq(c_th_m2) + sq(Lx)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM4)*sq(c_th_m2) + sq(Lx)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m4) + sq(Lx)*sq(PWM2)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m3) + sq(Lx)*pow(PWM2,4)*sq(PWM4)*sq(c_th_m4) + sq(Lx)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m3) + sq(Lx)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m4) + sq(Lx)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*pow(PWM1,4)*sq(PWM2)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*pow(PWM2,4)*sq(c_th_m2) + 4*sq(Ly)*pow(PWM1,4)*sq(PWM4)*sq(c_th_m1) + 4*sq(Ly)*pow(PWM2,4)*sq(PWM3)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM2)*pow(PWM3,4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM1)*pow(PWM4,4)*sq(c_th_m4) + 4*sq(Ly)*pow(PWM3,4)*sq(PWM4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM3)*pow(PWM4,4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*pow(PWM2,4)*c_th_m1*c_th_m2 + 2*sq(Lx)*pow(PWM1,4)*sq(PWM2)*c_th_m1*c_th_m2 + 2*sq(Lx)*sq(PWM1)*pow(PWM3,4)*c_th_m1*c_th_m3 + 2*sq(Lx)*pow(PWM1,4)*sq(PWM3)*c_th_m1*c_th_m3 - 2*sq(Lx)*sq(PWM1)*pow(PWM4,4)*c_th_m1*c_th_m4 - 2*sq(Lx)*sq(PWM2)*pow(PWM3,4)*c_th_m2*c_th_m3 - 2*sq(Lx)*pow(PWM1,4)*sq(PWM4)*c_th_m1*c_th_m4 - 2*sq(Lx)*pow(PWM2,4)*sq(PWM3)*c_th_m2*c_th_m3 + 2*sq(Lx)*sq(PWM2)*pow(PWM4,4)*c_th_m2*c_th_m4 + 2*sq(Lx)*pow(PWM2,4)*sq(PWM4)*c_th_m2*c_th_m4 + 2*sq(Lx)*sq(PWM3)*pow(PWM4,4)*c_th_m3*c_th_m4 + 2*sq(Lx)*pow(PWM3,4)*sq(PWM4)*c_th_m3*c_th_m4 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m1) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m2) + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM3)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m1) + 4*sq(Ly)*sq(PWM1)*sq(PWM2)*sq(PWM4)*sq(c_th_m4) + 4*sq(Ly)*sq(PWM1)*sq(PWM3)*sq(PWM4)*sq(c_th_m3) + 4*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m2) + 4*sq(Ly)*sq(PWM2)*sq(PWM3)*sq(PWM4)*sq(c_th_m4) + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m1*c_th_m2 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m1*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m1*c_th_m2 - 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM3)*c_th_m2*c_th_m3 - 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m1*c_th_m4 + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m1*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM2)*sq(PWM4)*c_th_m2*c_th_m4 - 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m1*c_th_m4 - 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m2*c_th_m3 + 2*sq(Lx)*sq(PWM1)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4 + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m2*c_th_m4 + 2*sq(Lx)*sq(PWM2)*sq(PWM3)*sq(PWM4)*c_th_m3*c_th_m4));
+
+    float TH1 =asin(ARC_seno[0]);
+    float TH2 =asin(ARC_seno[1]);
+    float TH3 =asin(ARC_seno[2]);
+    float TH4 =asin(ARC_seno[3]);
+
+    theta_motor1 = TH1;
+    theta_motor2 = TH2;
+    theta_motor3 = TH3;
+    theta_motor4 = TH4;
+
+    //    float c_Th_m1 = cos(TH1);
+    //    float c_Th_m2 = cos(TH2);
+    //    float c_Th_m3 = cos(TH3);
+    //    float c_Th_m4 = cos(TH4);
+
+    //    float s_Th_m1 = sin(TH1);
+    //    float s_Th_m2 = sin(TH2);
+    //    float s_Th_m3 = sin(TH3);
+    //    float s_Th_m4 = sin(TH4);
+
+    //    F_out[0] = k1*(PWM1*c_Th_m1 + PWM2*c_Th_m2 + PWM3*c_Th_m3 + PWM4*c_Th_m4);
+    //    F_out[1] = k1*(PWM1*s_Th_m1 + PWM2*s_Th_m2 + PWM3*s_Th_m3 + PWM4*s_Th_m4);
+    //    F_out[2] = PWM2*k1*(Lx*c_Th_m2 - Ly*s_Th_m2) - PWM1*k1*(Lx*c_Th_m1 - Ly*s_Th_m1) + PWM3*k1*(Lx*c_Th_m3 + Ly*s_Th_m3) - PWM4*k1*(Lx*c_Th_m4 + Ly*s_Th_m4);
+}
+
+void Copter:: get_pilot_desired_force_to_boat_M()
+{
+    //Essa abordagem considera que o stick direito controla a força em X e Y.
+    //a posição do stick determina a intensidade da foça nos eixos onde, o ponto médio é o (0,0).
+    //O Yaw é controlado da mesma maneira que em um quadrotor, contudo, o código foi construido de forma empirica.
+
+    float_t med_roll  = round(channel_roll->get_radio_min()+((channel_roll->get_radio_max()-channel_roll->get_radio_min())/2));
+    float_t med_pitch = round(channel_pitch->get_radio_min()+((channel_pitch->get_radio_max()-channel_pitch->get_radio_min())/2));
+    float_t med_yaw = round(channel_yaw->get_radio_min()+((channel_yaw->get_radio_max()-channel_yaw->get_radio_min())/2));
+
+    FY = (channel_roll->get_radio_in()  - med_roll) * Fmax/((channel_roll->get_radio_max()-channel_roll->get_radio_min())/2);
+    FX = (channel_pitch->get_radio_in() - med_pitch)* Fmax/((channel_pitch->get_radio_max()-channel_pitch->get_radio_min())/2);
+    N  = (channel_yaw->get_radio_in() - med_yaw) * Nmax/((channel_pitch->get_radio_max() - channel_yaw->get_radio_min())/2);
+
+    alocation_matrix();
+
+//    //Saturações
+//    if(servo_m1>90) servo_m1 = 90;
+//    if(servo_m1<-90) servo_m1 = -90;
+
+//    if(servo_m2>90) servo_m2 = 90;
+//    if(servo_m2<-90) servo_m2 = -90;
+
+//    if(servo_m3>90) servo_m3 = 90;
+//    if(servo_m3<-90) servo_m3 = -90;
+
+//    if(servo_m4>90) servo_m4 = 90;
+//    if(servo_m4<-90) servo_m4 = -90;
+}
+
 
 // get_pilot_desired_heading - transform pilot's yaw input into a
 // desired yaw rate
@@ -77,6 +232,7 @@ float Copter::get_pilot_desired_yaw_rate(int16_t stick_angle)
         yaw_request = ROLL_PITCH_YAW_INPUT_MAX * y_out * g.acro_yaw_p;
     }
     // convert pilot input to the desired yaw rate
+    yaw_request = 0* yaw_request;  //mathaus - Revomendo a dinamica de guinada
     return yaw_request;
 }
 

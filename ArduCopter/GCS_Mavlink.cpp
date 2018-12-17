@@ -92,10 +92,10 @@ NOINLINE void Copter::send_attitude(mavlink_channel_t chan)
         millis(),
         ahrs.roll,
         ahrs.pitch,
-        servo_m1,//ahrs.yaw,
-        servo_m2,//pitch_to_Thro5M/100.0,//gyro.x,
-        theta_motor,//gyro.y,
-        servo_m4);//gyro.z);
+        ahrs.yaw,
+        gyro.x,
+        gyro.y,
+        gyro.z);
 }
 
 #if AC_FENCE == ENABLED

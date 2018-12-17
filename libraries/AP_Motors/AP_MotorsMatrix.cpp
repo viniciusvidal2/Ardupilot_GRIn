@@ -118,6 +118,11 @@ void update_srv_action(float srv1, float srv2, float srv3, float srv4)
     srv3 = roundf(srv3);
     srv4 = roundf(srv4);
 
+//    rc_write(0, uint16_t(PWM1));
+//    rc_write(1, uint16_t(PWM2));
+//    rc_write(2, uint16_t(PWM3));
+//    rc_write(3, uint16_t(PWM4));
+
     hal.rcout->write(8, uint16_t(srv1));  // Servo 5
     hal.rcout->write(9, uint16_t(srv2));  // Servo 6
     hal.rcout->write(10,uint16_t(srv3));  // Servo 7
@@ -127,7 +132,7 @@ void update_srv_action(float srv1, float srv2, float srv3, float srv4)
 
 
 
-void AP_MotorsMatrix::output_to_motors(float &srv1,float &srv2,float &srv3,float &srv4) //mathaus
+void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4) //mathaus
 {
     int8_t i;
     //    float SVR [] {srv1, srv2,srv3,srv4};
@@ -176,7 +181,8 @@ void AP_MotorsMatrix::output_to_motors(float &srv1,float &srv2,float &srv3,float
             rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
         }
     }
-    update_srv_action(srv1, srv2,  srv3, srv4);
+
+    update_srv_action(srv1,srv2,srv3,srv4);
 }
 
 
@@ -224,20 +230,19 @@ void AP_MotorsMatrix::output_to_motors()
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i])
         {
-            if(i!=AP_MOTORS_MOT_5)
-            {
+//            if(i!=AP_MOTORS_MOT_5)
+//            {
                 rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
+//            }else
+//            {
+//                if(armed()){
+//                //rc_write(i, copter.channel_pitch->get_control_in());
+//                rc_write(i,hal.rcin->read(1)); //(mathaus)
 
-            }else
-            {
-                if(armed()){
-                //rc_write(i, copter.channel_pitch->get_control_in());
-                rc_write(i,hal.rcin->read(1)); //(mathaus)
-
-                }else{
-                    rc_write(i,get_pwm_output_min());
-                }
-            }
+//                }else{
+//                    rc_write(i,get_pwm_output_min());
+//                }
+//            }
         }else
         {
             rc_write(i,get_pwm_output_min());

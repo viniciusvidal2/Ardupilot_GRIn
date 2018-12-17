@@ -164,22 +164,63 @@ private:
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::MultiCopter aparm;
 
-    float pitch_to_Thro5M = 0.0;
-    float teste_wp = 0.0;
+    double pitch_to_Thro5M = 0.0;
+    double teste_wp = 0.0;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     /// Declaração de Variáveis ( Mathaus )
     ///
     /////////////////////////////////////////////////////////////////////////////////////
+    // Força e torque maximos do barco
+    float Fmax = 1;
+    float Nmax = 1;
+
     // Servo Motores Barco
-    float servo_m1 = 0.0;
-    float servo_m2 = 0.0;
-    float servo_m3 = 0.0;
-    float servo_m4 = 0.0;
+    float servo_m1 = 0;
+    float servo_m2 = 0;
+    float servo_m3 = 0;
+    float servo_m4 = 0;
 
-    float theta_motor = 0.0;
+    double theta_motor = 0;
 
+    double theta_motor1 = 0;
+    double theta_motor2 = 0;
+    double theta_motor3 = 0;
+    double theta_motor4 = 0;
+    //Declarações para a matriz de alocação
+
+    float PWM[4] = {0,0,0,0};
+    float ARC_seno[4] = {0,0,0,0};
+
+    float F_out[3] = {0,0,0};
+
+    float FX = F_out[0];
+    float FY = F_out[1];
+    float N =  F_out[2];
+
+    float k1=1;
+
+    float s_th_m1 = servo_m1;
+    float s_th_m2 = servo_m2;
+    float s_th_m3 = servo_m3;
+    float s_th_m4 = servo_m4;
+
+    float c_th_m1 = servo_m1;
+    float c_th_m2 = servo_m2;
+    float c_th_m3 = servo_m3;
+    float c_th_m4 = servo_m4;
+
+//    Tamanho do braço do barco
+    float L = 1;
+
+    double Lx = (double)L*cos(M_PI/4);
+    double Ly = (double)L*cos(M_PI/4);
+
+    int16_t PWM1 = 0;
+    int16_t PWM2 = 0;
+    int16_t PWM3 = 0;
+    int16_t PWM4 = 0;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -672,8 +713,12 @@ private:
     // Mathaus
     void read_servo_angle();
     int  servo_angle_to_pwm(float ang);
-    float servo_pwm_to_angle(int PWM);
+    float servo_pwm_to_angle(int PWM_aux);
     int servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm);
+    void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
+    void get_pilot_desired_force_to_boat_M();
+    void get_pilot_desired_force_to_boat();
+    void alocation_matrix();
 
     //
     void compass_accumulate(void);

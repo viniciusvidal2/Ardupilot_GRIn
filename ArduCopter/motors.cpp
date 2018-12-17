@@ -269,7 +269,7 @@ void Copter::init_disarm_motors()
 }
 
 
-float Copter::servo_pwm_to_angle(int PWM)
+float Copter::servo_pwm_to_angle(int PWM_aux)
 {
     //valor que o servo entende como 0 graus
     float srv_min_angle = 0.0;
@@ -283,7 +283,7 @@ float Copter::servo_pwm_to_angle(int PWM)
     //valor de pwm que o controle entende como 180
     float crtl_max_pwm = canalservo->get_radio_max(); //2064.0;
 
-    float angle = (PWM - crtl_min_pwm) * (srv_max_angle-srv_min_angle)/(crtl_max_pwm-crtl_min_pwm);
+    float angle = (PWM_aux - crtl_min_pwm) * (srv_max_angle-srv_min_angle)/(crtl_max_pwm-crtl_min_pwm);
     //    float angle = (PWM - srv_min_pwm)*(srv_max_angle-srv_min_angle)/(srv_max_pwm-srv_min_pwm);
 
     return angle - 90.0;
@@ -340,18 +340,12 @@ int Copter::servo_angle_to_pwm(float angle)
 
 void Copter::read_servo_angle()
 {
-    servo_m1 = servo_angle_to_pwm(theta_motor);
-    servo_m2 = servo_angle_to_pwm(theta_motor);
-    servo_m3 = servo_angle_to_pwm(theta_motor);
-    servo_m4 = servo_angle_to_pwm(theta_motor);
-
-    //    servo_m1 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
-    //    servo_m2 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
-    //    servo_m3 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
-    //    servo_m4 = servo_angle_to_pwm(servo_pwm_to_angle(canalservo->get_radio_in()));
+    servo_m1 = servo_angle_to_pwm(theta_motor1);
+    servo_m2 = servo_angle_to_pwm(theta_motor2);
+    servo_m3 = servo_angle_to_pwm(theta_motor3);
+    servo_m4 = servo_angle_to_pwm(theta_motor4);
 
 }
-
 
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
 void Copter::motors_output() //(mathaus)
@@ -392,17 +386,16 @@ void Copter::motors_output() //(mathaus)
             motors->set_interlock(false);
             Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
         }
-
-        // send output signals to motors
-        //        motors->output();
+        get_pilot_desired_force_to_boat();
         read_servo_angle();
-
         motors->output(servo_m1,servo_m2,servo_m3,servo_m4);
     }
 
     // push all channels
     hal.rcout->push();
 }
+
+
 
 
 //// motors_output - send output to motors library which will adjust and send to ESCs and servos
