@@ -316,6 +316,7 @@ int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm)
 
 int Copter::servo_angle_to_pwm(float angle)
 {
+    /// Esta função converte o valor do angulo desejado no servo, para um valor de PWM que o mesmo reconhecer ///
     //Entrada de angulo deve ser  de -90 a 90
     angle = constrain_float(angle,-90.0,90.0);
 

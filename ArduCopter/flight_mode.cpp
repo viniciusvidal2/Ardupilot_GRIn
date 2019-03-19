@@ -29,7 +29,7 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             #if FRAME_CONFIG == HELI_FRAME
                 success = heli_acro_init(ignore_checks);
             #else
-                success = acro_init(ignore_checks);
+                //success = acro_init(ignore_checks);
             #endif
             break;
 
@@ -42,7 +42,7 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case ALT_HOLD:
-            success = althold_init(ignore_checks);
+//            success = althold_init(ignore_checks);
             break;
 
         case AUTO:
@@ -74,11 +74,11 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case SPORT:
-            success = sport_init(ignore_checks);
+//            success = sport_init(ignore_checks);
             break;
 
         case FLIP:
-            success = flip_init(ignore_checks);
+            //success = flip_init(ignore_checks);
             break;
 
 #if AUTOTUNE_ENABLED == ENABLED
@@ -98,7 +98,7 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case THROW:
-            success = throw_init(ignore_checks);
+//            success = throw_init(ignore_checks);
             break;
 
         case AVOID_ADSB:
@@ -166,7 +166,7 @@ void Copter::update_flight_mode()
             #if FRAME_CONFIG == HELI_FRAME
                 heli_acro_run();
             #else
-                acro_run();
+                //acro_run();
             #endif
             break;
 
@@ -179,7 +179,7 @@ void Copter::update_flight_mode()
             break;
 
         case ALT_HOLD:
-            althold_run();
+//            althold_run();
             break;
 
         case AUTO:
@@ -211,11 +211,11 @@ void Copter::update_flight_mode()
             break;
 
         case SPORT:
-            sport_run();
+//            sport_run();
             break;
 
         case FLIP:
-            flip_run();
+//            flip_run();
             break;
 
 #if AUTOTUNE_ENABLED == ENABLED
@@ -235,7 +235,7 @@ void Copter::update_flight_mode()
             break;
 
         case THROW:
-            throw_run();
+//            throw_run();
             break;
 
         case AVOID_ADSB:

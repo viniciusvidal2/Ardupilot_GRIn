@@ -13,6 +13,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+
 /*
   This is the main Copter class
  */
@@ -175,6 +176,7 @@ private:
     // Força e torque maximos do barco
     float Fmax = 1;
     float Nmax = 1;
+    float k1   = 1;
 
     // Servo Motores Barco
     float servo_m1 = 0;
@@ -191,15 +193,16 @@ private:
     //Declarações para a matriz de alocação
 
     float PWM[4] = {0,0,0,0};
-    float ARC_seno[4] = {0,0,0,0};
+    float ARC_seno[5] = {0,0,0,0,0};
 
-    float F_out[3] = {0,0,0};
+    float F_out[4] = {0,0,0,0};
 
-    float FX = F_out[0];
-    float FY = F_out[1];
-    float N =  F_out[2];
+    float FT = F_out[0];
+    float FX = F_out[1];
+    float FY = F_out[2];
+    float N  = F_out[3];
 
-    float k1=1;
+
 
     float s_th_m1 = servo_m1;
     float s_th_m2 = servo_m2;
@@ -214,8 +217,17 @@ private:
 //    Tamanho do braço do barco
     float L = 1;
 
-    double Lx = (double)L*cos(M_PI/4);
-    double Ly = (double)L*cos(M_PI/4);
+    double M1_Lx = (double)L*cos(M_PI/4);
+    double M1_Ly = (double)L*cos(M_PI/4);
+
+    double M2_Lx = (double)L*cos(M_PI/4);
+    double M2_Ly = (double)L*cos(M_PI/4);
+
+    double M3_Lx = (double)L*cos(M_PI/4);
+    double M3_Ly = (double)L*cos(M_PI/4);
+
+    double M4_Lx = (double)L*cos(M_PI/4);
+    double M4_Ly = (double)L*cos(M_PI/4);
 
     int16_t PWM1 = 0;
     int16_t PWM2 = 0;
@@ -719,6 +731,7 @@ private:
     void get_pilot_desired_force_to_boat_M();
     void get_pilot_desired_force_to_boat();
     void alocation_matrix();
+    void calcPWM();
 
     //
     void compass_accumulate(void);
