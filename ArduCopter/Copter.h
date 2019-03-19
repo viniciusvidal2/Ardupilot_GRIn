@@ -174,65 +174,65 @@ private:
     ///
     /////////////////////////////////////////////////////////////////////////////////////
     // Força e torque maximos do barco
-    float Fmax = 1;
-    float Nmax = 1;
-    float k1   = 1;
+    float_t Fmax = 10.0;
+    float_t Nmax = 10.0;
+    float_t k1   = 1.0;
 
     // Servo Motores Barco
-    float servo_m1 = 0;
-    float servo_m2 = 0;
-    float servo_m3 = 0;
-    float servo_m4 = 0;
+    float_t servo_m1 = 0.0;
+    float_t servo_m2 = 0.0;
+    float_t servo_m3 = 0.0;
+    float_t servo_m4 = 0.0;
 
-    double theta_motor = 0;
+    float_t theta_motor = 0.0;
 
-    double theta_motor1 = 0;
-    double theta_motor2 = 0;
-    double theta_motor3 = 0;
-    double theta_motor4 = 0;
+    float_t theta_motor1 = 0.0;
+    float_t theta_motor2 = 0.0;
+    float_t theta_motor3 = 0.0;
+    float_t theta_motor4 = 0.0;
     //Declarações para a matriz de alocação
 
-    float PWM[4] = {0,0,0,0};
-    float ARC_seno[5] = {0,0,0,0,0};
+    float_t PWM[4] = {1,1,1,1};
+    float_t ARC_seno[5] = {0,0,0,0,0};
 
-    float F_out[4] = {0,0,0,0};
+    float_t F_out[4] = {1,1,1,1};
 
-    float FT = F_out[0];
-    float FX = F_out[1];
-    float FY = F_out[2];
-    float N  = F_out[3];
+    float_t FT = F_out[0];
+    float_t FX = F_out[1];
+    float_t FY = F_out[2];
+    float_t N  = F_out[3];
 
 
 
-    float s_th_m1 = servo_m1;
-    float s_th_m2 = servo_m2;
-    float s_th_m3 = servo_m3;
-    float s_th_m4 = servo_m4;
+    float_t s_th_m1 = servo_m1;
+    float_t s_th_m2 = servo_m2;
+    float_t s_th_m3 = servo_m3;
+    float_t s_th_m4 = servo_m4;
 
-    float c_th_m1 = servo_m1;
-    float c_th_m2 = servo_m2;
-    float c_th_m3 = servo_m3;
-    float c_th_m4 = servo_m4;
+    float_t c_th_m1 = servo_m1;
+    float_t c_th_m2 = servo_m2;
+    float_t c_th_m3 = servo_m3;
+    float_t c_th_m4 = servo_m4;
 
 //    Tamanho do braço do barco
-    float L = 1;
+    float_t L = 1.0;
 
-    double M1_Lx = (double)L*cos(M_PI/4);
-    double M1_Ly = (double)L*cos(M_PI/4);
+    float_t M1_Lx = L*cosf(M_PI/4);
+    float_t M1_Ly = L*cosf(M_PI/4);
 
-    double M2_Lx = (double)L*cos(M_PI/4);
-    double M2_Ly = (double)L*cos(M_PI/4);
+    float_t M2_Lx = L*cosf(M_PI/4);
+    float_t M2_Ly = L*cosf(M_PI/4);
 
-    double M3_Lx = (double)L*cos(M_PI/4);
-    double M3_Ly = (double)L*cos(M_PI/4);
+    float_t M3_Lx = L*cosf(M_PI/4);
+    float_t M3_Ly = L*cosf(M_PI/4);
 
-    double M4_Lx = (double)L*cos(M_PI/4);
-    double M4_Ly = (double)L*cos(M_PI/4);
+    float_t M4_Lx = L*cosf(M_PI/4);
+    float_t M4_Ly = L*cosf(M_PI/4);
 
-    int16_t PWM1 = 0;
-    int16_t PWM2 = 0;
-    int16_t PWM3 = 0;
-    int16_t PWM4 = 0;
+    float_t PWM1 = 0;
+    float_t PWM2 = 0;
+    float_t PWM3 = 0;
+    float_t PWM4 = 0;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -723,7 +723,8 @@ private:
 
 
     // Mathaus
-    void read_servo_angle();
+    float max(float *vet);
+    void pwm_servo_angle();
     int  servo_angle_to_pwm(float ang);
     float servo_pwm_to_angle(int PWM_aux);
     int servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm);

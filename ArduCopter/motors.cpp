@@ -339,7 +339,7 @@ int Copter::servo_angle_to_pwm(float angle)
     return pwm;
 }
 
-void Copter::read_servo_angle()
+void Copter::pwm_servo_angle()
 {
     servo_m1 = servo_angle_to_pwm(theta_motor1);
     servo_m2 = servo_angle_to_pwm(theta_motor2);
@@ -387,8 +387,8 @@ void Copter::motors_output() //(mathaus)
             motors->set_interlock(false);
             Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
         }
-        get_pilot_desired_force_to_boat();
-        read_servo_angle();
+        get_pilot_desired_force_to_boat_M();
+        pwm_servo_angle();
         motors->output(servo_m1,servo_m2,servo_m3,servo_m4);
     }
 

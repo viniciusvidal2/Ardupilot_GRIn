@@ -62,7 +62,7 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case LAND:
-            success = land_init(ignore_checks);
+            //success = land_init(ignore_checks);
             break;
 
         case RTL:
@@ -199,7 +199,7 @@ void Copter::update_flight_mode()
             break;
 
         case LAND:
-            land_run();
+            //land_run();
             break;
 
         case RTL:

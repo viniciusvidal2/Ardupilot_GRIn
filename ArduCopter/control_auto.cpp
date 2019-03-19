@@ -513,8 +513,8 @@ void Copter::auto_land_run()
     // set motors to full range
     motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
     
-    land_run_horizontal_control();
-    land_run_vertical_control();
+    //land_run_horizontal_control();
+    //land_run_vertical_control();
 }
 
 // auto_rtl_start - initialises RTL in AUTO flight mode
@@ -995,7 +995,7 @@ void Copter::auto_payload_place_run()
 void Copter::auto_payload_place_run_loiter()
 {
     // loiter...
-    land_run_horizontal_control();
+    //land_run_horizontal_control();
 
     // run loiter controller
     wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
@@ -1010,6 +1010,6 @@ void Copter::auto_payload_place_run_loiter()
 
 void Copter::auto_payload_place_run_descend()
 {
-    land_run_horizontal_control();
-    land_run_vertical_control();
+    //land_run_horizontal_control();
+    //land_run_vertical_control();
 }
