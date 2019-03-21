@@ -106,31 +106,31 @@ NOINLINE void Copter::send_fence_status(mavlink_channel_t chan)
 #endif
 
 
-NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan)
-{
-    int16_t battery_current = -1;
-    int8_t battery_remaining = -1;
+//NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan) //SYS_status
+//{
+//    int16_t battery_current = -1;
+//    int8_t battery_remaining = -1;
 
-    if (battery.has_current() && battery.healthy()) {
-        battery_remaining = battery.capacity_remaining_pct();
-        battery_current = battery.current_amps() * 100;
-    }
+//    if (battery.has_current() && battery.healthy()) {
+//        battery_remaining = battery.capacity_remaining_pct();
+//        battery_current = battery.current_amps() * 100;
+//    }
 
-    update_sensor_status_flags();
+//    update_sensor_status_flags();
     
-    mavlink_msg_sys_status_send(
-        chan,
-        control_sensors_present,
-        control_sensors_enabled,
-        control_sensors_health,
-        (uint16_t)(scheduler.load_average(MAIN_LOOP_MICROS) * 1000),
-        battery.voltage() * 1000, // mV
-        battery_current,        // in 10mA units
-        battery_remaining,      // in %
-        0, // comm drops %,
-        0, // comm drops in pkts,
-        0, 0, 0, 0);
-}
+//    mavlink_msg_sys_status_send(
+//        chan,
+//        control_sensors_present,
+//        control_sensors_enabled,
+//        control_sensors_health,
+//        (uint16_t)(scheduler.load_average(MAIN_LOOP_MICROS) * 1000),
+//        battery.voltage() * 1000, // mV
+//        battery_current,        // in 10mA units
+//        battery_remaining,      // in %
+//        0, // comm drops %,
+//        0, // comm drops in pkts,
+//        0, 0, 0, 0);
+//}
 
 void NOINLINE Copter::send_location(mavlink_channel_t chan)
 {
@@ -159,20 +159,20 @@ void NOINLINE Copter::send_location(mavlink_channel_t chan)
         ahrs.yaw_sensor);               // compass heading in 1/100 degree
 }
 
-void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan)
-{
-    const Vector3f &targets = attitude_control->get_att_target_euler_cd();
-    mavlink_msg_nav_controller_output_send(
-        chan,
-        targets.x / 1.0e2f,
-        targets.y / 1.0e2f,
-        targets.z / 1.0e2f,
-        wp_bearing / 1.0e2f,
-        (float)teste_wp,// * 1.0e3f, //wp_distance / 1.0e2f,
-        pos_control->get_alt_error() / 1.0e2f,
-        0,
-        0);
-}
+//void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_controle
+//{
+//    const Vector3f &targets = attitude_control->get_att_target_euler_cd();
+//    mavlink_msg_nav_controller_output_send(
+//        chan,
+//        targets.x / 1.0e2f,
+//        targets.y / 1.0e2f,
+//        targets.z / 1.0e2f,
+//        wp_bearing / 1.0e2f,
+//        (float)teste_wp,// * 1.0e3f, //wp_distance / 1.0e2f,
+//        pos_control->get_alt_error() / 1.0e2f,
+//        0,
+//        0);
+//}
 
 // report simulator stat4e
 void NOINLINE Copter::send_simstate(mavlink_channel_t chan)
@@ -190,18 +190,71 @@ void NOINLINE Copter::send_hwstatus(mavlink_channel_t chan)
         0);
 }
 
+//void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
+//{
+//    mavlink_msg_vfr_hud_send(
+//        chan,
+//        Pwm1,
+//        Pwm2,
+//        Pwm3,
+//        Pwm4,
+//        FT,
+//        tN);
+//}
+
+NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan) //SYS_status
+{
+    int16_t battery_current = -1;
+    int8_t battery_remaining = -1;
+
+    if (battery.has_current() && battery.healthy()) {
+        battery_remaining = battery.capacity_remaining_pct();
+        battery_current = battery.current_amps() * 100;
+    }
+
+    update_sensor_status_flags();
+
+    mavlink_msg_sys_status_send(
+        chan,
+        control_sensors_present,
+        control_sensors_enabled,
+        control_sensors_health,
+        (uint16_t)(scheduler.load_average(MAIN_LOOP_MICROS) * 1000),
+        battery.voltage() * 1000, // mV
+        battery_current,        // in 10mA units
+        battery_remaining,      // in %
+        0, // comm drops %,
+        0, // comm drops in pkts,
+        (1000 + round(Pwm1*1000)),(1000 + round(Pwm2*1000)),(1000 + round(Pwm3*1000)),(1000 + round(Pwm4*1000)));
+}
+
+void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_controle
+{
+
+    //const Vector3f &targets = attitude_control->get_att_target_euler_cd();
+    mavlink_msg_nav_controller_output_send(
+        chan,
+        theta_m1*1000,//targets.x / 1.0e2f,
+        theta_m2*1000,//targets.y / 1.0e2f,
+        theta_m3*100,//targets.z / 1.0e2f,
+        theta_m4*100,//wp_bearing / 1.0e2f,
+        round(100*Ft),//round(100*sqrt(sq(Fx)+sq(Fy))), //- Uint
+        tN*1000,
+        Ft*1000,
+        Fy*1000);
+}
+
 void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
 {
     mavlink_msg_vfr_hud_send(
         chan,
-        PWM1,
-        PWM2,
-        PWM3,
-        PWM4,
-        FT,
-        N);
+        gps.ground_speed(),
+        ahrs.groundspeed(),
+        (ahrs.yaw_sensor / 100) % 360,
+        (int16_t)(motors->get_throttle() * 100),
+        channel_pitch->get_control_in(),
+        climb_rate / 100.0f);
 }
-
 //void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
 //{
 //    mavlink_msg_vfr_hud_send(
@@ -381,12 +434,12 @@ bool GCS_MAVLINK_Copter::try_send_message(enum ap_message id)
     case MSG_EXTENDED_STATUS1:
         // send extended status only once vehicle has been initialised
         // to avoid unnecessary errors being reported to user
-        if (copter.ap.initialised) {
+        //if (copter.ap.initialised) {
             CHECK_PAYLOAD_SIZE(SYS_STATUS);
             copter.send_extended_status1(chan);
             CHECK_PAYLOAD_SIZE(POWER_STATUS);
             send_power_status();
-        }
+        //}
         break;
 
     case MSG_EXTENDED_STATUS2:
@@ -482,7 +535,6 @@ bool GCS_MAVLINK_Copter::try_send_message(enum ap_message id)
         CHECK_PAYLOAD_SIZE(RPM);
         copter.send_rpm(chan);
         break;
-
     case MSG_TERRAIN:
 #if AP_TERRAIN_AVAILABLE && AC_TERRAIN
         CHECK_PAYLOAD_SIZE(TERRAIN_REQUEST);

@@ -329,10 +329,10 @@ int Copter::servo_angle_to_pwm(float angle)
     float srv_max_angle = 180;
 
     //valor que o servo entende como 0 graus
-    float srv_min_pwm = 480.0;
+    float srv_min_pwm = 600;
 
     //valor de pwm que o servo entende como 180
-    float srv_max_pwm = 2440.0;
+    float srv_max_pwm = 2530;
 
     int pwm =  srv_min_pwm + angle * (srv_max_pwm - srv_min_pwm)/(srv_max_angle - srv_min_angle);
 
@@ -341,10 +341,10 @@ int Copter::servo_angle_to_pwm(float angle)
 
 void Copter::pwm_servo_angle()
 {
-    servo_m1 = servo_angle_to_pwm(theta_motor1);
-    servo_m2 = servo_angle_to_pwm(theta_motor2);
-    servo_m3 = servo_angle_to_pwm(theta_motor3);
-    servo_m4 = servo_angle_to_pwm(theta_motor4);
+    servo_m1 = servo_angle_to_pwm(theta_m1);
+    servo_m2 = servo_angle_to_pwm(theta_m2);
+    servo_m3 = servo_angle_to_pwm(theta_m3);
+    servo_m4 = servo_angle_to_pwm(theta_m4);
 
 }
 

@@ -173,9 +173,13 @@ private:
     /// Declaração de Variáveis ( Mathaus )
     ///
     /////////////////////////////////////////////////////////////////////////////////////
+
+    //    Tamanho do braço do barco
+    float_t L = 1.0;
+
     // Força e torque maximos do barco
-    float_t Fmax = 10.0;
-    float_t Nmax = 10.0;
+    float_t Fmax = 1;
+    float_t Nmax = L*Fmax;
     float_t k1   = 1.0;
 
     // Servo Motores Barco
@@ -186,23 +190,24 @@ private:
 
     float_t theta_motor = 0.0;
 
-    float_t theta_motor1 = 0.0;
-    float_t theta_motor2 = 0.0;
-    float_t theta_motor3 = 0.0;
-    float_t theta_motor4 = 0.0;
-    //Declarações para a matriz de alocação
+    float_t theta_m1 = 0.0;
+    float_t theta_m2 = 0.0;
+    float_t theta_m3 = 0.0;
+    float_t theta_m4 = 0.0;
 
-    float_t PWM[4] = {1,1,1,1};
+    float_t Pwm1 = 0.0;
+    float_t Pwm2 = 0.0;
+    float_t Pwm3 = 0.0;
+    float_t Pwm4 = 0.0;
+
+    float_t F_out[4] = {0,0,0,0};
+
+    float_t Ft = F_out[0];
+    float_t Fx = F_out[1];
+    float_t Fy = F_out[2];
+    float_t tN = F_out[3];
+
     float_t ARC_seno[5] = {0,0,0,0,0};
-
-    float_t F_out[4] = {1,1,1,1};
-
-    float_t FT = F_out[0];
-    float_t FX = F_out[1];
-    float_t FY = F_out[2];
-    float_t N  = F_out[3];
-
-
 
     float_t s_th_m1 = servo_m1;
     float_t s_th_m2 = servo_m2;
@@ -214,8 +219,7 @@ private:
     float_t c_th_m3 = servo_m3;
     float_t c_th_m4 = servo_m4;
 
-//    Tamanho do braço do barco
-    float_t L = 1.0;
+    // Propriedade Física do Barco
 
     float_t M1_Lx = L*cosf(M_PI/4);
     float_t M1_Ly = L*cosf(M_PI/4);
@@ -229,10 +233,6 @@ private:
     float_t M4_Lx = L*cosf(M_PI/4);
     float_t M4_Ly = L*cosf(M_PI/4);
 
-    float_t PWM1 = 0;
-    float_t PWM2 = 0;
-    float_t PWM3 = 0;
-    float_t PWM4 = 0;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -731,7 +731,7 @@ private:
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
     void get_pilot_desired_force_to_boat_M();
     void get_pilot_desired_force_to_boat();
-    void alocation_matrix();
+    void alocation_matrix(float_t &FT,float_t &FX, float_t &FY,float_t &N,float_t &theta_motor1,float_t &theta_motor2,float_t &theta_motor3,float_t &theta_motor4,float_t &PWM1 ,float_t &PWM2 ,float_t &PWM3 ,float_t &PWM4);
     void calcPWM();
 
     //
