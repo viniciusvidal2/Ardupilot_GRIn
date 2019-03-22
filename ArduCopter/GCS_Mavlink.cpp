@@ -225,7 +225,7 @@ NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan) //SYS_status
         battery_remaining,      // in %
         0, // comm drops %,
         0, // comm drops in pkts,
-        (1000 + round(Pwm1*1000)),(1000 + round(Pwm2*1000)),(1000 + round(Pwm3*1000)),(1000 + round(Pwm4*1000)));
+        (round(Pwm1*1000)),(round(Pwm2*1000)),(round(Pwm3*1000)),(round(Pwm4*1000)));
 }
 
 void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_controle
@@ -234,10 +234,10 @@ void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_c
     //const Vector3f &targets = attitude_control->get_att_target_euler_cd();
     mavlink_msg_nav_controller_output_send(
         chan,
-        theta_m1*1000,//targets.x / 1.0e2f,
-        theta_m2*1000,//targets.y / 1.0e2f,
-        theta_m3*100,//targets.z / 1.0e2f,
-        theta_m4*100,//wp_bearing / 1.0e2f,
+        (theta_m1*1000),//targets.x / 1.0e2f,
+        (theta_m2*1000),//targets.y / 1.0e2f,
+        (theta_m3*1000),//targets.z / 1.0e2f,
+        (theta_m4*1000),//wp_bearing / 1.0e2f,
         round(100*Ft),//round(100*sqrt(sq(Fx)+sq(Fy))), //- Uint
         tN*1000,
         Ft*1000,
