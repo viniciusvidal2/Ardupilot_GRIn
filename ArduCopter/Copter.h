@@ -178,7 +178,7 @@ private:
     float_t L = 1.0;
 
     // Força e torque maximos do barco
-    float_t Fmax = 1;
+    float_t Fmax = 50;
     float_t Nmax = L*Fmax;
     float_t k1   = 1.0;
 
@@ -190,48 +190,48 @@ private:
 
     float_t theta_motor = 0.0;
 
-    float_t theta_m1 = 0.0;
-    float_t theta_m2 = 0.0;
-    float_t theta_m3 = 0.0;
-    float_t theta_m4 = 0.0;
+    float_t theta_m1 = M_PI/4.0;
+    float_t theta_m2 = M_PI/4.0;
+    float_t theta_m3 = M_PI/4.0;
+    float_t theta_m4 = M_PI/4.0;
 
-    float_t Pwm1 = 0.0;
-    float_t Pwm2 = 0.0;
-    float_t Pwm3 = 0.0;
-    float_t Pwm4 = 0.0;
+    float_t Pwm1 = 100;
+    float_t Pwm2 = 100;
+    float_t Pwm3 = 100;
+    float_t Pwm4 = 100;
 
-    float_t F_out[4] = {0,0,0,0};
+    float_t F_out[4] = {0.0,0.0,0.0,0.0};
 
     float_t Ft = F_out[0];
     float_t Fx = F_out[1];
     float_t Fy = F_out[2];
     float_t tN = F_out[3];
 
-    float_t ARC_seno[5] = {0,0,0,0,0};
 
-    float_t s_th_m1 = servo_m1;
-    float_t s_th_m2 = servo_m2;
-    float_t s_th_m3 = servo_m3;
-    float_t s_th_m4 = servo_m4;
 
-    float_t c_th_m1 = servo_m1;
-    float_t c_th_m2 = servo_m2;
-    float_t c_th_m3 = servo_m3;
-    float_t c_th_m4 = servo_m4;
+    float_t s_th_m1 = sinf(M_PI/4.0);
+    float_t s_th_m2 = sinf(M_PI/4.0);
+    float_t s_th_m3 = sinf(M_PI/4.0);
+    float_t s_th_m4 = sinf(M_PI/4.0);
+
+    float_t c_th_m1 = cosf(M_PI/4.0);
+    float_t c_th_m2 = cosf(M_PI/4.0);
+    float_t c_th_m3 = cosf(M_PI/4.0);
+    float_t c_th_m4 = cosf(M_PI/4.0);
 
     // Propriedade Física do Barco
 
-    float_t M1_Lx = L*cosf(M_PI/4);
-    float_t M1_Ly = L*cosf(M_PI/4);
+    float_t M1_Lx = L*cosf(M_PI/4.0);
+    float_t M1_Ly = L*cosf(M_PI/4.0);
 
     float_t M2_Lx = L*cosf(M_PI/4);
-    float_t M2_Ly = L*cosf(M_PI/4);
+    float_t M2_Ly = L*cosf(M_PI/4.0);
 
-    float_t M3_Lx = L*cosf(M_PI/4);
-    float_t M3_Ly = L*cosf(M_PI/4);
+    float_t M3_Lx = L*cosf(M_PI/4.0);
+    float_t M3_Ly = L*cosf(M_PI/4.0);
 
-    float_t M4_Lx = L*cosf(M_PI/4);
-    float_t M4_Ly = L*cosf(M_PI/4);
+    float_t M4_Lx = L*cosf(M_PI/4.0);
+    float_t M4_Ly = L*cosf(M_PI/4.0);
 
 
     /////////////////////////////////////////////////////////////////////////////////////

@@ -202,6 +202,8 @@ void NOINLINE Copter::send_hwstatus(mavlink_channel_t chan)
 //        tN);
 //}
 
+
+//===========================================================================================================
 NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan) //SYS_status
 {
     int16_t battery_current = -1;
@@ -234,13 +236,13 @@ void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_c
     //const Vector3f &targets = attitude_control->get_att_target_euler_cd();
     mavlink_msg_nav_controller_output_send(
         chan,
-        (theta_m1*1000),//targets.x / 1.0e2f,
-        (theta_m2*1000),//targets.y / 1.0e2f,
-        (theta_m3*1000),//targets.z / 1.0e2f,
-        (theta_m4*1000),//wp_bearing / 1.0e2f,
+        (theta_m1*100),//targets.x / 1.0e2f,
+        (theta_m2*100),//targets.y / 1.0e2f,
+        (theta_m3*100),//targets.z / 1.0e2,
+        (theta_m4*100),//wp_bearing / 1.0e2f,
         round(100*Ft),//round(100*sqrt(sq(Fx)+sq(Fy))), //- Uint
         tN*1000,
-        Ft*1000,
+        Fx*1000,
         Fy*1000);
 }
 
@@ -255,6 +257,10 @@ void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
         channel_pitch->get_control_in(),
         climb_rate / 100.0f);
 }
+
+
+//===========================================================================================================
+
 //void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
 //{
 //    mavlink_msg_vfr_hud_send(
