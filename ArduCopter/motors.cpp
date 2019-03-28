@@ -325,10 +325,10 @@ int Copter::servo_angle_to_pwm(float angle)
     //valor que o servo entende como 0 graus
     float srv_min_angle = 0.0;
 
-    //valor de pwm que o servo entende como 180
+    //valor que o servo entende como 180
     float srv_max_angle = 180;
 
-    //valor que o servo entende como 0 graus
+    //valor em pwm que o servo entende como 0 graus
     float srv_min_pwm = 600;
 
     //valor de pwm que o servo entende como 180
@@ -341,6 +341,7 @@ int Copter::servo_angle_to_pwm(float angle)
 
 void Copter::pwm_servo_angle()
 {
+    /// todos os angulos devem estar em graus nesta função
     servo_m1 = servo_angle_to_pwm(theta_m1);
     servo_m2 = servo_angle_to_pwm(theta_m2);
     servo_m3 = servo_angle_to_pwm(theta_m3);
@@ -390,6 +391,7 @@ void Copter::motors_output() //(mathaus)
         get_pilot_desired_force_to_boat_M();
         pwm_servo_angle();
         motors->output(servo_m1,servo_m2,servo_m3,servo_m4);
+//                motors->output();
     }
 
     // push all channels

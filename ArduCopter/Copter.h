@@ -175,63 +175,63 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
 
     //    Tamanho do braço do barco
-    float_t L = 1.0;
+    float L = 1.0;
 
     // Força e torque maximos do barco
-    float_t Fmax = 50;
-    float_t Nmax = L*Fmax;
-    float_t k1   = 1.0;
+    float Fmax = 50;
+    float Nmax = L*Fmax;
+    float k1   = 1.0;
 
     // Servo Motores Barco
-    float_t servo_m1 = 0.0;
-    float_t servo_m2 = 0.0;
-    float_t servo_m3 = 0.0;
-    float_t servo_m4 = 0.0;
+    float servo_m1 = 0.0;
+    float servo_m2 = 0.0;
+    float servo_m3 = 0.0;
+    float servo_m4 = 0.0;
 
-    float_t theta_motor = 0.0;
+    float theta_motor = 0.0;
 
-    float_t theta_m1 = M_PI/4.0;
-    float_t theta_m2 = M_PI/4.0;
-    float_t theta_m3 = M_PI/4.0;
-    float_t theta_m4 = M_PI/4.0;
+    float theta_m1 = 5.0;
+    float theta_m2 = -5.0;
+    float theta_m3 = -5.0;
+    float theta_m4 = 5.0;
 
-    float_t Pwm1 = 100;
-    float_t Pwm2 = 100;
-    float_t Pwm3 = 100;
-    float_t Pwm4 = 100;
+    float Pwm1 = 100;
+    float Pwm2 = 100;
+    float Pwm3 = 100;
+    float Pwm4 = 100;
 
-    float_t F_out[4] = {0.0,0.0,0.0,0.0};
+    float F_out[4] = {0.0,0.0,0.0,0.0};
 
-    float_t Ft = F_out[0];
-    float_t Fx = F_out[1];
-    float_t Fy = F_out[2];
-    float_t tN = F_out[3];
+    float Ft = F_out[0];
+    float Fx = F_out[1];
+    float Fy = F_out[2];
+    float tN = F_out[3];
 
 
 
-    float_t s_th_m1 = sinf(M_PI/4.0);
-    float_t s_th_m2 = sinf(M_PI/4.0);
-    float_t s_th_m3 = sinf(M_PI/4.0);
-    float_t s_th_m4 = sinf(M_PI/4.0);
+    float s_th_m1 = sinf(M_PI/4.0);
+    float s_th_m2 = sinf(M_PI/4.0);
+    float s_th_m3 = sinf(M_PI/4.0);
+    float s_th_m4 = sinf(M_PI/4.0);
 
-    float_t c_th_m1 = cosf(M_PI/4.0);
-    float_t c_th_m2 = cosf(M_PI/4.0);
-    float_t c_th_m3 = cosf(M_PI/4.0);
-    float_t c_th_m4 = cosf(M_PI/4.0);
+    float c_th_m1 = cosf(M_PI/4.0);
+    float c_th_m2 = cosf(M_PI/4.0);
+    float c_th_m3 = cosf(M_PI/4.0);
+    float c_th_m4 = cosf(M_PI/4.0);
 
     // Propriedade Física do Barco
 
-    float_t M1_Lx = L*cosf(M_PI/4.0);
-    float_t M1_Ly = L*cosf(M_PI/4.0);
+    float M1_Lx = L*cosf(M_PI/4.0);
+    float M1_Ly = L*cosf(M_PI/4.0);
 
-    float_t M2_Lx = L*cosf(M_PI/4);
-    float_t M2_Ly = L*cosf(M_PI/4.0);
+    float M2_Lx = L*cosf(M_PI/4.0);
+    float M2_Ly = L*cosf(M_PI/4.0);
 
-    float_t M3_Lx = L*cosf(M_PI/4.0);
-    float_t M3_Ly = L*cosf(M_PI/4.0);
+    float M3_Lx = L*cosf(M_PI/4.0);
+    float M3_Ly = L*cosf(M_PI/4.0);
 
-    float_t M4_Lx = L*cosf(M_PI/4.0);
-    float_t M4_Ly = L*cosf(M_PI/4.0);
+    float M4_Lx = L*cosf(M_PI/4.0);
+    float M4_Ly = L*cosf(M_PI/4.0);
 
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -724,6 +724,7 @@ private:
 
     // Mathaus
     float max(float *vet);
+    float Saturacao(float Var ,float Sup, float Infe);
     void pwm_servo_angle();
     int  servo_angle_to_pwm(float ang);
     float servo_pwm_to_angle(int PWM_aux);
@@ -731,7 +732,7 @@ private:
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
     void get_pilot_desired_force_to_boat_M();
     void get_pilot_desired_force_to_boat();
-    void alocation_matrix(float_t &FT,float_t &FX, float_t &FY,float_t &N,float_t &theta_motor1,float_t &theta_motor2,float_t &theta_motor3,float_t &theta_motor4,float_t &PWM1 ,float_t &PWM2 ,float_t &PWM3 ,float_t &PWM4);
+    void alocation_matrix(float &FT,float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
     void calcPWM();
 
     //
