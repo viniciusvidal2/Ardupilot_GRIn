@@ -204,7 +204,7 @@ AP_MotorsMulticopter::AP_MotorsMulticopter(uint16_t loop_rate, uint16_t speed_hz
 
 
 // output - sends commands to the motors
-void AP_MotorsMulticopter::output(float &srv1, float &srv2, float &srv3, float &srv4) //(mathaus)
+void AP_MotorsMulticopter::output(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4) //(mathaus)
 {
     // update throttle filter
     update_throttle_filter();
@@ -222,7 +222,7 @@ void AP_MotorsMulticopter::output(float &srv1, float &srv2, float &srv3, float &
     thrust_compensation();
 
     // convert rpy_thrust values to pwm
-    output_to_motors(srv1,srv2,srv3,srv4);
+    output_to_motors(srv1,srv2,srv3,srv4,Pwm1,Pwm2,Pwm3,Pwm4);
 
     // output any booster throttle
     output_boost_throttle();

@@ -39,7 +39,7 @@ public:
 
     // output_to_motors - sends minimum values out to the motors
     void                output_to_motors();
-    void                output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4);
+    void                output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4);
 
     // get_motor_mask - returns a bitmask of which outputs are being used for motors (1 means being used)
     //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
