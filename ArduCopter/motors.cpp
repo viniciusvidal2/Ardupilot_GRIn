@@ -9,6 +9,8 @@ static uint32_t auto_disarm_begin;
 
 // arm_motors_check - checks for pilot input to arm or disarm the copter
 // called at 10hz
+
+
 void Copter::arm_motors_check()
 {
     static int16_t arming_counter;

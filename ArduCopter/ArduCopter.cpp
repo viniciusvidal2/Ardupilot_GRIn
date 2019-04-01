@@ -179,6 +179,12 @@ void Copter::setup()
     // setup initial performance counters
     perf_info_reset();
     fast_loopTimer = AP_HAL::micros();
+
+    // Mathaus
+    Pwmmax = motors->get_pwm_output_max();
+    Pwmmin = motors->get_pwm_output_min();
+    k1  = Fmax / (Pwmmax - Pwmmin);
+
 }
 
 /*

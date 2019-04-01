@@ -141,10 +141,23 @@ float Copter::Saturacao(float Var , float Sup, float Infe)
     return Var;
 }
 
+float Copter::PWMtoNorm(float pwm)
+{
+    /// Retorna um valor de 0 a 1 para o PWM considerando os valores maximos e mínimos do GCS
+    return Saturacao(pwm/(Pwmmax-Pwmmin),1.0f,0.0f);
+}
+
+
+float Copter::NormtoPWM(float pwm)
+{
+    /// Retorna um valor de 0 a DELTA_PWM para o valor normalizado considerando os valores maximos e mínimos do GCS
+    return pwm*(Pwmmax-Pwmmin);
+}
+
 void Copter:: alocation_matrix(float &FT,float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1,float &PWM2,float &PWM3,float &PWM4)
 {
+
     /// TRABALHA COM RADIANOS
-    ///
     /// Fx = força no eixo X - A principio, seu valor deve variar de 0 a 1 deve-se fazer alterações para -1 a 1
     /// Fy = força no eixo y - A principio, seu valor deve variar de 0 a 1 deve-se fazer alterações para -1 a 1
     /// N  = tork de guinada - A principio, seu valor deve variar de 0 a 1 deve-se fazer alterações para -1 a 1
@@ -154,6 +167,9 @@ void Copter:: alocation_matrix(float &FT,float &FX,float &FY,float &N,float &the
 
     int v = 0;
 
+    FX = Saturacao(FX,Fmax,-Fmax);
+    FY = Saturacao(FY,Fmax,-Fmax);
+
     //Calculo da Força total
     FT = sqrt(sq(FX)+sq(FY));
 
@@ -161,8 +177,18 @@ void Copter:: alocation_matrix(float &FT,float &FX,float &FY,float &N,float &the
         FT = FT + N;
     }
 
-    // Saturação de Força
-    FT =Saturacao(FT,Fmax,-Fmax);
+    // Converte o valor normalizado para PWM
+    PWM1 = NormtoPWM(PWM1);
+    PWM2 = NormtoPWM(PWM2);
+    PWM3 = NormtoPWM(PWM3);
+    PWM4 = NormtoPWM(PWM4);
+
+    // Convertendo para Radianos
+    theta_motor1 = theta_motor1 * DEG_TO_RAD;
+    theta_motor2 = theta_motor2 * DEG_TO_RAD;
+    theta_motor3 = theta_motor3 * DEG_TO_RAD;
+    theta_motor4 = theta_motor4 * DEG_TO_RAD;
+
 
     if((FT<0.05*Fmax && FT>-0.05*Fmax)&&(N<0.05*Fmax && N>-0.05*Fmax))
     {
@@ -174,24 +200,12 @@ void Copter:: alocation_matrix(float &FT,float &FX,float &FY,float &N,float &the
         theta_motor4 = 0.0;
 
         //Envia todos os PWMs nulos
-        PWM1 = 100;
-        PWM2 = 100;
-        PWM3 = 100;
-        PWM4 = 100;
+        PWM1 = 1.0f;
+        PWM2 = 1.0f;
+        PWM3 = 1.0f;
+        PWM4 = 1.0f;
     }else{
-
-        theta_motor1 = Saturacao(theta_motor1,90,-90);
-        theta_motor2 = Saturacao(theta_motor2,90,-90);
-        theta_motor3 = Saturacao(theta_motor3,90,-90);
-        theta_motor4 = Saturacao(theta_motor4,90,-90);
-
-        // Convertendo para Radianos
-        theta_motor1 = theta_motor1 * DEG_TO_RAD;
-        theta_motor2 = theta_motor2 * DEG_TO_RAD;
-        theta_motor3 = theta_motor3 * DEG_TO_RAD;
-        theta_motor4 = theta_motor4 * DEG_TO_RAD;
-
-        while(v<1)
+        while(v<2)
         {
             float M = 0.0;
             float ARC_seno[5] = {};
@@ -241,12 +255,11 @@ void Copter:: alocation_matrix(float &FT,float &FX,float &FY,float &N,float &the
             PWM4 = Num_p4/Den_p4;
 
             // Aqui é feita a saturação do PWM para que caso ele saia fora dos valores aceitaveis o método irá tentar convergir através das demais variáveis
-
             // Saturacao
-            PWM1 = Saturacao(PWM1,2800,100);
-            PWM2 = Saturacao(PWM2,2800,100);
-            PWM3 = Saturacao(PWM3,2800,100);
-            PWM4 = Saturacao(PWM4,2800,100);
+            PWM1 = Saturacao(PWM1,Pwmmax-Pwmmin,1.0f);
+            PWM2 = Saturacao(PWM2,Pwmmax-Pwmmin,1.0f);
+            PWM3 = Saturacao(PWM3,Pwmmax-Pwmmin,1.0f);
+            PWM4 = Saturacao(PWM4,Pwmmax-Pwmmin,1.0f);
 
             //         Arco seno do angulo calculado a partir da força e do novo PWM
             ARC_seno[0] = (PWM1*(FY*sq(M2_Ly)*powf(PWM2,3.0) + FY*sq(M3_Ly)*powf(PWM3,3.0) + FY*sq(M4_Ly)*powf(PWM4,3.0) + M1_Ly*N*powf(PWM2,3.0) + M1_Ly*N*powf(PWM3,3.0) + M2_Ly*N*powf(PWM2,3.0) + M1_Ly*N*powf(PWM4,3.0) - M3_Ly*N*powf(PWM3,3.0) + M4_Ly*N*powf(PWM4,3.0) + FY*sq(M2_Ly)*PWM1*sq(PWM2) + FY*sq(M2_Ly)*sq(PWM2)*PWM3 + FY*sq(M3_Ly)*PWM1*sq(PWM3) + FY*sq(M2_Ly)*sq(PWM2)*PWM4 + FY*sq(M3_Ly)*PWM2*sq(PWM3) + FY*sq(M4_Ly)*PWM1*sq(PWM4) + FY*sq(M3_Ly)*sq(PWM3)*PWM4 + FY*sq(M4_Ly)*PWM2*sq(PWM4) + FY*sq(M4_Ly)*PWM3*sq(PWM4) + FY*M1_Ly*M2_Ly*powf(PWM2,3.0) - FY*M1_Ly*M3_Ly*powf(PWM3,3.0) + FY*M1_Ly*M4_Ly*powf(PWM4,3.0) + M1_Ly*N*PWM1*sq(PWM2) + M1_Ly*N*PWM1*sq(PWM3) + M2_Ly*N*PWM1*sq(PWM2) + M1_Ly*N*PWM1*sq(PWM4) + M1_Ly*N*PWM2*sq(PWM3) + M1_Ly*N*sq(PWM2)*PWM3 + M1_Ly*N*PWM2*sq(PWM4) + M1_Ly*N*sq(PWM2)*PWM4 + M2_Ly*N*sq(PWM2)*PWM3 - M3_Ly*N*PWM1*sq(PWM3) + M1_Ly*N*PWM3*sq(PWM4) + M1_Ly*N*sq(PWM3)*PWM4 + M2_Ly*N*sq(PWM2)*PWM4 - M3_Ly*N*PWM2*sq(PWM3) + M4_Ly*N*PWM1*sq(PWM4) - M3_Ly*N*sq(PWM3)*PWM4 + M4_Ly*N*PWM2*sq(PWM4) + M4_Ly*N*PWM3*sq(PWM4) + FY*M1_Ly*M2_Ly*PWM1*sq(PWM2) + FY*M1_Ly*M2_Ly*sq(PWM2)*PWM3 - FY*M1_Ly*M3_Ly*PWM1*sq(PWM3) + FY*M1_Ly*M2_Ly*sq(PWM2)*PWM4 - FY*M1_Ly*M3_Ly*PWM2*sq(PWM3) + FY*M1_Ly*M4_Ly*PWM1*sq(PWM4) - FY*M1_Ly*M3_Ly*sq(PWM3)*PWM4 + FY*M1_Ly*M4_Ly*PWM2*sq(PWM4) + FY*M1_Ly*M4_Ly*PWM3*sq(PWM4) - FT*M1_Ly*M2_Lx*powf(PWM2,3.0)*c_th_m2 - FT*M2_Lx*M2_Ly*powf(PWM2,3.0)*c_th_m2 - FT*M1_Ly*M3_Lx*powf(PWM3,3.0)*c_th_m3 + FT*M3_Lx*M3_Ly*powf(PWM3,3.0)*c_th_m3 + FT*M1_Ly*M4_Lx*powf(PWM4,3.0)*c_th_m4 + FT*M4_Lx*M4_Ly*powf(PWM4,3.0)*c_th_m4 + FT*M1_Lx*M1_Ly*PWM1*sq(PWM2)*c_th_m1 + FT*M1_Lx*M1_Ly*PWM1*sq(PWM3)*c_th_m1 + FT*M1_Lx*M2_Ly*PWM1*sq(PWM2)*c_th_m1 + FT*M1_Lx*M1_Ly*PWM1*sq(PWM4)*c_th_m1 - FT*M1_Lx*M3_Ly*PWM1*sq(PWM3)*c_th_m1 - FT*M1_Ly*M2_Lx*PWM2*sq(PWM3)*c_th_m2 + FT*M1_Lx*M4_Ly*PWM1*sq(PWM4)*c_th_m1 - FT*M1_Ly*M2_Lx*PWM2*sq(PWM4)*c_th_m2 - FT*M1_Ly*M3_Lx*sq(PWM2)*PWM3*c_th_m3 + FT*M2_Lx*M3_Ly*PWM2*sq(PWM3)*c_th_m2 - FT*M2_Ly*M3_Lx*sq(PWM2)*PWM3*c_th_m3 - FT*M1_Ly*M3_Lx*PWM3*sq(PWM4)*c_th_m3 - FT*M2_Lx*M4_Ly*PWM2*sq(PWM4)*c_th_m2 + FT*M1_Ly*M4_Lx*sq(PWM2)*PWM4*c_th_m4 + FT*M1_Ly*M4_Lx*sq(PWM3)*PWM4*c_th_m4 + FT*M2_Ly*M4_Lx*sq(PWM2)*PWM4*c_th_m4 - FT*M3_Lx*M4_Ly*PWM3*sq(PWM4)*c_th_m3 - FT*M3_Ly*M4_Lx*sq(PWM3)*PWM4*c_th_m4))/(k1*(PWM1 + PWM2 + PWM3 + PWM4)*(sq(M1_Ly)*sq(PWM1)*sq(PWM2) + sq(M1_Ly)*sq(PWM1)*sq(PWM3) + sq(M2_Ly)*sq(PWM1)*sq(PWM2) + sq(M1_Ly)*sq(PWM1)*sq(PWM4) + sq(M2_Ly)*sq(PWM2)*sq(PWM3) + sq(M3_Ly)*sq(PWM1)*sq(PWM3) + sq(M2_Ly)*sq(PWM2)*sq(PWM4) + sq(M3_Ly)*sq(PWM2)*sq(PWM3) + sq(M4_Ly)*sq(PWM1)*sq(PWM4) + sq(M3_Ly)*sq(PWM3)*sq(PWM4) + sq(M4_Ly)*sq(PWM2)*sq(PWM4) + sq(M4_Ly)*sq(PWM3)*sq(PWM4) + 2*M1_Ly*M2_Ly*sq(PWM1)*sq(PWM2) - 2*M1_Ly*M3_Ly*sq(PWM1)*sq(PWM3) + 2*M1_Ly*M4_Ly*sq(PWM1)*sq(PWM4) + 2*M2_Ly*M3_Ly*sq(PWM2)*sq(PWM3) - 2*M2_Ly*M4_Ly*sq(PWM2)*sq(PWM4) + 2*M3_Ly*M4_Ly*sq(PWM3)*sq(PWM4)));
@@ -260,13 +273,12 @@ void Copter:: alocation_matrix(float &FT,float &FX,float &FY,float &N,float &the
             int T =sizeof(ARC_seno)/sizeof(ARC_seno[0]);
 
             for(int i = 0; i < T;i++){
-                if(fabs(ARC_seno[i])>M){
-                    M = fabs(ARC_seno[i]);
+                if((float)fabs(ARC_seno[i])>M){
+                    M = (float)fabs(ARC_seno[i]);
                 }
             }
 
             // Normaliza o valor que vem em ARC_seno[4] que deve sempre ser 1
-
             ARC_seno[0] = ARC_seno[0]/M;
             ARC_seno[1] = ARC_seno[1]/M;
             ARC_seno[2] = ARC_seno[2]/M;
@@ -278,15 +290,25 @@ void Copter:: alocation_matrix(float &FT,float &FX,float &FY,float &N,float &the
             theta_motor3 = asinf(ARC_seno[2]);
             theta_motor4 = asinf(ARC_seno[3]);
 
+
+            // Aqui é feita a saturação do Angulo para que caso ele saia fora dos valores aceitaveis o método irá tentar convergir através das demais variáveis
+            theta_motor1 = Saturacao(theta_motor1,1.0f,-1.0f);
+            theta_motor2 = Saturacao(theta_motor2,1.0f,-1.0f);
+            theta_motor3 = Saturacao(theta_motor3,1.0f,-1.0f);
+            theta_motor4 = Saturacao(theta_motor4,1.0f,-1.0f);
         }
-
-        // Conveter o valor de Theta para Graus
-        theta_motor1 = theta_motor1 * RAD_TO_DEG;
-        theta_motor2 = theta_motor2 * RAD_TO_DEG;
-        theta_motor3 = theta_motor3 * RAD_TO_DEG;
-        theta_motor4 = theta_motor4 * RAD_TO_DEG;
     }
+    // Normaliza o valor de PWM encontrado entre 0 e 1 para ativar a saida entre mínima e maxima potência
+    PWM1 = PWMtoNorm(PWM1);
+    PWM2 = PWMtoNorm(PWM2);
+    PWM3 = PWMtoNorm(PWM3);
+    PWM4 = PWMtoNorm(PWM4);
 
+    // Conveter o valor de Theta para Graus
+    theta_motor1 = theta_motor1 * RAD_TO_DEG;
+    theta_motor2 = theta_motor2 * RAD_TO_DEG;
+    theta_motor3 = theta_motor3 * RAD_TO_DEG;
+    theta_motor4 = theta_motor4 * RAD_TO_DEG;
 }
 
 

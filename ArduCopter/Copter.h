@@ -182,6 +182,9 @@ private:
     float Nmax = L*Fmax;
     float k1   = 1.0;
 
+    float Pwmmax = 2000;
+    float Pwmmin = 1000;
+
     // Servo Motores Barco
     float servo_m1 = 0.0;
     float servo_m2 = 0.0;
@@ -195,10 +198,10 @@ private:
     float theta_m3 = -5.0;
     float theta_m4 = 5.0;
 
-    float Pwm1 = 100;
-    float Pwm2 = 100;
-    float Pwm3 = 100;
-    float Pwm4 = 100;
+    float Pwm1 = 1;
+    float Pwm2 = 1;
+    float Pwm3 = 1;
+    float Pwm4 = 1;
 
     float F_out[4] = {0.0,0.0,0.0,0.0};
 
@@ -727,6 +730,8 @@ private:
     float Saturacao(float Var ,float Sup, float Infe);
     void pwm_servo_angle();
     int  servo_angle_to_pwm(float ang);
+    float PWMtoNorm(float pwm);
+    float NormtoPWM(float pwm);
     float servo_pwm_to_angle(int PWM_aux);
     int servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm);
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
