@@ -178,9 +178,11 @@ private:
     float L = 1.0;
 
     // Força e torque maximos do barco
-    float Fmax = 50;
+    float Fmax = 20;
     float Nmax = L*Fmax;
     float k1   = 1.0;
+
+    float ganho = 1;
 
     float Pwmmax = 2000;
     float Pwmmin = 1000;
