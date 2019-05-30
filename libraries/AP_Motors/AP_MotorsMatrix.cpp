@@ -88,23 +88,18 @@ void AP_MotorsMatrix::enable()
 
 void update_srv_action(float srv1, float srv2, float srv3, float srv4)
 {
-    srv1 = roundf(srv1);
-    srv2 = roundf(srv2);
-    srv3 = roundf(srv3);
-    srv4 = roundf(srv4);
+    srv1 = lround(srv1);
+    srv2 = lround(srv2);
+    srv3 = lround(srv3);
+    srv4 = lround(srv4);
 
-    //    rc_write(0, uint16_t(PWM1));
-    //    rc_write(1, uint16_t(PWM2));
-    //    rc_write(2, uint16_t(PWM3));
-    //    rc_write(3, uint16_t(PWM4));
 
     hal.rcout->write(8, uint16_t(srv1));  // Servo 5
     hal.rcout->write(9, uint16_t(srv2));  // Servo 6
     hal.rcout->write(10,uint16_t(srv3));  // Servo 7
     hal.rcout->write(11,uint16_t(srv4));  // Servo 8
+
 }
-
-
 
 
 void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4) //mathaus
@@ -160,7 +155,7 @@ void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, fl
             rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
         }
     }
-
+    //Atualiza a saida dos servos
     update_srv_action(srv1,srv2,srv3,srv4);
 }
 

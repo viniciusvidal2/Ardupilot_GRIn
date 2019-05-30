@@ -206,7 +206,7 @@ void NOINLINE Copter::send_hwstatus(mavlink_channel_t chan)
 //===========================================================================================================
 NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan) //SYS_status
 {
-    float d_pwm = (Pwmmax-Pwmmin);
+    //float d_pwm = (Pwmmax-Pwmmin);
     int16_t battery_current = -1;
     int8_t battery_remaining = -1;
 
@@ -228,7 +228,7 @@ NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan) //SYS_status
         battery_remaining,      // in %
         0, // comm drops %,
         0, // comm drops in pkts,
-        (round(d_pwm*Pwm1*10)),(round(d_pwm*Pwm2*10)),(round(d_pwm*Pwm3*10)),(round(d_pwm*Pwm4*10)));
+        (round(Pwm1*10)),(round(Pwm2*10)),(round(Pwm3*10)),(round(Pwm4*10)));
 }
 
 void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_controle
@@ -241,7 +241,7 @@ void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_c
         (theta_m2*100),//targets.y / 1.0e2f,
         (theta_m3*100),//targets.z / 1.0e2,
         (theta_m4*100),//wp_bearing / 1.0e2f,
-        round(100*Ft),//round(100*sqrt(sq(Fx)+sq(Fy))), //- Uint
+        (FT*100),//round(100*sqrt(sq(Fx)+sq(Fy))), //- Uint
         tN*1000,
         Fx*1000,
         Fy*1000);

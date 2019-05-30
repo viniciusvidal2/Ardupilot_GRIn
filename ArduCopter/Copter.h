@@ -169,23 +169,22 @@ private:
     double teste_wp = 0.0;
 
     /////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////
     /// Declaração de Variáveis ( Mathaus )
-    ///
     /////////////////////////////////////////////////////////////////////////////////////
 
-    //    Tamanho do braço do barco
-    float L = 1.0;
+    // Propriedade Física do Barco
+    float FT = 0.0;
+    float Fmax = 0.86*10*4;     // Força e torque maximos do barco
+    float L    = 0.586;          // Tamanho do braço do barco
 
-    // Força e torque maximos do barco
-    float Fmax = 20;
+    float Lx = L*cosf(M_PI/4.0);
+    float Ly = L*cosf(M_PI/4.0);
+
+    float Pwmmax = 1001.0; // Esse valor será a faixa de pwm que eu vou escolher para trabalhar --------------- // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+    float Pwmmin = 1.0;      // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+
     float Nmax = L*Fmax;
-    float k1   = 1.0;
-
-    float ganho = 1;
-
-    float Pwmmax = 2000;
-    float Pwmmin = 1000;
+    float k1   = (Fmax/4)/(Pwmmax-Pwmmin);    // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
 
     // Servo Motores Barco
     float servo_m1 = 0.0;
@@ -193,51 +192,20 @@ private:
     float servo_m3 = 0.0;
     float servo_m4 = 0.0;
 
-    float theta_motor = 0.0;
+    //Usado para calcular valores
+    float theta_m1 =  0.0;
+    float theta_m2 =  0.0;
+    float theta_m3 =  0.0;
+    float theta_m4 =  0.0;
 
-    float theta_m1 = 5.0;
-    float theta_m2 = -5.0;
-    float theta_m3 = -5.0;
-    float theta_m4 = 5.0;
+    float Pwm1 = 1.0;
+    float Pwm2 = 1.0;
+    float Pwm3 = 1.0;
+    float Pwm4 = 1.0;
 
-    float Pwm1 = 1;
-    float Pwm2 = 1;
-    float Pwm3 = 1;
-    float Pwm4 = 1;
-
-    float F_out[4] = {0.0,0.0,0.0,0.0};
-
-    float Ft = F_out[0];
-    float Fx = F_out[1];
-    float Fy = F_out[2];
-    float tN = F_out[3];
-
-
-
-    float s_th_m1 = sinf(M_PI/4.0);
-    float s_th_m2 = sinf(M_PI/4.0);
-    float s_th_m3 = sinf(M_PI/4.0);
-    float s_th_m4 = sinf(M_PI/4.0);
-
-    float c_th_m1 = cosf(M_PI/4.0);
-    float c_th_m2 = cosf(M_PI/4.0);
-    float c_th_m3 = cosf(M_PI/4.0);
-    float c_th_m4 = cosf(M_PI/4.0);
-
-    // Propriedade Física do Barco
-
-    float M1_Lx = L*cosf(M_PI/4.0);
-    float M1_Ly = L*cosf(M_PI/4.0);
-
-    float M2_Lx = L*cosf(M_PI/4.0);
-    float M2_Ly = L*cosf(M_PI/4.0);
-
-    float M3_Lx = L*cosf(M_PI/4.0);
-    float M3_Ly = L*cosf(M_PI/4.0);
-
-    float M4_Lx = L*cosf(M_PI/4.0);
-    float M4_Ly = L*cosf(M_PI/4.0);
-
+    float Fx = 0.0;
+    float Fy = 0.0;
+    float tN = 0.0;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -729,17 +697,19 @@ private:
 
     // Mathaus
     float max(float *vet);
-    float Saturacao(float Var ,float Sup, float Infe);
     void pwm_servo_angle();
     int  servo_angle_to_pwm(float ang);
+    int servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm);
+    float servo_pwm_to_angle(int PWM_aux);
+
     float PWMtoNorm(float pwm);
     float NormtoPWM(float pwm);
-    float servo_pwm_to_angle(int PWM_aux);
-    int servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm);
+
+
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
     void get_pilot_desired_force_to_boat_M();
     void get_pilot_desired_force_to_boat();
-    void alocation_matrix(float &FT,float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
+    void alocation_matrix(float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
     void calcPWM();
 
     //
