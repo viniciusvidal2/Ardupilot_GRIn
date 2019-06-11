@@ -173,39 +173,39 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
 
     // Propriedade Física do Barco
-    float FT = 0.0;
-    float Fmax = 0.86*10*4;     // Força e torque maximos do barco
-    float L    = 0.586;          // Tamanho do braço do barco
+    float FT = 0.0f;
+    float Fmax = 0.86*10*4;      // Força e torque maximos do barco
+    float L    = 0.586f;          // Tamanho do braço do barco
 
-    float Lx = L*cosf(M_PI/4.0);
-    float Ly = L*cosf(M_PI/4.0);
+    float Lx = L*cosf(M_PI/4.0f);
+    float Ly = L*cosf(M_PI/4.0f);
 
-    float Pwmmax = 1001.0; // Esse valor será a faixa de pwm que eu vou escolher para trabalhar --------------- // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
-    float Pwmmin = 1.0;      // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+    float Pwmmax = 1001.0f; // Esse valor será a faixa de pwm que eu vou escolher para trabalhar --------------- // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+    float Pwmmin = 1.0f;      // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
 
     float Nmax = L*Fmax;
     float k1   = (Fmax/4)/(Pwmmax-Pwmmin);    // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
 
     // Servo Motores Barco
-    float servo_m1 = 0.0;
-    float servo_m2 = 0.0;
-    float servo_m3 = 0.0;
-    float servo_m4 = 0.0;
+    float servo_m1 = 0.0f;
+    float servo_m2 = 0.0f;
+    float servo_m3 = 0.0f;
+    float servo_m4 = 0.0f;
 
     //Usado para calcular valores
-    float theta_m1 =  0.0;
-    float theta_m2 =  0.0;
-    float theta_m3 =  0.0;
-    float theta_m4 =  0.0;
+    float theta_m1 =  0.0f;
+    float theta_m2 =  0.0f;
+    float theta_m3 =  0.0f;
+    float theta_m4 =  0.0f;
 
-    float Pwm1 = 1.0;
-    float Pwm2 = 1.0;
-    float Pwm3 = 1.0;
-    float Pwm4 = 1.0;
+    float Pwm1 = 1.0f;
+    float Pwm2 = 1.0f;
+    float Pwm3 = 1.0f;
+    float Pwm4 = 1.0f;
 
-    float Fx = 0.0;
-    float Fy = 0.0;
-    float tN = 0.0;
+    float Fx = 0.0f;
+    float Fy = 0.0f;
+    float tN = 0.0f;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -711,6 +711,7 @@ private:
     void get_pilot_desired_force_to_boat();
     void alocation_matrix(float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
     void calcPWM();
+    float map(float X, float Y);
 
     //
     void compass_accumulate(void);
