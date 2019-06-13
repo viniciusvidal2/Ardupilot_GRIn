@@ -78,6 +78,94 @@ float Copter::NormtoPWM(float val)
 
 }
 
+void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4)
+{
+    /// TRABALHA COM RADIANOS
+    /// Fx = força no eixo X - A principio, seu valor deve variar de 0 a 1 deve-se fazer alterações para -1 a 1
+    /// Fy = força no eixo y - A principio, seu valor deve variar de 0 a 1 deve-se fazer alterações para -1 a 1
+    /// N  = tork de guinada - A principio, seu valor deve variar de 0 a 1 deve-se fazer alterações para -1 a 1
+    /// Função para alocar as forças do barco a partir da metodologia descrita em FOSSEN
+
+    FX = constrain_float(FX,-1.0f,1.0f);
+    FY = constrain_float(FY,-1.0f,1.0f);
+    TN = constrain_float(TN,-1.0f,1.0f);
+
+    TN = TN * Nmax;
+    FX = FX * Fmax;
+    FY = FY * Fmax;
+
+    FT = sqrt(sq(TN/L) + sq(FX) + sq(FY));
+
+    // Converte o valor normalizado de 0  a 1 para PWM
+    PWM1 = NormtoPWM(PWM1);
+    PWM2 = NormtoPWM(PWM2);
+    PWM3 = NormtoPWM(PWM3);
+    PWM4 = NormtoPWM(PWM4);
+
+    // Convertendo de grau para Radianos
+    Theta1 = Theta1 * DEG_TO_RAD;
+    Theta2 = Theta2 * DEG_TO_RAD;
+    Theta3 = Theta3 * DEG_TO_RAD;
+    Theta4 = Theta4 * DEG_TO_RAD;
+
+    if(FT<0.01*Fmax)
+    {
+        // Se as forças são muito pequenas ( proximas a zero) nao executa a matriz de alocação
+        // Envia todos os angulos  nulos
+        Theta1 = 0.0f;
+        Theta2 = 0.0f;
+        Theta3 = 0.0f;
+        Theta4 = 0.0f;
+
+        //Envia todos os PWMs muito pequenos (Nulos-Na prática) Os valores aqui, não estão normalizados entre 0 e 1
+        PWM1 = NormtoPWM(0.0f);
+        PWM2 = NormtoPWM(0.0f);
+        PWM3 = NormtoPWM(0.0f);
+        PWM4 = NormtoPWM(0.0f);
+
+    }else
+    {
+        // =============================== Arco seno do angulo calculado a partir da força e do novo PWM ===============================
+
+        Theta1 = atan2f((FY/(4*k1) + (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))),( FX/(4*k1) - (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))));
+        Theta2 = atan2f((FY/(4*k1) - (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))),( FX/(4*k1) + (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))));
+        Theta3 = atan2f((FY/(4*k1) + (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))),( FX/(4*k1) + (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))));
+        Theta4 = atan2f((FY/(4*k1) - (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))),( FX/(4*k1) - (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))));
+
+        // Saturação
+        Theta1 = constrain_float(Theta1,-M_PI,M_PI);
+        Theta2 = constrain_float(Theta2,-M_PI,M_PI);
+        Theta3 = constrain_float(Theta3,-M_PI,M_PI);
+        Theta4 = constrain_float(Theta4,-M_PI,M_PI);
+
+        // ========================================== PWM calculado a partir da força e dos angulos ====================================
+
+        PWM1 = (sqrt(sq(FX/(4*k1) - (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))) + sq(FY/(4*k1) + (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1)))));
+        PWM2 = (sqrt(sq(FX/(4*k1) + (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))) + sq(FY/(4*k1) - (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1)))));
+        PWM3 = (sqrt(sq(FX/(4*k1) + (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))) + sq(FY/(4*k1) + (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1)))));
+        PWM4 = (sqrt(sq(FX/(4*k1) - (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))) + sq(FY/(4*k1) - (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1)))));
+
+        // Aqui é feita a saturação do PWM para que caso ele saia fora dos valores aceitaveis- o método irá tentar convergir através das demais variáveis
+        PWM1 = constrain_float(PWM1,Pwmmin,Pwmmax);
+        PWM2 = constrain_float(PWM2,Pwmmin,Pwmmax);
+        PWM3 = constrain_float(PWM3,Pwmmin,Pwmmax);
+        PWM4 = constrain_float(PWM4,Pwmmin,Pwmmax);
+
+    }
+    // Normaliza o valor de PWM encontrado entre 0 e 1 para ativar a saida entre mínima e maxima potência
+    PWM1 = PWMtoNorm(PWM1);
+    PWM2 = PWMtoNorm(PWM2);
+    PWM3 = PWMtoNorm(PWM3);
+    PWM4 = PWMtoNorm(PWM4);
+
+    // Conveter o valor de Theta para Graus
+    Theta1 = Theta1 * RAD_TO_DEG;
+    Theta2 = Theta2 * RAD_TO_DEG;
+    Theta3 = Theta3 * RAD_TO_DEG;
+    Theta4 = Theta4 * RAD_TO_DEG;
+}
+
+
 void Copter::alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4)
 {
     /// TRABALHA COM RADIANOS
@@ -102,8 +190,8 @@ void Copter::alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float 
     //    FT = FT * Fmax;
     TN = TN * Nmax;
 
-    FX = FT * cosf(th);
-    FY = FT * sinf(th);
+    FX = FX * Fmax;
+    FY = FY * Fmax;
 
     // Tratando Singularidades
 
@@ -243,7 +331,7 @@ void Copter::get_pilot_desired_force_to_boat_M()
     Fy = map(Fy,Fx);
 
     // Envia os valores para a matriz de alocação de forças
-    alocation_matrix(Fx,Fy,tN,theta_m1,theta_m2,theta_m3,theta_m4,Pwm1,Pwm2,Pwm3,Pwm4);
+    FOSSEN_alocation_matrix(Fx,Fy,tN,theta_m1,theta_m2,theta_m3,theta_m4,Pwm1,Pwm2,Pwm3,Pwm4);
 }
 
 // get_pilot_desired_heading - transform pilot's yaw input into a
