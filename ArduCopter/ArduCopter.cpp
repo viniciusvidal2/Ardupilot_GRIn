@@ -180,11 +180,6 @@ void Copter::setup()
     perf_info_reset();
     fast_loopTimer = AP_HAL::micros();
 
-    // Mathaus  = Pegando os valores da memória de maximo e mínimo PWM
-//    Pwmmax = motors->get_pwm_output_max();
-//    Pwmmin = motors->get_pwm_output_min();
-    //k1  = Fmax / 4*(Pwmmax - Pwmmin);
-
 }
 
 /*

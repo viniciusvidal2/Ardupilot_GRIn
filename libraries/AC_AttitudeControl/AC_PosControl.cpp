@@ -469,6 +469,9 @@ void AC_PosControl::accel_to_throttle(float accel_target_z)
         // calculate accel error
         _accel_error.z = accel_target_z - z_accel_meas;
     }
+    // Mathaus
+    _accel_error.z = 0.0;
+    accel_target_z = 0.0;
 
     // set input to PID
     _pid_accel_z.set_input_filter_all(_accel_error.z);
@@ -494,7 +497,7 @@ void AC_PosControl::accel_to_throttle(float accel_target_z)
     // get d term
     d = _pid_accel_z.get_d();
 
-    float thr_out = (p+i+d)/1000.0f +_motors.get_throttle_hover();
+    float thr_out = 0*((p+i+d)/1000.0f +_motors.get_throttle_hover());
 
     // send throttle to attitude controller with angle boost
     _attitude_control.set_throttle_out(thr_out, true, POSCONTROL_THROTTLE_CUTOFF_FREQ);

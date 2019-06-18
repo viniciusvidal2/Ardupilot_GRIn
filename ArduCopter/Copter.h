@@ -198,10 +198,10 @@ private:
     float theta_m3 =  0.0f;
     float theta_m4 =  0.0f;
 
-    float Pwm1 = 1.0f;
-    float Pwm2 = 1.0f;
-    float Pwm3 = 1.0f;
-    float Pwm4 = 1.0f;
+    float Pwm1 = 0.0f;
+    float Pwm2 = 0.0f;
+    float Pwm3 = 0.0f;
+    float Pwm4 = 0.0f;
 
     float Fx = 0.0f;
     float Fy = 0.0f;
@@ -235,8 +235,6 @@ private:
     RC_Channel *channel_pitch;
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
-
-    RC_Channel *channel_aux;
 
     RC_Channel *canalservo;
 

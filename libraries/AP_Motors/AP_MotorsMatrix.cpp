@@ -94,10 +94,11 @@ void update_srv_action(float srv1, float srv2, float srv3, float srv4)
     srv4 = lround(srv4);
 
 
-    hal.rcout->write(8, uint16_t(srv1));  // Servo 5
-    hal.rcout->write(9, uint16_t(srv2));  // Servo 6
-    hal.rcout->write(10,uint16_t(srv3));  // Servo 7
-    hal.rcout->write(11,uint16_t(srv4));  // Servo 8
+
+    hal.rcout->write(8, uint16_t(srv1));  // Servo 1
+    hal.rcout->write(9, uint16_t(srv2));  // Servo 2
+    hal.rcout->write(10,uint16_t(srv3));  // Servo 3
+    hal.rcout->write(11,uint16_t(srv4));  // Servo 4
 
 }
 
@@ -118,6 +119,7 @@ void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, fl
                     motor_out[i] = 0;
                 } else {
                     motor_out[i] = get_pwm_output_min();
+//                    motor_out[i] = calc_spin_up_to_pwm();
                 }
             }
         }
@@ -127,7 +129,7 @@ void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, fl
         // sends output to motors when armed but not flying
         for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
             if (motor_enabled[i]) {
-                motor_out[i] = calc_spin_up_to_pwm();
+                motor_out[i] = calc_spin_up_to_pwm(); //get_pwm_output_min();
             }
         }
         break;

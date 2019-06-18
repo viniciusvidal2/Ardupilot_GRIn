@@ -302,11 +302,13 @@ void Copter::pwm_servo_angle()
         theta_m3 = 0.0;
         theta_m4 = 0.0;
     }
+//Linha utilizada para medir valores de pwm min e max
+//    servo_m4 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalservo->get_radio_in()-canalservo->get_radio_min());
 
-    servo_m1 = servo_angle_to_pwm(theta_m1,643.0,2325.0);
-    servo_m2 = servo_angle_to_pwm(theta_m2,616.0,2105.0);
-    servo_m3 = servo_angle_to_pwm(theta_m3,643.0,2386.0);
-    servo_m4 = servo_angle_to_pwm(theta_m4,616.0,2280.0);
+    servo_m1 = servo_angle_to_pwm(theta_m1,675.0,2329.0);
+    servo_m2 = servo_angle_to_pwm(theta_m2,664.0,2144.0);
+    servo_m3 = servo_angle_to_pwm(theta_m3,656.0,2400.0);
+    servo_m4 = servo_angle_to_pwm(theta_m4,700.0,2345.0);
 
 }
 
@@ -349,7 +351,9 @@ void Copter::motors_output() //(mathaus)
             motors->set_interlock(false);
             Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
         }
-        get_pilot_desired_force_to_boat_M();
+
+
+        FOSSEN_alocation_matrix(Fx,Fy,tN,theta_m1,theta_m2,theta_m3,theta_m4,Pwm1,Pwm2,Pwm3,Pwm4);
         pwm_servo_angle();
         motors->output(servo_m1,servo_m2,servo_m3,servo_m4, Pwm1, Pwm2, Pwm3, Pwm4);
 //                motors->output();
@@ -358,8 +362,6 @@ void Copter::motors_output() //(mathaus)
     // push all channels
     hal.rcout->push();
 }
-
-
 
 
 //// motors_output - send output to motors library which will adjust and send to ESCs and servos
