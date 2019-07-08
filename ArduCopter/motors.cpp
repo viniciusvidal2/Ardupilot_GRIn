@@ -303,7 +303,7 @@ void Copter::pwm_servo_angle()
         theta_m4 = 0.0;
     }
 //Linha utilizada para medir valores de pwm min e max
-//    servo_m4 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalservo->get_radio_in()-canalservo->get_radio_min());
+//    servo_m3 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalservo->get_radio_in()-canalservo->get_radio_min());
 
     servo_m1 = servo_angle_to_pwm(theta_m1,675.0,2329.0);
     servo_m2 = servo_angle_to_pwm(theta_m2,664.0,2144.0);

@@ -93,20 +93,16 @@ void update_srv_action(float srv1, float srv2, float srv3, float srv4)
     srv3 = lround(srv3);
     srv4 = lround(srv4);
 
-
-
     hal.rcout->write(8, uint16_t(srv1));  // Servo 1
     hal.rcout->write(9, uint16_t(srv2));  // Servo 2
     hal.rcout->write(10,uint16_t(srv3));  // Servo 3
     hal.rcout->write(11,uint16_t(srv4));  // Servo 4
-
 }
 
 
 void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4) //mathaus
 {
     int8_t i;
-    //    float SVR [] {srv1, srv2,srv3,srv4};
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motor
 
     switch (_spool_mode) {
@@ -119,11 +115,10 @@ void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, fl
                     motor_out[i] = 0;
                 } else {
                     motor_out[i] = get_pwm_output_min();
-//                    motor_out[i] = calc_spin_up_to_pwm();
                 }
             }
         }
-        break;
+    break;
     }
     case SPIN_WHEN_ARMED:
         // sends output to motors when armed but not flying
@@ -146,8 +141,7 @@ void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, fl
         motor_enabled[1] ? motor_out[1]=calc_thrust_to_pwm(Pwm2): motor_out[1]=calc_spin_up_to_pwm();
         motor_enabled[2] ? motor_out[2]=calc_thrust_to_pwm(Pwm3): motor_out[2]=calc_spin_up_to_pwm();
         motor_enabled[3] ? motor_out[3]=calc_thrust_to_pwm(Pwm4): motor_out[3]=calc_spin_up_to_pwm();
-
-        break;
+    break;
     }
     // send output to each motor
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++)

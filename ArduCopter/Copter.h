@@ -174,24 +174,31 @@ private:
 
     // Propriedade Física do Barco
     float FT = 0.0f;
-    float Fmax = 0.86*10*4;      // Força e torque maximos do barco
-    float L    = 0.586f;          // Tamanho do braço do barco
+    float FM1 = 10*0.86;
+    float FM2 = 10*2.60;
+    float FM3 = 10*0.86;
+    float FM4 = 10*2.60;
 
+    float Fmax = FM1 + FM2 + FM3 + FM4;       // Força e torque maximos do barco
+
+    float L    = 0.586f;          // Tamanho do braço do barco
     float Lx = L*cosf(M_PI/4.0f);
     float Ly = L*cosf(M_PI/4.0f);
 
     float Pwmmax = 1001.0f; // Esse valor será a faixa de pwm que eu vou escolher para trabalhar --------------- // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
-    float Pwmmin = 1.0f;      // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
-
+    float Pwmmin = 1.0f;    // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
     float Nmax = L*Fmax;
-    float k1   = (Fmax/4)/(Pwmmax-Pwmmin);    // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+
+    float k1 = (FM1)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+    float k2 = (FM2)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+    float k3 = (FM3)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+    float k4 = (FM4)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
 
     // Servo Motores Barco
     float servo_m1 = 0.0f;
     float servo_m2 = 0.0f;
     float servo_m3 = 0.0f;
     float servo_m4 = 0.0f;
-
     //Usado para calcular valores
     float theta_m1 =  0.0f;
     float theta_m2 =  0.0f;
@@ -692,25 +699,24 @@ private:
     static const AP_Param::Info var_info[];
     static const struct LogStructure log_structure[];
 
-
-    // Mathaus
     float max(float *vet);
-    void pwm_servo_angle();
-    int  servo_angle_to_pwm(float ang);
-    int servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm);
-    float servo_pwm_to_angle(int PWM_aux);
+    // Mathaus
 
+
+    int servo_angle_to_pwm(float angle,float srv_min_pwm,float srv_max_pwm);
+    float servo_pwm_to_angle(int PWM_aux);
     float PWMtoNorm(float pwm);
     float NormtoPWM(float pwm);
+    float map(float X, float Y);
+    void get_pilot_desired_force_to_boat_M();
+    void pwm_servo_angle();
+    void FOSSEN_alocation_matrix(float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
 
 
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
-    void get_pilot_desired_force_to_boat_M();
     void get_pilot_desired_force_to_boat();
-    void alocation_matrix(float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
-    void FOSSEN_alocation_matrix(float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
     void calcPWM();
-    float map(float X, float Y);
+    int servo_angle_to_pwm(float ang);
 
     //
     void compass_accumulate(void);
