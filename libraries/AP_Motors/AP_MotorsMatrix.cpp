@@ -86,7 +86,7 @@ void AP_MotorsMatrix::enable()
 }
 
 
-void update_srv_action(float srv1, float srv2, float srv3, float srv4)
+void AP_MotorsMatrix::update_srv_action(float srv1, float srv2, float srv3, float srv4)
 {
     srv1 = lround(srv1);
     srv2 = lround(srv2);

@@ -186,9 +186,8 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
 float Copter::map(float X, float Y)
 {
     /// Função para mapeamento da entrada do controle quadrada para circulo
-    return  X*sqrt(1.0f-sq(Y)/2.0f);
+    return  X*(float)(sqrt(1.0f-sq(Y)/2.0f));
 }
-
 
 // get_pilot_desired_heading - transform pilot's yaw input into a
 // desired yaw rate
@@ -288,7 +287,7 @@ void Copter::update_throttle_hover()
 // set_throttle_takeoff - allows parents to tell throttle controller we are taking off so I terms can be cleared
 void Copter::set_throttle_takeoff()
 {
-    return; // Mathaus (MFS) - Barco obviamente nao deve ter controle de takeoff
+    return; // Mathaus - Barco obviamente nao deve ter controle de takeoff
     // tell position controller to reset alt target and reset I terms
     // pos_control->init_takeoff();
 }
