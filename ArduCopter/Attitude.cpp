@@ -288,7 +288,7 @@ void Copter::update_throttle_hover()
 // set_throttle_takeoff - allows parents to tell throttle controller we are taking off so I terms can be cleared
 void Copter::set_throttle_takeoff()
 {
-    return; // Mathaus - Barco obviamente nao deve ter controle de takeoff
+    return; // Mathaus (MFS) - Barco obviamente nao deve ter controle de takeoff
     // tell position controller to reset alt target and reset I terms
     // pos_control->init_takeoff();
 }
