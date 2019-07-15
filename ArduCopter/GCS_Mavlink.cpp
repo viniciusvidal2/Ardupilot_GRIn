@@ -237,7 +237,7 @@ void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_c
     //const Vector3f &targets = attitude_control->get_att_target_euler_cd();
     mavlink_msg_nav_controller_output_send(
         chan,
-        (theta_m1*100),//targets.x / 1.0e2f,
+        (servo_m3*100),//targets.x / 1.0e2f,
         (theta_m2*100),//targets.y / 1.0e2f,
         (theta_m3*100),//targets.z / 1.0e2,
         (theta_m4*100),//wp_bearing / 1.0e2f,
