@@ -264,8 +264,9 @@ void AC_AttitudeControl::input_euler_angle_roll_pitch_yaw(float euler_roll_angle
         // When acceleration limiting and feedforward are enabled, the sqrt controller is used to compute an euler
         // angular velocity that will cause the euler angle to smoothly stop at the input angle with limited deceleration
         // and an exponential decay specified by smoothing_gain at the end.
-        _attitude_target_euler_rate.x = input_shaping_angle(euler_roll_angle-_attitude_target_euler_angle.x, smoothing_gain, euler_accel.x, _attitude_target_euler_rate.x);
-        _attitude_target_euler_rate.y = input_shaping_angle(euler_pitch_angle-_attitude_target_euler_angle.y, smoothing_gain, euler_accel.y, _attitude_target_euler_rate.y);
+        // MURILLO
+        _attitude_target_euler_rate.x = input_shaping_angle((euler_roll_angle-_attitude_target_euler_angle.x)*0.0, smoothing_gain, euler_accel.x, _attitude_target_euler_rate.x);
+        _attitude_target_euler_rate.y = input_shaping_angle((euler_pitch_angle-_attitude_target_euler_angle.y)*0.0, smoothing_gain, euler_accel.y, _attitude_target_euler_rate.y);
         _attitude_target_euler_rate.z = input_shaping_angle(euler_yaw_angle-_attitude_target_euler_angle.z, smoothing_gain, euler_accel.z, _attitude_target_euler_rate.z);
         if (slew_yaw) {
             _attitude_target_euler_rate.z = constrain_float(_attitude_target_euler_rate.z, -get_slew_yaw_rads(), get_slew_yaw_rads());
