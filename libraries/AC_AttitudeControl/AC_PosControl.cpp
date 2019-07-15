@@ -354,6 +354,7 @@ void AC_PosControl::calc_leash_length_z()
 // pos_to_rate_z - position to rate controller for Z axis
 // calculates desired rate in earth-frame z axis and passes to rate controller
 // vel_up_max, vel_down_max should have already been set before calling this method
+// MURILLO
 void AC_PosControl::pos_to_rate_z()
 {
     float curr_alt = _inav.get_altitude();
@@ -376,9 +377,12 @@ void AC_PosControl::pos_to_rate_z()
         _pos_error.z = -_leash_down_z;
         _limit.pos_down = true;
     }
+    // MURILLO
+    _pos_error.z = 0;
 
+    // MURILLO
     // calculate _vel_target.z using from _pos_error.z using sqrt controller
-    _vel_target.z = AC_AttitudeControl::sqrt_controller(_pos_error.z, _p_pos_z.kP(), _accel_z_cms);
+    _vel_target.z = 0*AC_AttitudeControl::sqrt_controller(_pos_error.z, _p_pos_z.kP(), _accel_z_cms);
 
     // check speed limits
     // To-Do: check these speed limits here or in the pos->rate controller
@@ -397,6 +401,9 @@ void AC_PosControl::pos_to_rate_z()
     if (_flags.use_desvel_ff_z) {
         _vel_target.z += _vel_desired.z;
     }
+
+    // MURILLO
+    _vel_target.z = 0;
 
     // call rate based throttle controller which will update accel based throttle controller targets
     rate_to_accel_z();

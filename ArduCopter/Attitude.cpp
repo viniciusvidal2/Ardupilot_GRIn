@@ -186,9 +186,8 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
 float Copter::map(float X, float Y)
 {
     /// Função para mapeamento da entrada do controle quadrada para circulo
-    return  X*sqrt(1.0f-sq(Y)/2.0f);
+    return  X*(float)(sqrt(1.0f-sq(Y)/2.0f));
 }
-
 
 // get_pilot_desired_heading - transform pilot's yaw input into a
 // desired yaw rate
