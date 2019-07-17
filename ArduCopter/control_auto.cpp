@@ -298,17 +298,18 @@ void Copter::auto_wp_run()
     {
         // roll & pitch from waypoint controller, yaw rate from pilot
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*0*wp_nav->get_roll(), 0*0*wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
-        tN =  get_pilot_desired_yaw_rate(channel_yaw->get_control_in())/((float)(aparm.angle_max)); //Conferir valor de 4500
+//        tN =  get_pilot_desired_yaw_rate(channel_yaw->get_control_in())/((float)(aparm.angle_max)); //Conferir valor de 4500
 
 
     }else
     {
         // roll, pitch from waypoint controller, yaw heading from auto_heading()
         attitude_control->input_euler_angle_roll_pitch_yaw(0*0*wp_nav->get_roll(), 0*0*wp_nav->get_pitch(),get_auto_heading(),true, get_smoothing_gain());
-        tN = (attitude_control->get_att_target_euler_cd().z)/(180*100.0);
+                //        tN = _yaw_in
+        //        tN = (attitude_control->get_att_target_euler_cd().z)/(180*100.0);
 //                get_att_target_euler_cd();
 //                (attitude_control->_attitude_target_euler_angle.z)/(M_PI);
-        tN = constrain_float(tN,-1.0f,1.0f);
+//        tN = constrain_float(tN,-1.0f,1.0f);
     }
 }
 

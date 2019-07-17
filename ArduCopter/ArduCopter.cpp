@@ -254,8 +254,13 @@ void Copter::fast_loop()
     // update INS immediately to get current gyro data populated
     ins.update();
     
-    // run low level rate controllers that only require IMU data
-    attitude_control->rate_controller_run();
+    if(control_mode==AUTO){
+        // run low level rate controllers that only require IMU data
+        attitude_control->rate_controller_run(tN);
+    }else{
+        // run low level rate controllers that only require IMU data
+        attitude_control->rate_controller_run();
+    }
 
     // send outputs to the motors library immediately
     //    uint16_t aux = (uint16_t) (channel_pitch->get_control_in()); //Mathaus
