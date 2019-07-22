@@ -37,7 +37,7 @@ public:
     //  pwm value is an actual pwm value that will be output, normally in the range of 1000 ~ 2000
     void                output_test(uint8_t motor_seq, int16_t pwm);
 
-    // MURILLO
+    // Mathaus
     void                update_srv_action(float srv1, float srv2, float srv3, float srv4);
 
     // output_to_motors - sends minimum values out to the motors
