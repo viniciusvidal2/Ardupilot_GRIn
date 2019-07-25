@@ -32,8 +32,7 @@
  *  AndreasAntonopoulous:GeoFence
  *  Arthur Benemann     :DroidPlanner GCS
  *  Benjamin Pelletier  :Libraries
- *  Bill King           :Single Copter
- *  Christof Schmid     :Alpha testing
+ *  Bill King           :Single Copter *  Christof Schmid     :Alpha testing
  *  Craig Elder         :Release Management, Support
  *  Dani Saez           :V Octo Support
  *  Doug Weibel	        :DCM, Libraries, Control law advice
@@ -255,11 +254,11 @@ void Copter::fast_loop()
     ins.update();
     
     if(control_mode==AUTO){
-        // run low level rate controllers that only require IMU data
-        attitude_control->rate_controller_run(tN);
+    // run low level rate controllers that only require IMU data
+    attitude_control->rate_controller_run(tN);
     }else{
-        // run low level rate controllers that only require IMU data
-        attitude_control->rate_controller_run();
+    // run low level rate controllers that only require IMU data
+    attitude_control->rate_controller_run();
     }
 
     // send outputs to the motors library immediately

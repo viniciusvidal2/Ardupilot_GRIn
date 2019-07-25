@@ -78,7 +78,7 @@ void Copter::auto_run()
         auto_circle_run();
         break;
 
-        // MURILLO
+        // MURILLO mexer ainda
     case Auto_Spline:
         auto_spline_run();
         break;
