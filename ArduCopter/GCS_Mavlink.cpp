@@ -159,20 +159,20 @@ void NOINLINE Copter::send_location(mavlink_channel_t chan)
         ahrs.yaw_sensor);               // compass heading in 1/100 degree
 }
 
-//void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_controle
-//{
-//    const Vector3f &targets = attitude_control->get_att_target_euler_cd();
-//    mavlink_msg_nav_controller_output_send(
-//        chan,
-//        targets.x / 1.0e2f,
-//        targets.y / 1.0e2f,
-//        targets.z / 1.0e2f,
-//        wp_bearing / 1.0e2f,
-//        (float)teste_wp,// * 1.0e3f, //wp_distance / 1.0e2f,
-//        pos_control->get_alt_error() / 1.0e2f,
-//        0,
-//        0);
-//}
+void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_controle
+{
+    const Vector3f &targets = attitude_control->get_att_target_euler_cd();
+    mavlink_msg_nav_controller_output_send(
+        chan,
+        targets.x / 1.0e2f,
+        targets.y / 1.0e2f,
+        targets.z / 1.0e2f,
+        wp_bearing / 1.0e2f,
+        wp_distance / 1.0e2f,
+        pos_control->get_alt_error() / 1.0e2f,
+        0,
+        0);
+}
 
 // report simulator stat4e
 void NOINLINE Copter::send_simstate(mavlink_channel_t chan)
@@ -231,21 +231,21 @@ NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan) //SYS_status
         (round(Pwm1*10)),(round(Pwm2*10)),(round(Pwm3*10)),(round(Pwm4*10)));
 }
 
-void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_controle
-{
+//void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_controle
+//{
 
-    //const Vector3f &targets = attitude_control->get_att_target_euler_cd();
-    mavlink_msg_nav_controller_output_send(
-        chan,
-        (servo_m3*100),//targets.x / 1.0e2f,
-        (theta_m2*100),//targets.y / 1.0e2f,
-        (theta_m3*100),//targets.z / 1.0e2,
-        (theta_m4*100),//wp_bearing / 1.0e2f,
-        (FT*100),//round(100*sqrt(sq(Fx)+sq(Fy))), //- Uint
-        tN*1000,
-        Fx*1000,
-        Fy*1000);
-}
+//    //const Vector3f &targets = attitude_control->get_att_target_euler_cd();
+//    mavlink_msg_nav_controller_output_send(
+//        chan,
+//        (servo_m3*100),//targets.x / 1.0e2f,
+//        (theta_m2*100),//targets.y / 1.0e2f,
+//        (theta_m3*100),//targets.z / 1.0e2,
+//        (theta_m4*100),//wp_bearing / 1.0e2f,
+//        (FT*100),//round(100*sqrt(sq(Fx)+sq(Fy))), //- Uint
+//        tN*1000,
+//        Fx*1000,
+//        Fy*1000);
+//}
 
 void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
 {

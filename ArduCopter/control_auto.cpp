@@ -34,7 +34,6 @@ bool Copter::auto_init(bool ignore_checks)
         if (auto_yaw_mode == AUTO_YAW_ROI) {
             set_auto_yaw_mode(AUTO_YAW_HOLD);
         }
-
         // initialise waypoint and spline controller
         wp_nav->wp_and_spline_init();
 
@@ -88,7 +87,6 @@ void Copter::auto_run()
         auto_nav_guided_run();
 #endif
         break;
-
         // MURILLO
     case Auto_Loiter:
         auto_loiter_run();
