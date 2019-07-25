@@ -206,6 +206,7 @@ float Copter::get_pilot_desired_yaw_rate(int16_t stick_angle)
         // range check expo
         if (g2.acro_y_expo > 1.0f || g2.acro_y_expo < 0.5f) {
             g2.acro_y_expo = 1.0f;
+
         }
 
         // yaw expo
