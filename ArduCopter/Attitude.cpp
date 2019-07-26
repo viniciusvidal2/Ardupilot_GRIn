@@ -65,6 +65,7 @@ float Copter::get_pilot_desired_yaw_rate(int16_t stick_angle)
     }
     // convert pilot input to the desired yaw rate
     return yaw_request;
+
 }
 
 /*************************************************************
