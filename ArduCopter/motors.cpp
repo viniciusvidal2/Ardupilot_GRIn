@@ -309,7 +309,7 @@ void Copter::motors_output()
         }
 
         // send output signals to motors
-        motors->output();
+        motors->output(servo_m1,servo_m2,servo_m3,servo_m4, Pwm1, Pwm2, Pwm3, Pwm4);
     }
 
     // push all channels

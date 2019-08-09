@@ -174,6 +174,7 @@ void Copter::update_flight_mode()
             #if FRAME_CONFIG == HELI_FRAME
                 heli_stabilize_run();
             #else
+                // MURILLO
                 stabilize_run();
             #endif
             break;

@@ -146,6 +146,9 @@ public:
     // output - sends commands to the motors
     virtual void        output() = 0;
 
+    // MURILLO
+    virtual void        output(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4) = 0;
+
     // output_min - sends minimum values out to the motors
     virtual void        output_min() = 0;
 
@@ -174,6 +177,9 @@ protected:
     virtual void        rc_set_freq(uint32_t mask, uint16_t freq_hz);
     virtual void        rc_enable_ch(uint8_t chan);
     virtual uint32_t    rc_map_mask(uint32_t mask) const;
+
+    // MURILLO
+    virtual void        output_armed_stabilizing(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)=0;
 
     // add a motor to the motor map
     void add_motor_num(int8_t motor_num);

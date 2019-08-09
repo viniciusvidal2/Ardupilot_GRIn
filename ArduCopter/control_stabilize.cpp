@@ -18,6 +18,35 @@ bool Copter::stabilize_init(bool ignore_checks)
     return true;
 }
 
+// MURILLO
+float Copter::map(float X, float Y)
+{
+    return  X*(float)(sqrt(1.0f-sq((float)(Y))/2.0f));
+}
+
+
+// MURILLO
+void Copter::get_pilot_desired_force_to_boat_M()
+{
+    //Essa abordagem considera que o stick direito controla a força em X e Y.
+    //a posição do stick determina a intensidade da foça nos eixos onde, o ponto médio é o (0,0).
+    // Calcula o valor médio dos sticks do controle para que seja possível dividir em forças positivas e negativas
+    float_t med_roll  = (channel_roll->get_radio_min() + ((channel_roll->get_radio_max() - channel_roll->get_radio_min())/2.0));
+    float_t med_pitch = (channel_pitch->get_radio_min()+ ((channel_pitch->get_radio_max()- channel_pitch->get_radio_min())/2.0));
+    float_t med_yaw   = (channel_yaw->get_radio_min()  + ((channel_yaw->get_radio_max()  - channel_yaw->get_radio_min())/2.0));
+    //Calcula a força em Y a partir do stick de Rolagem
+    Fy = float(channel_roll->get_radio_in()- med_roll)/float(channel_roll->get_radio_max() - med_roll);
+    //Calcula a força em X a partir do stick de Arfagem
+    Fx = float(channel_pitch->get_radio_in()-med_pitch)/float(channel_pitch->get_radio_max()- med_pitch);
+    //Calcula o torque em Z a partir do stick de Guinada
+    tN = float(channel_yaw->get_radio_in()-  med_yaw)/float(channel_yaw->get_radio_max() - med_yaw);
+    Fx = constrain_float(Fx,-1.0f,1.0f);
+    Fy = constrain_float(Fy,-1.0f,1.0f);
+    Fx = map(Fx,Fy);
+    Fy = map(Fy,Fx);
+}
+
+// MURILLO
 // stabilize_run - runs the main stabilize controller
 // should be called at 100hz or more
 void Copter::stabilize_run()
@@ -50,6 +79,9 @@ void Copter::stabilize_run()
 
     // get pilot's desired throttle
     pilot_throttle_scaled = get_pilot_desired_throttle(channel_throttle->get_control_in());
+
+    // MURILLO
+    get_pilot_desired_force_to_boat_M();
 
     // call attitude controller
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());

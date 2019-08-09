@@ -172,7 +172,22 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
-    uint32_t teste_wp = 233;
+    // Forças e Torques - Ações de Controle Virtuais
+    float Fx = 0.0;
+    float Fy = 0.0;
+    float tN = 0.0;
+
+    // Servomotores do Barco
+    float servo_m1 = 0.0f;
+    float servo_m2 = 0.0f;
+    float servo_m3 = 0.0f;
+    float servo_m4 = 0.0f;
+
+    // Motores do Barco
+    float Pwm1 = 0.0f;
+    float Pwm2 = 0.0f;
+    float Pwm3 = 0.0f;
+    float Pwm4 = 0.0f;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -963,6 +978,10 @@ private:
     void parachute_check();
     void parachute_release();
     void parachute_manual_release();
+
+    // MURILLO
+    void get_pilot_desired_force_to_boat_M();
+    float map(float X, float Y);
 
     // support for AP_Avoidance custom flight mode, AVOID_ADSB
     bool avoid_adsb_init(bool ignore_checks);

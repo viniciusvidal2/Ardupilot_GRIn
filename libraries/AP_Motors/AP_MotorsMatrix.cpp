@@ -85,6 +85,83 @@ void AP_MotorsMatrix::enable()
     }
 }
 
+// MURILLO
+void AP_MotorsMatrix::update_srv_action(float srv1, float srv2, float srv3, float srv4)
+{
+    srv1 = lround(srv1);
+    srv2 = lround(srv2);
+    srv3 = lround(srv3);
+    srv4 = lround(srv4);
+    hal.rcout->write(8, uint16_t(srv1));  // Servo 1
+    hal.rcout->write(9, uint16_t(srv2));  // Servo 2
+    hal.rcout->write(10,uint16_t(srv3));  // Servo 3
+    hal.rcout->write(11,uint16_t(srv4));  // Servo 4
+}
+
+
+
+// MURILLO
+void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)
+{
+    int8_t i;
+    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motor
+
+    switch (_spool_mode) {
+        case SHUT_DOWN: {
+            // sends minimum values out to the motors
+            // set motor output based on thrust requests
+            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+                if (motor_enabled[i]) {
+                    if (_disarm_disable_pwm && _disarm_safety_timer == 0 && !armed()) {
+                        motor_out[i] = 0;
+                    } else {
+                        motor_out[i] = get_pwm_output_min();
+                    }
+                }
+            }
+            break;
+        }
+        case SPIN_WHEN_ARMED:
+            // sends output to motors when armed but not flying
+            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+                if (motor_enabled[i]) {
+                    motor_out[i] = calc_spin_up_to_pwm();
+                }
+            }
+            break;
+        case SPOOL_UP:
+        case THROTTLE_UNLIMITED:
+        case SPOOL_DOWN:
+            // set motor output based on thrust requests
+//            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+//                if (motor_enabled[i]) {
+//                    motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
+//                }
+//            }
+        // MURILLO
+                Pwm1 = constrain_float(Pwm1,0.0f,1.0f);
+                Pwm2 = constrain_float(Pwm2,0.0f,1.0f);
+                Pwm3 = constrain_float(Pwm3,0.0f,1.0f);
+                Pwm4 = constrain_float(Pwm4,0.0f,1.0f);
+                motor_enabled[0] ? motor_out[0]=calc_thrust_to_pwm(Pwm1): motor_out[0]=calc_spin_up_to_pwm();
+                motor_enabled[1] ? motor_out[1]=calc_thrust_to_pwm(Pwm2): motor_out[1]=calc_spin_up_to_pwm();
+                motor_enabled[2] ? motor_out[2]=calc_thrust_to_pwm(Pwm3): motor_out[2]=calc_spin_up_to_pwm();
+                motor_enabled[3] ? motor_out[3]=calc_thrust_to_pwm(Pwm4): motor_out[3]=calc_spin_up_to_pwm();
+            break;
+    }
+
+    // send output to each motor
+    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+        if (motor_enabled[i]) {
+            rc_write(i, motor_out[i]);
+        }
+    }
+
+    // MURILLO
+    //Atualiza a saida dos servos
+    update_srv_action(srv1,srv2,srv3,srv4);
+}
+
 void AP_MotorsMatrix::output_to_motors()
 {
     int8_t i;
@@ -145,6 +222,46 @@ uint16_t AP_MotorsMatrix::get_motor_mask()
         }
     }
     return rc_map_mask(mask);
+}
+
+// MURILLO
+
+// output_armed - sends commands to the motors
+// includes new scaling stability patch
+void AP_MotorsMatrix::output_armed_stabilizing(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)
+{
+    uint8_t i;                          // general purpose counter
+//    float   roll_thrust;                // roll thrust input value, +/- 1.0
+//    float   pitch_thrust;               // pitch thrust input value, +/- 1.0
+//    float   yaw_thrust;                 // yaw thrust input value, +/- 1.0
+//    float   throttle_thrust;            // throttle thrust input value, 0.0 - 1.0
+//    float   throttle_thrust_best_rpy;   // throttle providing maximum roll, pitch and yaw range without climbing
+//    float   rpy_scale = 1.0f;           // this is used to scale the roll, pitch and yaw to fit within the motor limits
+//    float   rpy_low = 0.0f;             // lowest motor value
+//    float   rpy_high = 0.0f;            // highest motor value
+//    float   yaw_allowed = 1.0f;         // amount of yaw we can fit in
+//    float   unused_range;               // amount of yaw we can fit in the current channel
+//    float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
+
+    // apply voltage and air pressure compensation
+//    roll_thrust = _roll_in * get_compensation_gain();
+//    pitch_thrust = _pitch_in * get_compensation_gain();
+//    yaw_thrust = _yaw_in * get_compensation_gain();
+//    throttle_thrust = get_throttle() * get_compensation_gain();
+
+    // MURILLO
+
+    // Colocar o controle de alocação do Fossen que o Mathaus implementou.
+
+
+
+    // constrain all outputs to 0.0f to 1.0f
+    // test code should be run with these lines commented out as they should not do anything
+    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+        if (motor_enabled[i]) {
+            _thrust_rpyt_out[i] = constrain_float(_thrust_rpyt_out[i], 0.0f, 1.0f);
+        }
+    }
 }
 
 // output_armed - sends commands to the motors
