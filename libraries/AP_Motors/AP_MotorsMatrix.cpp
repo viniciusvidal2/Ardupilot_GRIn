@@ -361,10 +361,16 @@ void AP_MotorsMatrix::pwm_servo_angle(float &servo_m1, float &servo_m2, float &s
 
     //Linha utilizada para medir valores de pwm min e max
     //    servo_m4 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalservo->get_radio_in()-canalservo->get_radio_min());
+//    servo_m1 = servo_angle_to_pwm(servo_m1,675.0,2329.0);
+//    servo_m2 = servo_angle_to_pwm(servo_m2,664.0,2144.0);
+//    servo_m3 = servo_angle_to_pwm(servo_m3,656.0,2400.0);
+//    servo_m4 = servo_angle_to_pwm(servo_m4,700.0,2345.0);
+
     servo_m1 = servo_angle_to_pwm(servo_m1,675.0,2329.0);
     servo_m2 = servo_angle_to_pwm(servo_m2,664.0,2144.0);
-    servo_m3 = servo_angle_to_pwm(servo_m3,656.0,2400.0);
+    servo_m3 = servo_angle_to_pwm(servo_m3,575.0,2257.0);
     servo_m4 = servo_angle_to_pwm(servo_m4,700.0,2345.0);
+
 }
 
 // MURILLO
