@@ -273,13 +273,23 @@ void Copter::auto_wp_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
+    // MURILLO
+    Fx   = -((float)(wp_nav->get_pitch()))/((float)(aparm.angle_max));
+    Fy   =  ((float)(wp_nav->get_roll()))/(float)(aparm.angle_max);
+
+    Fx   = constrain_float(Fx,-1.0f,1.0f);
+    Fy   = constrain_float(Fy,-1.0f,1.0f);
+
+    Fx   = map(Fx,Fy);
+    Fy   = map(Fy,Fx);
+
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
         // roll & pitch from waypoint controller, yaw rate from pilot
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
     }else{
         // roll, pitch from waypoint controller, yaw heading from auto_heading()
-        attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), get_auto_heading(),true, get_smoothing_gain());
+        attitude_control->input_euler_angle_roll_pitch_yaw(wp_nav->get_roll()*0.0, wp_nav->get_pitch()*0.0, get_auto_heading(),true, get_smoothing_gain());
     }
 }
 

@@ -308,8 +308,26 @@ void Copter::motors_output()
             Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
         }
 
+        // MURILLO
+        // Tratamento para o stick do throttle estar sempre acima da zona morta
+        if(channel_throttle->get_radio_in()<channel_throttle->get_radio_min()*1.1)
+        {
+            Fx = 0.0f;
+            Fy = 0.0f;
+            tN = 0.0f;
+        }
+        // MURILLO
+        // Tratamento para testar sistema ARMED
+        if(!motors->armed())
+        {
+            servo_m1 = 0.0;
+            servo_m2 = 0.0;
+            servo_m3 = 0.0;
+            servo_m4 = 0.0;
+        }
+
         // send output signals to motors
-        motors->output(servo_m1,servo_m2,servo_m3,servo_m4, Pwm1, Pwm2, Pwm3, Pwm4);
+        motors->output(Fx,Fy,tN,servo_m1,servo_m2,servo_m3,servo_m4, Pwm1, Pwm2, Pwm3, Pwm4);
     }
 
     // push all channels

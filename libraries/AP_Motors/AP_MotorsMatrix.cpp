@@ -228,7 +228,7 @@ uint16_t AP_MotorsMatrix::get_motor_mask()
 
 // output_armed - sends commands to the motors
 // includes new scaling stability patch
-void AP_MotorsMatrix::output_armed_stabilizing(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)
+void AP_MotorsMatrix::output_armed_stabilizing(float &FX,float &FY,float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)
 {
     uint8_t i;                          // general purpose counter
 //    float   roll_thrust;                // roll thrust input value, +/- 1.0
@@ -253,6 +253,13 @@ void AP_MotorsMatrix::output_armed_stabilizing(float &srv1, float &srv2, float &
 
     // Colocar o controle de alocação do Fossen que o Mathaus implementou.
 
+    FOSSEN_alocation_matrix(FX,FY,TN,srv1,srv2,srv3,srv4,Pwm1,Pwm2,Pwm3,Pwm4);
+    pwm_servo_angle(srv1,srv2,srv3,srv4);
+
+    _thrust_rpyt_out[0] = Pwm1;
+    _thrust_rpyt_out[1] = Pwm2;
+    _thrust_rpyt_out[2] = Pwm3;
+    _thrust_rpyt_out[3] = Pwm4;
 
 
     // constrain all outputs to 0.0f to 1.0f
@@ -262,6 +269,135 @@ void AP_MotorsMatrix::output_armed_stabilizing(float &srv1, float &srv2, float &
             _thrust_rpyt_out[i] = constrain_float(_thrust_rpyt_out[i], 0.0f, 1.0f);
         }
     }
+}
+
+// MURILLO
+void AP_MotorsMatrix::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4)
+{
+    /// TRABALHA COM RADIANOS
+    /// Fx = força no eixo X - A principio, seu valor deve variar de 0 a 1 deve-se fazer alterações para -1 a 1
+    /// Fy = força no eixo y - A principio, seu valor deve variar de 0 a 1 deve-se fazer alterações para -1 a 1
+    /// tN = torque de guinada - A principio, seu valor deve variar de 0 a 1 deve-se fazer alterações para -1 a 1
+    /// Função para alocar as forças do barco a partir da metodologia descrita em FOSSEN
+    //Tratamento para o stick do throttle estar sempre acima da zona morta
+
+    FX = constrain_float(FX,-1.0f,1.0f);
+    FY = constrain_float(FY,-1.0f,1.0f);
+    TN = constrain_float(TN,-1.0f,1.0f);
+    TN = TN * Nmax;
+    FX = FX * Fmax;
+    FY = FY * Fmax;
+
+    FT = sqrt(sq(TN/L) + sq(FX) + sq(FY));
+    FT = constrain_float(FT,0.0f,Fmax);
+
+    // Converte o valor normalizado de 0  a 1 para PWM
+    PWM1 = NormtoPWM(PWM1);
+    PWM2 = NormtoPWM(PWM2);
+    PWM3 = NormtoPWM(PWM3);
+    PWM4 = NormtoPWM(PWM4);
+    // Convertendo de grau para Radianos
+    Theta1 = Theta1 * DEG_TO_RAD;
+    Theta2 = Theta2 * DEG_TO_RAD;
+    Theta3 = Theta3 * DEG_TO_RAD;
+    Theta4 = Theta4 * DEG_TO_RAD;
+
+    if(FT<0.02*Fmax)
+    {
+        //Se as forças são muito pequenas(proximas a zero) nao executa a matriz de alocação Envia os angulos  0
+        Theta1 = 0.0f;
+        Theta2 = 0.0f;
+        Theta3 = 0.0f;
+        Theta4 = 0.0f;
+        //Envia todos os PWMs muito pequenos (Nulos-Na prática) Os valores aqui, não estão normalizados entre 0 e 1
+        PWM1 = NormtoPWM(0.0f);
+        PWM2 = NormtoPWM(0.0f);
+        PWM3 = NormtoPWM(0.0f);
+        PWM4 = NormtoPWM(0.0f);
+    }else
+    {
+        // ============ Angulo calculado a partir da força
+        Theta1 = atan2f(((TN*(Lx*k1*sq(k2) + Lx*k1*sq(k4)))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (FY*(sq(Lx)*k1*powf(k2,4) + sq(Lx)*k1*powf(k4,4) + sq(Lx)*powf(k1,3)*sq(k2) + sq(Lx)*powf(k1,3)*sq(k4) + 2*sq(Ly)*powf(k1,3)*sq(k2) + 2*sq(Ly)*powf(k1,3)*sq(k3) + sq(Lx)*k1*sq(k2)*sq(k3) + 2*sq(Lx)*k1*sq(k2)*sq(k4) + sq(Lx)*k1*sq(k3)*sq(k4) + 2*sq(Ly)*k1*sq(k2)*sq(k4) + 2*sq(Ly)*k1*sq(k3)*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (FX*(Lx*k1*sq(k2) + Lx*k1*sq(k4))*(Ly*sq(k1) - Ly*sq(k2) - Ly*sq(k3) + Ly*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))),((FX*(sq(Ly)*k1*powf(k2,4) + sq(Ly)*k1*powf(k3,4) + 2*sq(Lx)*powf(k1,3)*sq(k2) + 2*sq(Lx)*powf(k1,3)*sq(k4) + sq(Ly)*powf(k1,3)*sq(k2) + sq(Ly)*powf(k1,3)*sq(k3) + 2*sq(Lx)*k1*sq(k2)*sq(k3) + 2*sq(Lx)*k1*sq(k3)*sq(k4) + 2*sq(Ly)*k1*sq(k2)*sq(k3) + sq(Ly)*k1*sq(k2)*sq(k4) + sq(Ly)*k1*sq(k3)*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (TN*(Ly*k1*sq(k2) + Ly*k1*sq(k3)))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (FY*(Ly*k1*sq(k2) + Ly*k1*sq(k3))*(Lx*sq(k1) - Lx*sq(k2) + Lx*sq(k3) - Lx*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
+        Theta2 = atan2f(((FY*(sq(Lx)*powf(k1,4)*k2 + sq(Lx)*k2*powf(k3,4) + sq(Lx)*sq(k1)*powf(k2,3) + sq(Lx)*powf(k2,3)*sq(k3) + 2*sq(Ly)*sq(k1)*powf(k2,3) + 2*sq(Ly)*powf(k2,3)*sq(k4) + 2*sq(Lx)*sq(k1)*k2*sq(k3) + sq(Lx)*sq(k1)*k2*sq(k4) + sq(Lx)*k2*sq(k3)*sq(k4) + 2*sq(Ly)*sq(k1)*k2*sq(k3) + 2*sq(Ly)*k2*sq(k3)*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (TN*(Lx*sq(k1)*k2 + Lx*k2*sq(k3)))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (FX*(Lx*sq(k1)*k2 + Lx*k2*sq(k3))*(Ly*sq(k1) - Ly*sq(k2) - Ly*sq(k3) + Ly*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))),((TN*(Ly*sq(k1)*k2 + Ly*k2*sq(k4)))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (FX*(sq(Ly)*powf(k1,4)*k2 + sq(Ly)*k2*powf(k4,4) + 2*sq(Lx)*sq(k1)*powf(k2,3) + 2*sq(Lx)*powf(k2,3)*sq(k3) + sq(Ly)*sq(k1)*powf(k2,3) + sq(Ly)*powf(k2,3)*sq(k4) + 2*sq(Lx)*sq(k1)*k2*sq(k4) + 2*sq(Lx)*k2*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*k2*sq(k3) + 2*sq(Ly)*sq(k1)*k2*sq(k4) + sq(Ly)*k2*sq(k3)*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (FY*(Ly*sq(k1)*k2 + Ly*k2*sq(k4))*(Lx*sq(k1) - Lx*sq(k2) + Lx*sq(k3) - Lx*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
+        Theta3 = atan2f(((TN*(Lx*sq(k2)*k3 + Lx*k3*sq(k4)))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (FY*(sq(Lx)*powf(k2,4)*k3 + sq(Lx)*k3*powf(k4,4) + sq(Lx)*sq(k2)*powf(k3,3) + sq(Lx)*powf(k3,3)*sq(k4) + 2*sq(Ly)*sq(k1)*powf(k3,3) + 2*sq(Ly)*powf(k3,3)*sq(k4) + sq(Lx)*sq(k1)*sq(k2)*k3 + sq(Lx)*sq(k1)*k3*sq(k4) + 2*sq(Lx)*sq(k2)*k3*sq(k4) + 2*sq(Ly)*sq(k1)*sq(k2)*k3 + 2*sq(Ly)*sq(k2)*k3*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (FX*(Lx*sq(k2)*k3 + Lx*k3*sq(k4))*(Ly*sq(k1) - Ly*sq(k2) - Ly*sq(k3) + Ly*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))),((TN*(Ly*sq(k1)*k3 + Ly*k3*sq(k4)))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (FX*(sq(Ly)*powf(k1,4)*k3 + sq(Ly)*k3*powf(k4,4) + 2*sq(Lx)*sq(k2)*powf(k3,3) + 2*sq(Lx)*powf(k3,3)*sq(k4) + sq(Ly)*sq(k1)*powf(k3,3) + sq(Ly)*powf(k3,3)*sq(k4) + 2*sq(Lx)*sq(k1)*sq(k2)*k3 + 2*sq(Lx)*sq(k1)*k3*sq(k4) + sq(Ly)*sq(k1)*sq(k2)*k3 + 2*sq(Ly)*sq(k1)*k3*sq(k4) + sq(Ly)*sq(k2)*k3*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (FY*(Ly*sq(k1)*k3 + Ly*k3*sq(k4))*(Lx*sq(k1) - Lx*sq(k2) + Lx*sq(k3) - Lx*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
+        Theta4 = atan2f(((FY*(sq(Lx)*powf(k1,4)*k4 + sq(Lx)*powf(k3,4)*k4 + sq(Lx)*sq(k1)*powf(k4,3) + sq(Lx)*sq(k3)*powf(k4,3) + 2*sq(Ly)*sq(k2)*powf(k4,3) + 2*sq(Ly)*sq(k3)*powf(k4,3) + sq(Lx)*sq(k1)*sq(k2)*k4 + 2*sq(Lx)*sq(k1)*sq(k3)*k4 + sq(Lx)*sq(k2)*sq(k3)*k4 + 2*sq(Ly)*sq(k1)*sq(k2)*k4 + 2*sq(Ly)*sq(k1)*sq(k3)*k4))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (TN*(Lx*sq(k1)*k4 + Lx*sq(k3)*k4))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (FX*(Lx*sq(k1)*k4 + Lx*sq(k3)*k4)*(Ly*sq(k1) - Ly*sq(k2) - Ly*sq(k3) + Ly*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))),((FX*(sq(Ly)*powf(k2,4)*k4 + sq(Ly)*powf(k3,4)*k4 + 2*sq(Lx)*sq(k1)*powf(k4,3) + 2*sq(Lx)*sq(k3)*powf(k4,3) + sq(Ly)*sq(k2)*powf(k4,3) + sq(Ly)*sq(k3)*powf(k4,3) + 2*sq(Lx)*sq(k1)*sq(k2)*k4 + 2*sq(Lx)*sq(k2)*sq(k3)*k4 + sq(Ly)*sq(k1)*sq(k2)*k4 + sq(Ly)*sq(k1)*sq(k3)*k4 + 2*sq(Ly)*sq(k2)*sq(k3)*k4))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (TN*(Ly*sq(k2)*k4 + Ly*sq(k3)*k4))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (FY*(Ly*sq(k2)*k4 + Ly*sq(k3)*k4)*(Lx*sq(k1) - Lx*sq(k2) + Lx*sq(k3) - Lx*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
+
+        // Saturação
+        Theta1 = constrain_float(Theta1,-M_PI,M_PI);
+        Theta2 = constrain_float(Theta2,-M_PI,M_PI);
+        Theta3 = constrain_float(Theta3,-M_PI,M_PI);
+        Theta4 = constrain_float(Theta4,-M_PI,M_PI);
+
+        // ============================ PWM calculado a partir da força
+        PWM1 = (sqrt((sq(k1)*sq(FY*sq(Lx)*powf(k2,4) + FY*sq(Lx)*powf(k4,4) + Lx*TN*powf(k2,4) + Lx*TN*powf(k4,4) - FX*Lx*Ly*powf(k2,4) + FX*Lx*Ly*powf(k4,4) + Lx*TN*sq(k1)*sq(k2) + Lx*TN*sq(k1)*sq(k4) + Lx*TN*sq(k2)*sq(k3) + 2*Lx*TN*sq(k2)*sq(k4) + Lx*TN*sq(k3)*sq(k4) + FY*sq(Lx)*sq(k1)*sq(k2) + FY*sq(Lx)*sq(k1)*sq(k4) + FY*sq(Lx)*sq(k2)*sq(k3) + 2*FY*sq(Lx)*sq(k2)*sq(k4) + FY*sq(Lx)*sq(k3)*sq(k4) + 2*FY*sq(Ly)*sq(k1)*sq(k2) + 2*FY*sq(Ly)*sq(k1)*sq(k3) + 2*FY*sq(Ly)*sq(k2)*sq(k4) + 2*FY*sq(Ly)*sq(k3)*sq(k4) + FX*Lx*Ly*sq(k1)*sq(k2) + FX*Lx*Ly*sq(k1)*sq(k4) - FX*Lx*Ly*sq(k2)*sq(k3) - FX*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (sq(k1)*sq(FX*sq(Ly)*powf(k2,4) + FX*sq(Ly)*powf(k3,4) - Ly*TN*powf(k2,4) - Ly*TN*powf(k3,4) - FY*Lx*Ly*powf(k2,4) + FY*Lx*Ly*powf(k3,4) - Ly*TN*sq(k1)*sq(k2) - Ly*TN*sq(k1)*sq(k3) - 2*Ly*TN*sq(k2)*sq(k3) - Ly*TN*sq(k2)*sq(k4) - Ly*TN*sq(k3)*sq(k4) + 2*FX*sq(Lx)*sq(k1)*sq(k2) + 2*FX*sq(Lx)*sq(k1)*sq(k4) + 2*FX*sq(Lx)*sq(k2)*sq(k3) + 2*FX*sq(Lx)*sq(k3)*sq(k4) + FX*sq(Ly)*sq(k1)*sq(k2) + FX*sq(Ly)*sq(k1)*sq(k3) + 2*FX*sq(Ly)*sq(k2)*sq(k3) + FX*sq(Ly)*sq(k2)*sq(k4) + FX*sq(Ly)*sq(k3)*sq(k4) + FY*Lx*Ly*sq(k1)*sq(k2) + FY*Lx*Ly*sq(k1)*sq(k3) - FY*Lx*Ly*sq(k2)*sq(k4) - FY*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
+        PWM2 = (sqrt((sq(k2)*sq(FY*sq(Lx)*powf(k1,4) + FY*sq(Lx)*powf(k3,4) - Lx*TN*powf(k1,4) - Lx*TN*powf(k3,4) - FX*Lx*Ly*powf(k1,4) + FX*Lx*Ly*powf(k3,4) - Lx*TN*sq(k1)*sq(k2) - 2*Lx*TN*sq(k1)*sq(k3) - Lx*TN*sq(k1)*sq(k4) - Lx*TN*sq(k2)*sq(k3) - Lx*TN*sq(k3)*sq(k4) + FY*sq(Lx)*sq(k1)*sq(k2) + 2*FY*sq(Lx)*sq(k1)*sq(k3) + FY*sq(Lx)*sq(k1)*sq(k4) + FY*sq(Lx)*sq(k2)*sq(k3) + FY*sq(Lx)*sq(k3)*sq(k4) + 2*FY*sq(Ly)*sq(k1)*sq(k2) + 2*FY*sq(Ly)*sq(k1)*sq(k3) + 2*FY*sq(Ly)*sq(k2)*sq(k4) + 2*FY*sq(Ly)*sq(k3)*sq(k4) + FX*Lx*Ly*sq(k1)*sq(k2) - FX*Lx*Ly*sq(k1)*sq(k4) + FX*Lx*Ly*sq(k2)*sq(k3) - FX*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (sq(k2)*sq(FX*sq(Ly)*powf(k1,4) + FX*sq(Ly)*powf(k4,4) + Ly*TN*powf(k1,4) + Ly*TN*powf(k4,4) - FY*Lx*Ly*powf(k1,4) + FY*Lx*Ly*powf(k4,4) + Ly*TN*sq(k1)*sq(k2) + Ly*TN*sq(k1)*sq(k3) + 2*Ly*TN*sq(k1)*sq(k4) + Ly*TN*sq(k2)*sq(k4) + Ly*TN*sq(k3)*sq(k4) + 2*FX*sq(Lx)*sq(k1)*sq(k2) + 2*FX*sq(Lx)*sq(k1)*sq(k4) + 2*FX*sq(Lx)*sq(k2)*sq(k3) + 2*FX*sq(Lx)*sq(k3)*sq(k4) + FX*sq(Ly)*sq(k1)*sq(k2) + FX*sq(Ly)*sq(k1)*sq(k3) + 2*FX*sq(Ly)*sq(k1)*sq(k4) + FX*sq(Ly)*sq(k2)*sq(k4) + FX*sq(Ly)*sq(k3)*sq(k4) + FY*Lx*Ly*sq(k1)*sq(k2) - FY*Lx*Ly*sq(k1)*sq(k3) + FY*Lx*Ly*sq(k2)*sq(k4) - FY*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
+        PWM3 = (sqrt((sq(k3)*sq(FY*sq(Lx)*powf(k2,4) + FY*sq(Lx)*powf(k4,4) + Lx*TN*powf(k2,4) + Lx*TN*powf(k4,4) - FX*Lx*Ly*powf(k2,4) + FX*Lx*Ly*powf(k4,4) + Lx*TN*sq(k1)*sq(k2) + Lx*TN*sq(k1)*sq(k4) + Lx*TN*sq(k2)*sq(k3) + 2*Lx*TN*sq(k2)*sq(k4) + Lx*TN*sq(k3)*sq(k4) + FY*sq(Lx)*sq(k1)*sq(k2) + FY*sq(Lx)*sq(k1)*sq(k4) + FY*sq(Lx)*sq(k2)*sq(k3) + 2*FY*sq(Lx)*sq(k2)*sq(k4) + FY*sq(Lx)*sq(k3)*sq(k4) + 2*FY*sq(Ly)*sq(k1)*sq(k2) + 2*FY*sq(Ly)*sq(k1)*sq(k3) + 2*FY*sq(Ly)*sq(k2)*sq(k4) + 2*FY*sq(Ly)*sq(k3)*sq(k4) + FX*Lx*Ly*sq(k1)*sq(k2) + FX*Lx*Ly*sq(k1)*sq(k4) - FX*Lx*Ly*sq(k2)*sq(k3) - FX*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (sq(k3)*sq(FX*sq(Ly)*powf(k1,4) + FX*sq(Ly)*powf(k4,4) + Ly*TN*powf(k1,4) + Ly*TN*powf(k4,4) - FY*Lx*Ly*powf(k1,4) + FY*Lx*Ly*powf(k4,4) + Ly*TN*sq(k1)*sq(k2) + Ly*TN*sq(k1)*sq(k3) + 2*Ly*TN*sq(k1)*sq(k4) + Ly*TN*sq(k2)*sq(k4) + Ly*TN*sq(k3)*sq(k4) + 2*FX*sq(Lx)*sq(k1)*sq(k2) + 2*FX*sq(Lx)*sq(k1)*sq(k4) + 2*FX*sq(Lx)*sq(k2)*sq(k3) + 2*FX*sq(Lx)*sq(k3)*sq(k4) + FX*sq(Ly)*sq(k1)*sq(k2) + FX*sq(Ly)*sq(k1)*sq(k3) + 2*FX*sq(Ly)*sq(k1)*sq(k4) + FX*sq(Ly)*sq(k2)*sq(k4) + FX*sq(Ly)*sq(k3)*sq(k4) + FY*Lx*Ly*sq(k1)*sq(k2) - FY*Lx*Ly*sq(k1)*sq(k3) + FY*Lx*Ly*sq(k2)*sq(k4) - FY*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
+        PWM4 = (sqrt((sq(k4)*sq(FY*sq(Lx)*powf(k1,4) + FY*sq(Lx)*powf(k3,4) - Lx*TN*powf(k1,4) - Lx*TN*powf(k3,4) - FX*Lx*Ly*powf(k1,4) + FX*Lx*Ly*powf(k3,4) - Lx*TN*sq(k1)*sq(k2) - 2*Lx*TN*sq(k1)*sq(k3) - Lx*TN*sq(k1)*sq(k4) - Lx*TN*sq(k2)*sq(k3) - Lx*TN*sq(k3)*sq(k4) + FY*sq(Lx)*sq(k1)*sq(k2) + 2*FY*sq(Lx)*sq(k1)*sq(k3) + FY*sq(Lx)*sq(k1)*sq(k4) + FY*sq(Lx)*sq(k2)*sq(k3) + FY*sq(Lx)*sq(k3)*sq(k4) + 2*FY*sq(Ly)*sq(k1)*sq(k2) + 2*FY*sq(Ly)*sq(k1)*sq(k3) + 2*FY*sq(Ly)*sq(k2)*sq(k4) + 2*FY*sq(Ly)*sq(k3)*sq(k4) + FX*Lx*Ly*sq(k1)*sq(k2) - FX*Lx*Ly*sq(k1)*sq(k4) + FX*Lx*Ly*sq(k2)*sq(k3) - FX*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (sq(k4)*sq(FX*sq(Ly)*powf(k2,4) + FX*sq(Ly)*powf(k3,4) - Ly*TN*powf(k2,4) - Ly*TN*powf(k3,4) - FY*Lx*Ly*powf(k2,4) + FY*Lx*Ly*powf(k3,4) - Ly*TN*sq(k1)*sq(k2) - Ly*TN*sq(k1)*sq(k3) - 2*Ly*TN*sq(k2)*sq(k3) - Ly*TN*sq(k2)*sq(k4) - Ly*TN*sq(k3)*sq(k4) + 2*FX*sq(Lx)*sq(k1)*sq(k2) + 2*FX*sq(Lx)*sq(k1)*sq(k4) + 2*FX*sq(Lx)*sq(k2)*sq(k3) + 2*FX*sq(Lx)*sq(k3)*sq(k4) + FX*sq(Ly)*sq(k1)*sq(k2) + FX*sq(Ly)*sq(k1)*sq(k3) + 2*FX*sq(Ly)*sq(k2)*sq(k3) + FX*sq(Ly)*sq(k2)*sq(k4) + FX*sq(Ly)*sq(k3)*sq(k4) + FY*Lx*Ly*sq(k1)*sq(k2) + FY*Lx*Ly*sq(k1)*sq(k3) - FY*Lx*Ly*sq(k2)*sq(k4) - FY*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
+
+        // Saturação
+        PWM1 = constrain_float(PWM1,Pwmmin,Pwmmax);
+        PWM2 = constrain_float(PWM2,Pwmmin,Pwmmax);
+        PWM3 = constrain_float(PWM3,Pwmmin,Pwmmax);
+        PWM4 = constrain_float(PWM4,Pwmmin,Pwmmax);
+
+        // Normaliza o valor de PWM encontrado entre 0 e 1 para ativar a saida entre mínima e maxima potência
+        PWM1 = PWMtoNorm(PWM1);
+        PWM2 = PWMtoNorm(PWM2);
+        PWM3 = PWMtoNorm(PWM3);
+        PWM4 = PWMtoNorm(PWM4);
+
+        // Conveter o valor de Theta para Graus
+        Theta1 = Theta1 * RAD_TO_DEG;
+        Theta2 = Theta2 * RAD_TO_DEG;
+        Theta3 = Theta3 * RAD_TO_DEG;
+        Theta4 = Theta4 * RAD_TO_DEG;
+    }
+}
+
+// MURILLO
+void AP_MotorsMatrix::pwm_servo_angle(float &servo_m1, float &servo_m2, float &servo_m3, float &servo_m4)
+{
+    /// todos os angulos devem estar em graus nesta função
+
+    //Linha utilizada para medir valores de pwm min e max
+    //    servo_m4 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalservo->get_radio_in()-canalservo->get_radio_min());
+    servo_m1 = servo_angle_to_pwm(servo_m1,675.0,2329.0);
+    servo_m2 = servo_angle_to_pwm(servo_m2,664.0,2144.0);
+    servo_m3 = servo_angle_to_pwm(servo_m3,656.0,2400.0);
+    servo_m4 = servo_angle_to_pwm(servo_m4,700.0,2345.0);
+}
+
+// MURILLO
+float AP_MotorsMatrix::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm)
+{
+    /// Nessa função pode-se inserir os valores mínimos e maxímos do pwm  considerando 0 a 180 como angulos mínimos e máximos
+    //Entrada de angulo deve ser  de -90 a 90 ELE CHEGARÁ A 180 DEVIDO A ENGRENAGEM
+    angle = constrain_float(angle,-180.0,180.0);
+    angle = angle + 180.0;
+
+    //valor que o servo entende como 0 graus
+    float srv_min_angle = 0.0;
+
+    //valor de pwm que o servo entende como 180
+    float srv_max_angle = 360.0;
+    float pwm           =  srv_min_pwm + angle * (srv_max_pwm - srv_min_pwm)/(srv_max_angle - srv_min_angle);
+    return pwm;
+}
+
+// MURILLO
+float AP_MotorsMatrix::NormtoPWM(float val)
+{
+    /// Entra um valor de 0 a 1 e sai um PWM
+    return val*(Pwmmax-Pwmmin) + Pwmmin;
+}
+
+// MURILLO
+float AP_MotorsMatrix::PWMtoNorm(float pwm)
+{
+    /// Entra um valor de PWM e sai de 0 a 1
+    float V;
+    V = float(pwm - Pwmmin)/float(Pwmmax-Pwmmin);
+    return constrain_float(V,0.0f,1.0f);
 }
 
 // output_armed - sends commands to the motors

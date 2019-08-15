@@ -43,6 +43,8 @@ public:
     // MURILLO
     void                output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4);
     void                update_srv_action(float srv1, float srv2, float srv3, float srv4);
+    void                pwm_servo_angle(float &servo_m1, float &servo_m2, float &servo_m3, float &servo_m4);
+    float               servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm);
 
     // get_motor_mask - returns a bitmask of which outputs are being used for motors (1 means being used)
     //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
@@ -52,7 +54,10 @@ protected:
     // output - sends commands to the motors
     void                output_armed_stabilizing();
     // MURILLO
-    void                output_armed_stabilizing(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4);
+    void                output_armed_stabilizing(float&FX,float &FY,float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4);
+    void                FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4);
+    float               NormtoPWM(float val);
+    float               PWMtoNorm(float pwm);
 
     // add_motor using raw roll, pitch, throttle and yaw factors
     void                add_motor_raw(int8_t motor_num, float roll_fac, float pitch_fac, float yaw_fac, uint8_t testing_order);
@@ -82,4 +87,31 @@ protected:
     uint8_t             _test_order[AP_MOTORS_MAX_NUM_MOTORS];  // order of the motors in the test sequence
     motor_frame_class   _last_frame_class; // most recently requested frame class (i.e. quad, hexa, octa, etc)
     motor_frame_type    _last_frame_type; // most recently requested frame type (i.e. plus, x, v, etc)
+
+    // MURILLO
+    // Propriedade Física do Barco
+        float FT  = 0.0f;
+        float FM1 = 10*0.86;
+        float FM2 = 10*2.60;
+        float FM3 = 10*0.86;
+        float FM4 = 10*2.60;
+
+        float Fmax = FM1 + FM2 + FM3 + FM4;       // Força e torque maximos do barco
+
+        float L  = 0.586f;          // Tamanho do braço do barco
+        float Lx = L*cosf(M_PI/4.0f);
+        float Ly = L*cosf(M_PI/4.0f);
+
+        float Pwmmax = 1001.0f; // Esse valor será a faixa de pwm que eu vou escolher para trabalhar --------------- // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+        float Pwmmin = 1.0f;    // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+        float Nmax   = L*Fmax;
+
+        float k1 = (FM1)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+        float k2 = (FM2)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+        float k3 = (FM3)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+        float k4 = (FM4)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
+
+    //    float k2 = k1;
+    //    float k3 = k1;
+    //    float k4 = k1;
 };

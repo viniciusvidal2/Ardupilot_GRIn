@@ -39,7 +39,7 @@ public:
     // output - sends commands to the motors
     virtual void        output();
     // MURILLO
-    virtual void        output(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4);
+    virtual void        output(float &FX,float &FY,float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4);
 
     // output_min - sends minimum values out to the motors
     void                output_min();
