@@ -204,7 +204,7 @@ AP_MotorsMulticopter::AP_MotorsMulticopter(uint16_t loop_rate, uint16_t speed_hz
 
 // MURILLO
 // output - sends commands to the motors
-void AP_MotorsMulticopter::output(float &FX,float &FY,float &TN,float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)
+void AP_MotorsMulticopter::output(float &FX,float &FY,float &TN,float &srv1, float &srv2, float &srv3, float &srv4, float &PWM1, float &PWM2, float &PWM3, float &PWM4)
 {
     // update throttle filter
     update_throttle_filter();
@@ -217,13 +217,13 @@ void AP_MotorsMulticopter::output(float &FX,float &FY,float &TN,float &srv1, flo
 
     // MURILLO
     // calculate thrust
-    output_armed_stabilizing(FX, FY, TN, srv1, srv2, srv3, srv4, Pwm1, Pwm2, Pwm3, Pwm4);
+    output_armed_stabilizing(FX, FY, TN, srv1, srv2, srv3, srv4, PWM1, PWM2, PWM3, PWM4);
 
     // apply any thrust compensation for the frame
     thrust_compensation();
 
     // convert rpy_thrust values to pwm
-    output_to_motors(srv1,srv2,srv3,srv4,Pwm1,Pwm2,Pwm3,Pwm4);
+    output_to_motors(srv1,srv2,srv3,srv4,PWM1,PWM2,PWM3,PWM4);
 
     // output any booster throttle
     output_boost_throttle();

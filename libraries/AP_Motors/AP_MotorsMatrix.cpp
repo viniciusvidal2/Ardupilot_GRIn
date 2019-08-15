@@ -101,7 +101,7 @@ void AP_MotorsMatrix::update_srv_action(float srv1, float srv2, float srv3, floa
 
 
 // MURILLO
-void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)
+void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &PWM1, float &PWM2, float &PWM3, float &PWM4)
 {
     int8_t i;
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motor
@@ -139,14 +139,14 @@ void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, fl
 //                }
 //            }
         // MURILLO
-                Pwm1 = constrain_float(Pwm1,0.0f,1.0f);
-                Pwm2 = constrain_float(Pwm2,0.0f,1.0f);
-                Pwm3 = constrain_float(Pwm3,0.0f,1.0f);
-                Pwm4 = constrain_float(Pwm4,0.0f,1.0f);
-                motor_enabled[0] ? motor_out[0]=calc_thrust_to_pwm(Pwm1): motor_out[0]=calc_spin_up_to_pwm();
-                motor_enabled[1] ? motor_out[1]=calc_thrust_to_pwm(Pwm2): motor_out[1]=calc_spin_up_to_pwm();
-                motor_enabled[2] ? motor_out[2]=calc_thrust_to_pwm(Pwm3): motor_out[2]=calc_spin_up_to_pwm();
-                motor_enabled[3] ? motor_out[3]=calc_thrust_to_pwm(Pwm4): motor_out[3]=calc_spin_up_to_pwm();
+                PWM1 = constrain_float(PWM1,0.0f,1.0f);
+                PWM2 = constrain_float(PWM2,0.0f,1.0f);
+                PWM3 = constrain_float(PWM3,0.0f,1.0f);
+                PWM4 = constrain_float(PWM4,0.0f,1.0f);
+                motor_enabled[0] ? motor_out[0]=calc_thrust_to_pwm(PWM1): motor_out[0]=calc_spin_up_to_pwm();
+                motor_enabled[1] ? motor_out[1]=calc_thrust_to_pwm(PWM2): motor_out[1]=calc_spin_up_to_pwm();
+                motor_enabled[2] ? motor_out[2]=calc_thrust_to_pwm(PWM3): motor_out[2]=calc_spin_up_to_pwm();
+                motor_enabled[3] ? motor_out[3]=calc_thrust_to_pwm(PWM4): motor_out[3]=calc_spin_up_to_pwm();
             break;
     }
 
@@ -228,7 +228,7 @@ uint16_t AP_MotorsMatrix::get_motor_mask()
 
 // output_armed - sends commands to the motors
 // includes new scaling stability patch
-void AP_MotorsMatrix::output_armed_stabilizing(float &FX,float &FY,float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)
+void AP_MotorsMatrix::output_armed_stabilizing(float &FX,float &FY,float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &PWM1, float &PWM2, float &PWM3, float &PWM4)
 {
     uint8_t i;                          // general purpose counter
 //    float   roll_thrust;                // roll thrust input value, +/- 1.0
@@ -253,13 +253,13 @@ void AP_MotorsMatrix::output_armed_stabilizing(float &FX,float &FY,float &TN, fl
 
     // Colocar o controle de alocação do Fossen que o Mathaus implementou.
 
-    FOSSEN_alocation_matrix(FX,FY,TN,srv1,srv2,srv3,srv4,Pwm1,Pwm2,Pwm3,Pwm4);
+    FOSSEN_alocation_matrix(FX,FY,TN,srv1,srv2,srv3,srv4,PWM1,PWM2,PWM3,PWM4);
     pwm_servo_angle(srv1,srv2,srv3,srv4);
 
-    _thrust_rpyt_out[0] = Pwm1;
-    _thrust_rpyt_out[1] = Pwm2;
-    _thrust_rpyt_out[2] = Pwm3;
-    _thrust_rpyt_out[3] = Pwm4;
+    _thrust_rpyt_out[0] = PWM1;
+    _thrust_rpyt_out[1] = PWM2;
+    _thrust_rpyt_out[2] = PWM3;
+    _thrust_rpyt_out[3] = PWM4;
 
 
     // constrain all outputs to 0.0f to 1.0f
@@ -310,10 +310,10 @@ void AP_MotorsMatrix::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,floa
         Theta3 = 0.0f;
         Theta4 = 0.0f;
         //Envia todos os PWMs muito pequenos (Nulos-Na prática) Os valores aqui, não estão normalizados entre 0 e 1
-        PWM1 = NormtoPWM(0.1f);
-        PWM2 = NormtoPWM(0.1f);
-        PWM3 = NormtoPWM(0.1f);
-        PWM4 = NormtoPWM(0.1f);
+        PWM1 = NormtoPWM(0.0f);
+        PWM2 = NormtoPWM(0.0f);
+        PWM3 = NormtoPWM(0.0f);
+        PWM4 = NormtoPWM(0.0f);
     }else
     {
         // ============ Angulo calculado a partir da força

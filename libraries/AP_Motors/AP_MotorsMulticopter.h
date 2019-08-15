@@ -39,7 +39,7 @@ public:
     // output - sends commands to the motors
     virtual void        output();
     // MURILLO
-    virtual void        output(float &FX,float &FY,float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4);
+    virtual void        output(float &FX, float &FY, float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &PWM1, float &PWM2, float &PWM3, float &PWM4);
 
     // output_min - sends minimum values out to the motors
     void                output_min();
@@ -109,7 +109,7 @@ protected:
     // output_to_motors - sends commands to the motors
     virtual void        output_to_motors() = 0;
     // MURILLO
-    virtual void        output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)=0;
+    virtual void        output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &PWM1, float &PWM2, float &PWM3, float &PWM4)=0;
 
     // update the throttle input filter
     virtual void        update_throttle_filter();

@@ -41,7 +41,7 @@ public:
     void                output_to_motors();
 
     // MURILLO
-    void                output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4);
+    void                output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &PWM1, float &PWM2, float &PWM3, float &PWM4);
     void                update_srv_action(float srv1, float srv2, float srv3, float srv4);
     void                pwm_servo_angle(float &servo_m1, float &servo_m2, float &servo_m3, float &servo_m4);
     float               servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm);
@@ -54,7 +54,7 @@ protected:
     // output - sends commands to the motors
     void                output_armed_stabilizing();
     // MURILLO
-    void                output_armed_stabilizing(float&FX,float &FY,float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4);
+    void                output_armed_stabilizing(float&FX, float &FY, float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &PWM1, float &PWM2, float &PWM3, float &PWM4);
     void                FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4);
     float               NormtoPWM(float val);
     float               PWMtoNorm(float pwm);

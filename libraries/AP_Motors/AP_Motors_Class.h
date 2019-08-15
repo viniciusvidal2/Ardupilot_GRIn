@@ -179,7 +179,7 @@ protected:
     virtual uint32_t    rc_map_mask(uint32_t mask) const;
 
     // MURILLO
-    virtual void        output_armed_stabilizing(float &FX,float &FY,float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)=0;
+    virtual void        output_armed_stabilizing(float &FX,float &FY,float &TN, float &srv1, float &srv2, float &srv3, float &srv4, float &PWM1, float &PWM2, float &PWM3, float &PWM4)=0;
 
     // add a motor to the motor map
     void add_motor_num(int8_t motor_num);
