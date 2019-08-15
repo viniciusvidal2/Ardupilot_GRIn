@@ -320,10 +320,10 @@ void Copter::motors_output()
         // Tratamento para testar sistema ARMED
         if(!motors->armed())
         {
-            servo_m1 = 0.0;
-            servo_m2 = 0.0;
-            servo_m3 = 0.0;
-            servo_m4 = 0.0;
+            servo_m1 = 0.0f;
+            servo_m2 = 0.0f;
+            servo_m3 = 0.0f;
+            servo_m4 = 0.0f;
         }
 
         // send output signals to motors

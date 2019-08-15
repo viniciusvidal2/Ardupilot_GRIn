@@ -310,10 +310,10 @@ void AP_MotorsMatrix::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,floa
         Theta3 = 0.0f;
         Theta4 = 0.0f;
         //Envia todos os PWMs muito pequenos (Nulos-Na prática) Os valores aqui, não estão normalizados entre 0 e 1
-        PWM1 = NormtoPWM(0.0f);
-        PWM2 = NormtoPWM(0.0f);
-        PWM3 = NormtoPWM(0.0f);
-        PWM4 = NormtoPWM(0.0f);
+        PWM1 = NormtoPWM(0.1f);
+        PWM2 = NormtoPWM(0.1f);
+        PWM3 = NormtoPWM(0.1f);
+        PWM4 = NormtoPWM(0.1f);
     }else
     {
         // ============ Angulo calculado a partir da força
