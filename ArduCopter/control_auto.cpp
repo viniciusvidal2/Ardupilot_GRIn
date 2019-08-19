@@ -58,7 +58,7 @@ void Copter::auto_run()
     switch (auto_mode) {
 
     case Auto_TakeOff:
-//        auto_takeoff_run();
+        //        auto_takeoff_run();
         break;
 
     case Auto_WP:
@@ -67,7 +67,7 @@ void Copter::auto_run()
         break;
 
     case Auto_Land:
-//        auto_land_run();
+        //        auto_land_run();
         break;
 
     case Auto_RTL:
@@ -236,9 +236,20 @@ void Copter::auto_wp_start(const Location_Class& dest_loc)
 }
 
 // Mathaus
-// declaração de variáveis para obtenção de velocidade no eixo X (foward)
+void Copter::force_calc()
+{
+    // Forças Calculadas pelo controlador de posição são calculadas aqui.
+    Fx = -((float)(wp_nav->get_pitch()))/(float)(aparm.angle_max);
+    Fy =  ((float)(wp_nav->get_roll()))/(float)(aparm.angle_max);
 
-float vel_fw, vel_right, y;
+    // Saturação das Forças
+    Fx = constrain_float(Fx,-1.0f,1.0f);
+    Fy = constrain_float(Fy,-1.0f,1.0f);
+
+    // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
+    Fx = map(Fx,Fy);
+    Fy = map(Fy,Fx);
+}
 
 // auto_wp_run - runs the auto waypoint controller
 //      called by auto_run at 100hz or more
@@ -284,32 +295,16 @@ void Copter::auto_wp_run()
     pos_control->update_z_controller();
 
     // MATHAUS
-     Fx = -((float)(wp_nav->get_pitch()))/((float)(aparm.angle_max));
-     Fy =  ((float)(wp_nav->get_roll()))/(float)(aparm.angle_max);
-     /*tN =  get_pilot_desired_yaw_rate(channel_yaw->get_control_in())/18000;*/ // divide por 18000 para converter entre -1 e 1
-
-     Fx = constrain_float(Fx,-1.0f,1.0f);
-     Fy = constrain_float(Fy,-1.0f,1.0f);
-
-     Fx = map(Fx,Fy);
-     Fy = map(Fy,Fx);
+    force_calc();
 
     if (auto_yaw_mode == AUTO_YAW_HOLD)
     {
         // roll & pitch from waypoint controller, yaw rate from pilot
-        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*0*wp_nav->get_roll(), 0*0*wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
-//        tN =  get_pilot_desired_yaw_rate(channel_yaw->get_control_in())/((float)(aparm.angle_max)); //Conferir valor de 4500
-
-
+        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*wp_nav->get_roll(), 0*wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
     }else
     {
         // roll, pitch from waypoint controller, yaw heading from auto_heading()
-        attitude_control->input_euler_angle_roll_pitch_yaw(0*0*wp_nav->get_roll(), 0*0*wp_nav->get_pitch(),get_auto_heading(),true, get_smoothing_gain());
-                //        tN = _yaw_in
-        //        tN = (attitude_control->get_att_target_euler_cd().z)/(180*100.0);
-//                get_att_target_euler_cd();
-//                (attitude_control->_attitude_target_euler_angle.z)/(M_PI);
-//        tN = constrain_float(tN,-1.0f,1.0f);
+        attitude_control->input_euler_angle_roll_pitch_yaw(0*wp_nav->get_roll(), 0*wp_nav->get_pitch(),get_auto_heading(),true, get_smoothing_gain());
     }
 }
 
@@ -341,7 +336,8 @@ void Copter::auto_spline_start(const Location_Class& destination, bool stopped_a
 void Copter::auto_spline_run()
 {
     // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
-    if (!motors->armed() || !ap.auto_armed || !motors->get_interlock()) {
+    if (!motors->armed() || !ap.auto_armed || !motors->get_interlock())
+    {
         // To-Do: reset waypoint origin to current location because copter is probably on the ground so we don't want it lurching left or right on take-off
         //    (of course it would be better if people just used take-off)
 #if FRAME_CONFIG == HELI_FRAME  // Helicopters always stabilize roll/pitch/yaw
@@ -359,10 +355,12 @@ void Copter::auto_spline_run()
 
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!failsafe.radio) {
+    if (!failsafe.radio)
+    {
         // get pilot's desired yaw rat
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
-        if (!is_zero(target_yaw_rate)) {
+        if (!is_zero(target_yaw_rate))
+        {
             set_auto_yaw_mode(AUTO_YAW_HOLD);
         }
     }
@@ -376,51 +374,18 @@ void Copter::auto_spline_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
-    if(wp_distance>=500){
+    // MATHAUS
+    force_calc();
 
-        // MURILLO
-        // Coleta a ação de controle para inclinar PITCH em direção ao SP, de forma normalizada.
-        // O sinal - é para transformar o sinal em positivo, pois movimentos para frente são gerados por PITCH negativo.
-        pitch_to_Thro5M = - ((float)(0*wp_nav->get_pitch()))/((float)(aparm.angle_max));
-
-        // MURILLO
-        // Se o sinal normalizado coletado for negativo, o motor não liga por não tem reversão, enviando 0 para o motor 5.
-        // Não vai ser feito nada até que a guinada seja corrigida, faceando com o próximo waypoint.
-        // À medida que ficar alinhado, o sinal normalizado a ser coletado passará a ser positivo, o que faz ligar o motor 5.
-        if(pitch_to_Thro5M<0){
-            pitch_to_Thro5M = 0;
-        }
-
-        // MURILLO
-        // Executa as operações tradicionais de controle de posição, porém mantendo PITCH em 0 graus.
-        // Fiz estas mudanças pensando somente na possibilidade de voar sempre olhando para o próximo waypoint,
-        // ou seja, AUTO_YAW_HOLD==0.
-        // call attitude controller
-        if (auto_yaw_mode == AUTO_YAW_HOLD) {
-            // roll & pitch from waypoint controller, yaw rate from pilot
-            attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*wp_nav->get_roll(), 0*wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
-        }else{
-            // MURILLO
-            // roll from waypoint controller, yaw heading from auto_heading(). 0 pitch
-            attitude_control->input_euler_angle_roll_pitch_yaw(0*wp_nav->get_roll(), 0, get_auto_heading(),true, get_smoothing_gain()); //alteração para tentar a aerodinamica
-        }
-        // Se a distância do way
+    // call attitude controller
+    if (auto_yaw_mode == AUTO_YAW_HOLD) {
+        // roll & pitch from waypoint controller, yaw rate from pilot
+        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*wp_nav->get_roll(), 0*wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
     }else{
-        // MURILLO
-        // Enviar 0 para o Motor 5
-        pitch_to_Thro5M = 0;
-
-        // call attitude controller
-        if (auto_yaw_mode == AUTO_YAW_HOLD) {
-            // roll & pitch from waypoint controller, yaw rate from pilot
-            attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*wp_nav->get_roll(), 0*wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
-        }else{
-            // roll, pitch from waypoint controller, yaw heading from auto_heading()
-            attitude_control->input_euler_angle_roll_pitch_yaw(0*wp_nav->get_roll(), 0*wp_nav->get_pitch(), get_auto_heading(),true, get_smoothing_gain());
-        }
+        // roll, pitch from waypoint controller, yaw heading from auto_heading()
+        attitude_control->input_euler_angle_roll_pitch_yaw(0*wp_nav->get_roll(), 0*wp_nav->get_pitch(), get_auto_heading(), true, get_smoothing_gain());
     }
 }
-
 // auto_land_start - initialises controller to implement a landing
 void Copter::auto_land_start()
 {
@@ -954,18 +919,18 @@ void Copter::auto_payload_place_run()
 
 void Copter::auto_payload_place_run_loiter()
 {
-//    // loiter...
-//    //land_run_horizontal_control();
+    //    // loiter...
+    //    //land_run_horizontal_control();
 
-//    // run loiter controller
-//    wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
+    //    // run loiter controller
+    //    wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
-//    // call attitude controller
-//    const float target_yaw_rate = 0;
-//    attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*wp_nav->get_roll(), 0*wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
+    //    // call attitude controller
+    //    const float target_yaw_rate = 0;
+    //    attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*wp_nav->get_roll(), 0*wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
 
-//    // call position controller
-//    pos_control->update_z_controller();
+    //    // call position controller
+    //    pos_control->update_z_controller();
 }
 
 void Copter::auto_payload_place_run_descend()

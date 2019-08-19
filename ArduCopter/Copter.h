@@ -711,7 +711,7 @@ private:
     void get_pilot_desired_force_to_boat_M();
     void pwm_servo_angle();
     void FOSSEN_alocation_matrix(float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
-
+    void force_calc();
 
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
     void get_pilot_desired_force_to_boat();

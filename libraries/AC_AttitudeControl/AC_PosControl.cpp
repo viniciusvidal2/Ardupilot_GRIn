@@ -80,7 +80,6 @@ AC_PosControl::AC_PosControl(const AP_AHRS_View& ahrs, const AP_InertialNav& ina
 /// z-axis position controller
 ///
 
-
 /// set_dt - sets time delta in seconds for all controllers (i.e. 100hz = 0.01, 400hz = 0.0025)
 void AC_PosControl::set_dt(float delta_sec)
 {
@@ -244,7 +243,7 @@ void AC_PosControl::relax_alt_hold_controllers(float throttle_setting)
 // get_alt_error - returns altitude error in cm
 float AC_PosControl::get_alt_error() const
 {
-    return (_pos_target.z - _inav.get_altitude());
+    return 0*(_pos_target.z - _inav.get_altitude());
 }
 
 /// set_target_to_stopping_point_z - returns reasonable stopping altitude in cm above home
@@ -418,13 +417,13 @@ void AC_PosControl::rate_to_accel_z()
 
     // reset last velocity target to current target
     if (_flags.reset_rate_to_accel_z) {
-        _vel_last.z = _vel_target.z;
+        _vel_last.z = 0*_vel_target.z;
     }
 
     // feed forward desired acceleration calculation
     if (_dt > 0.0f) {
     	if (!_flags.freeze_ff_z) {
-    		_accel_feedforward.z = (_vel_target.z - _vel_last.z)/_dt;
+                _accel_feedforward.z = 0*(_vel_target.z - _vel_last.z)/_dt;
         } else {
     		// stop the feed forward being calculated during a known discontinuity
     		_flags.freeze_ff_z = false;
@@ -454,7 +453,7 @@ void AC_PosControl::rate_to_accel_z()
     _accel_target.z = _accel_feedforward.z + p;
 
     // set target for accel based throttle controller
-    accel_to_throttle(_accel_target.z);
+    accel_to_throttle(0*_accel_target.z);
 }
 
 // accel_to_throttle - alt hold's acceleration controller
