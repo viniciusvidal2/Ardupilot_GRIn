@@ -235,7 +235,7 @@ void Copter::auto_wp_start(const Location_Class& dest_loc)
     }
 }
 
-// Mathaus
+//Mathaus
 void Copter::force_calc()
 {
     // Forças Calculadas pelo controlador de posição são calculadas aqui.

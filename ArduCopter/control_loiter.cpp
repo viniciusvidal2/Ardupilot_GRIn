@@ -71,6 +71,22 @@ void Copter::precision_loiter_xy()
 }
 #endif
 
+//Mathaus
+void Copter::force_calc_loiter()
+{
+    // Forças Calculadas pelo controlador de posição são calculadas aqui.
+    Fx = -((float)(wp_nav->get_pitch()))/(float)(aparm.angle_max);
+    Fy =  ((float)(wp_nav->get_roll()))/(float)(aparm.angle_max);
+
+    // Saturação das Forças
+    Fx = constrain_float(Fx,-1.0f,1.0f);
+    Fy = constrain_float(Fy,-1.0f,1.0f);
+
+    // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
+    Fx = map(Fx,Fy);
+    Fy = map(Fy,Fx);
+}
+
 // loiter_run - runs the loiter controller
 // should be called at 100hz or more
 void Copter::loiter_run()
@@ -142,6 +158,10 @@ void Copter::loiter_run()
         pos_control->relax_alt_hold_controllers(0.0f);   // forces throttle output to go to zero
 #endif
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
+
+        //Mathaus
+        force_calc_loiter();
+
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
         pos_control->update_z_controller();
         break;
@@ -167,6 +187,9 @@ void Copter::loiter_run()
 
         // run loiter controller
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
+
+        //Mathaus
+        force_calc_loiter();
 
         // call attitude controller
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
@@ -205,6 +228,9 @@ void Copter::loiter_run()
 
         // run loiter controller
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
+
+        //Mathaus
+        force_calc_loiter();
 
         // call attitude controller
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());

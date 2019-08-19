@@ -81,11 +81,14 @@ void Copter::circle_run()
     // run circle controller
     circle_nav->update();
 
+    //Mathaus
+    force_calc();
+
     // call attitude controller
     if (circle_pilot_yaw_override) {
-        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(circle_nav->get_roll(), circle_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
+        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*circle_nav->get_roll(), 0*circle_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
     }else{
-        attitude_control->input_euler_angle_roll_pitch_yaw(circle_nav->get_roll(), circle_nav->get_pitch(), circle_nav->get_yaw(),true, get_smoothing_gain());
+        attitude_control->input_euler_angle_roll_pitch_yaw(0*circle_nav->get_roll(), 0*circle_nav->get_pitch(), circle_nav->get_yaw(),true, get_smoothing_gain());
     }
 
     // adjust climb rate using rangefinder
@@ -96,4 +99,19 @@ void Copter::circle_run()
     // update altitude target and call position controller
     pos_control->set_alt_target_from_climb_rate(target_climb_rate, G_Dt, false);
     pos_control->update_z_controller();
+}
+
+void Copter::force_calc_circle()
+{
+    // Forças Calculadas pelo controlador de posição são calculadas aqui.
+    Fx = -((float)(circle_nav->get_pitch()))/(float)(aparm.angle_max);
+    Fy =  ((float)(circle_nav->get_roll()))/(float)(aparm.angle_max);
+
+    // Saturação das Forças
+    Fx = constrain_float(Fx,-1.0f,1.0f);
+    Fy = constrain_float(Fy,-1.0f,1.0f);
+
+    // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
+    Fx = map(Fx,Fy);
+    Fy = map(Fy,Fx);
 }
