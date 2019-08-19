@@ -716,6 +716,7 @@ private:
     void force_calc_break();
     void force_calc_guided(float roll, float pitch);
     void force_calc_loiter();
+    void force_calc_rtl();
 
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
     void get_pilot_desired_force_to_boat();
