@@ -174,14 +174,14 @@ private:
 
     // Propriedade Física do Barco
     float FT = 0.0f;
-    float FM1 = 10*0.86;
-    float FM2 = 10*2.60;
-    float FM3 = 10*0.86;
-    float FM4 = 10*2.60;
+    float FM1 = 10*0.490;
+//    float FM2 = 10*2.60;
+//    float FM3 = 10*0.86;
+//    float FM4 = 10*2.60;
 
-    float Fmax = FM1 + FM2 + FM3 + FM4;       // Força e torque maximos do barco
+    float Fmax = 4.0f*FM1 ;//+ FM2 + FM3 + FM4;       // Força e torque maximos do barco
 
-    float L    = 0.586f;          // Tamanho do braço do barco
+    float L    = 0.20f;          // Tamanho do braço do barco
     float Lx = L*cosf(M_PI/4.0f);
     float Ly = L*cosf(M_PI/4.0f);
 
@@ -190,10 +190,6 @@ private:
     float Nmax = L*Fmax;
 
     float k1 = (FM1)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
-    float k2 = (FM2)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
-    float k3 = (FM3)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
-    float k4 = (FM4)/(Pwmmax-Pwmmin); // Esse valor é atualizado no AduCopter.cpp para corresponder aos valores de memória
-
     // Servo Motores Barco
     float servo_m1 = 0.0f;
     float servo_m2 = 0.0f;
