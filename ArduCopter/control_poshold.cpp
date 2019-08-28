@@ -72,6 +72,22 @@ static struct {
     int16_t pitch;  // final pitch angle sent to attitude controller
 } poshold;
 
+//Mathaus
+void Copter::force_calc_poshold()
+{
+    // Forças Calculadas pelo controlador de posição são calculadas aqui.
+    Fx = -((float)(poshold.pitch))/(float)(aparm.angle_max);
+    Fy =  ((float)(poshold.roll))/(float)(aparm.angle_max);
+
+    // Saturação das Forças
+    Fx = constrain_float(Fx,-1.0f,1.0f);
+    Fy = constrain_float(Fy,-1.0f,1.0f);
+
+    // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
+    Fx = map(Fx,Fy);
+    Fy = map(Fy,Fx);
+}
+
 // poshold_init - initialise PosHold controller
 bool Copter::poshold_init(bool ignore_checks)
 {
@@ -205,7 +221,12 @@ void Copter::poshold_run()
         wp_nav->init_loiter_target();
         attitude_control->reset_rate_controller_I_terms();
         attitude_control->set_yaw_target_to_current_heading();
+
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0, 0, 0, get_smoothing_gain());
+        //Mathaus
+        Fx = 0.0f;
+        Fy = 0.0f;
+
         pos_control->relax_alt_hold_controllers(0.0f);   // forces throttle output to go to zero
         pos_control->update_z_controller();
         return;
@@ -483,6 +504,7 @@ void Copter::poshold_run()
                             }
                         }
                     }
+
                     break;
 
                 case POSHOLD_LOITER:
@@ -532,6 +554,11 @@ void Copter::poshold_run()
 
         // update attitude controller targets
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(poshold.roll, poshold.pitch, target_yaw_rate, get_smoothing_gain());
+
+        //Mathaus
+        force_calc_poshold();
+
+
 
         // adjust climb rate using rangefinder
         if (rangefinder_alt_ok()) {

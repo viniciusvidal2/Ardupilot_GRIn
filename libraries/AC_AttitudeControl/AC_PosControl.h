@@ -103,7 +103,7 @@ public:
     void calc_leash_length_z();
 
     /// set_alt_target - set altitude target in cm above home
-    void set_alt_target(float alt_cm) { _pos_target.z = alt_cm; }
+    void set_alt_target(float alt_cm) { _pos_target.z = 0*alt_cm; }
 
     /// set_alt_target_with_slew - adjusts target towards a final altitude target
     ///     should be called continuously (with dt set to be the expected time between calls)

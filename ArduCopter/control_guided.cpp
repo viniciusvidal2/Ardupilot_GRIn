@@ -422,6 +422,9 @@ void Copter::guided_pos_control_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
+    //Mathaus
+    force_calc();
+
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
         // roll & pitch from waypoint controller, yaw rate from pilot
@@ -475,6 +478,9 @@ void Copter::guided_vel_control_run()
 
     // call velocity controller which includes z axis controller
     pos_control->update_vel_controller_xyz(ekfNavVelGainScaler);
+
+    //Mathaus
+    force_calc_guided(pos_control->get_roll(),pos_control->get_pitch());
 
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
@@ -549,6 +555,10 @@ void Copter::guided_posvel_control_run()
     }
 
     pos_control->update_z_controller();
+
+    //Mathaus
+    force_calc_guided(pos_control->get_roll(),pos_control->get_pitch());
+
 
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
@@ -629,6 +639,7 @@ void Copter::guided_angle_control_run()
     // set motors to full range
     motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
+    //Mathaus
     force_calc_guided(roll_in,pitch_in);
 
     // call attitude controller

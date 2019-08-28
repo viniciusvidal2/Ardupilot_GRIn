@@ -100,6 +100,9 @@ void Copter::drift_run()
     // set motors to full range
     motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
+    //Mathaus
+    force_calc_guided(target_roll,target_pitch);
+
     // call attitude controller
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
 

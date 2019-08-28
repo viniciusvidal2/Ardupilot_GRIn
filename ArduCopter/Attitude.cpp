@@ -43,6 +43,7 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     roll_out  = roll_out *0;
     pitch_out = pitch_out*0;
 
+    get_pilot_desired_force_to_boat_M();
 }
 
 

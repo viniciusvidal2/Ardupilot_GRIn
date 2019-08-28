@@ -134,6 +134,9 @@ void AC_PosControl::set_alt_target_with_slew(float alt_cm, float dt)
 {
     float alt_change = alt_cm-_pos_target.z;
 
+    //Mathaus
+    alt_change = 0*alt_change;
+
     // do not use z-axis desired velocity feed forward
     _flags.use_desvel_ff_z = false;
 
@@ -202,7 +205,7 @@ void AC_PosControl::set_alt_target_from_climb_rate_ff(float climb_rate_cms, floa
     // adjust desired alt if motors have not hit their limits
     // To-Do: add check of _limit.pos_down?
     if ((_vel_desired.z<0 && (!_motors.limit.throttle_lower || force_descend)) || (_vel_desired.z>0 && !_motors.limit.throttle_upper && !_limit.pos_up)) {
-        _pos_target.z += _vel_desired.z * dt;
+        _pos_target.z += _vel_desired.z * dt * 0; //Mathaus
     }
 }
 
@@ -211,13 +214,13 @@ void AC_PosControl::set_alt_target_from_climb_rate_ff(float climb_rate_cms, floa
 ///     almost no checks are performed on the input
 void AC_PosControl::add_takeoff_climb_rate(float climb_rate_cms, float dt)
 {
-    _pos_target.z += climb_rate_cms * dt;
+    _pos_target.z += 0 * climb_rate_cms * dt; //Mathaus
 }
 
 /// shift altitude target (positive means move altitude up)
 void AC_PosControl::shift_alt_target(float z_cm)
 {
-    _pos_target.z += z_cm;
+    _pos_target.z += z_cm * 0; //Mathaus
 
     // freeze feedforward to avoid jump
     if (!is_zero(z_cm)) {
@@ -228,7 +231,7 @@ void AC_PosControl::shift_alt_target(float z_cm)
 /// relax_alt_hold_controllers - set all desired and targets to measured
 void AC_PosControl::relax_alt_hold_controllers(float throttle_setting)
 {
-    _pos_target.z = _inav.get_altitude();
+    _pos_target.z = 0*_inav.get_altitude();// mathaus
     _vel_desired.z = 0.0f;
     _flags.use_desvel_ff_z = false;
     _vel_target.z = _inav.get_velocity_z();
@@ -300,7 +303,7 @@ void AC_PosControl::init_takeoff()
 {
     const Vector3f& curr_pos = _inav.get_position();
 
-    _pos_target.z = curr_pos.z;
+    _pos_target.z =0*curr_pos.z; //Mathaus
 
     // freeze feedforward to avoid jump
     freeze_ff_z();
@@ -376,6 +379,7 @@ void AC_PosControl::pos_to_rate_z()
         _pos_error.z = -_leash_down_z;
         _limit.pos_down = true;
     }
+
     // MURILLO
     _pos_error.z = 0;
 
@@ -476,8 +480,8 @@ void AC_PosControl::accel_to_throttle(float accel_target_z)
         _accel_error.z = accel_target_z - z_accel_meas;
     }
     // Mathaus
-    _accel_error.z = 0.0;
-    accel_target_z = 0.0;
+    _accel_error.z = 0.0f;
+    accel_target_z = 0.0f;
 
     // set input to PID
     _pid_accel_z.set_input_filter_all(_accel_error.z);
@@ -772,10 +776,10 @@ void AC_PosControl::update_vel_controller_xyz(float ekfNavVelGainScaler)
     }
 
     // update altitude target
-    set_alt_target_from_climb_rate_ff(_vel_desired.z, _dt, false);
+    set_alt_target_from_climb_rate_ff(0*_vel_desired.z, _dt, false); //mathaus
 
     // run z-axis position controller
-    update_z_controller();
+   // update_z_controller(); //mathaus
 }
 
 float AC_PosControl::get_horizontal_error() const

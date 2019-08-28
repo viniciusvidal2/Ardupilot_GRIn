@@ -82,7 +82,7 @@ void Copter::circle_run()
     circle_nav->update();
 
     //Mathaus
-    force_calc();
+    force_calc_circle();
 
     // call attitude controller
     if (circle_pilot_yaw_override) {
@@ -101,6 +101,7 @@ void Copter::circle_run()
     pos_control->update_z_controller();
 }
 
+//Mathaus
 void Copter::force_calc_circle()
 {
     // Forças Calculadas pelo controlador de posição são calculadas aqui.

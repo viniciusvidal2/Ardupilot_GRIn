@@ -71,22 +71,6 @@ void Copter::precision_loiter_xy()
 }
 #endif
 
-//Mathaus
-void Copter::force_calc_loiter()
-{
-    // Forças Calculadas pelo controlador de posição são calculadas aqui.
-    Fx = -((float)(wp_nav->get_pitch()))/(float)(aparm.angle_max);
-    Fy =  ((float)(wp_nav->get_roll()))/(float)(aparm.angle_max);
-
-    // Saturação das Forças
-    Fx = constrain_float(Fx,-1.0f,1.0f);
-    Fy = constrain_float(Fy,-1.0f,1.0f);
-
-    // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
-    Fx = map(Fx,Fy);
-    Fy = map(Fy,Fx);
-}
-
 // loiter_run - runs the loiter controller
 // should be called at 100hz or more
 void Copter::loiter_run()
@@ -160,7 +144,7 @@ void Copter::loiter_run()
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
         //Mathaus
-        force_calc_loiter();
+        force_calc();
 
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
         pos_control->update_z_controller();
@@ -189,7 +173,7 @@ void Copter::loiter_run()
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
         //Mathaus
-        force_calc_loiter();
+        force_calc();
 
         // call attitude controller
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
@@ -211,6 +195,10 @@ void Copter::loiter_run()
         attitude_control->reset_rate_controller_I_terms();
         attitude_control->set_yaw_target_to_current_heading();
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0, 0, 0, get_smoothing_gain());
+
+        //Mathaus
+        Fx = 0.0f;
+        Fy = 0.0f;
         pos_control->relax_alt_hold_controllers(0.0f);   // forces throttle output to go to zero
         pos_control->update_z_controller();
         break;
@@ -230,7 +218,7 @@ void Copter::loiter_run()
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
         //Mathaus
-        force_calc_loiter();
+        force_calc();
 
         // call attitude controller
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
