@@ -55,8 +55,11 @@ void Copter::stabilize_run()
     // get pilot's desired throttle
     pilot_throttle_scaled = get_pilot_desired_throttle(channel_throttle->get_control_in());
 
-    // Mathaus
-    get_pilot_desired_force_to_boat_M();
+//    // Mathaus
+//    get_pilot_desired_force_to_boat_M();
+
+    //Mathaus
+    FxFy_calc(target_roll,target_pitch);
 
     // call attitude controller
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());

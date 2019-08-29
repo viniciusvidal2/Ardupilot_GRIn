@@ -447,6 +447,10 @@ void Copter::autotune_run()
         }
         attitude_control->reset_rate_controller_I_terms();
         attitude_control->set_yaw_target_to_current_heading();
+
+        //Mathaus
+        FxFy_calc(target_roll,target_pitch);
+
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
         pos_control->relax_alt_hold_controllers(0.0f);
         pos_control->update_z_controller();
@@ -487,6 +491,8 @@ void Copter::autotune_run()
 
         // if pilot override call attitude controller
         if (autotune_state.pilot_override || autotune_state.mode != AUTOTUNE_MODE_TUNING) {
+            //Mathaus
+            FxFy_calc(target_roll,target_pitch);
             attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
         }else{
             // somehow get attitude requests from autotuning
@@ -639,11 +645,17 @@ void Copter::autotune_attitude_control()
             switch (autotune_state.axis) {
             case AUTOTUNE_AXIS_ROLL:
                 // request roll to 20deg
+                //Mathaus
+                FxFy_calc(direction_sign * autotune_target_angle + autotune_start_angle, 0.0f);
+
                 attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw( direction_sign * autotune_target_angle + autotune_start_angle, 0.0f, 0.0f, get_smoothing_gain());
                 break;
             case AUTOTUNE_AXIS_PITCH:
+                //Mathaus
+                FxFy_calc(0.0f, direction_sign * autotune_target_angle + autotune_start_angle);
+
                 // request pitch to 20deg
-                attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw( 0.0f, direction_sign * autotune_target_angle + autotune_start_angle, 0.0f, get_smoothing_gain());
+                attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(direction_sign * autotune_target_angle + autotune_start_angle ,0.0f, 0.0f, get_smoothing_gain());
                 break;
             case AUTOTUNE_AXIS_YAW:
                 // request pitch to 20deg

@@ -32,21 +32,6 @@ bool Copter::brake_init(bool ignore_checks)
         return false;
     }
 }
-//Mathaus
-void Copter::force_calc_break()
-{
-    // Forças Calculadas pelo controlador de posição são calculadas aqui.
-    Fx = -((float)(circle_nav->get_pitch()))/(float)(aparm.angle_max);
-    Fy =  ((float)(circle_nav->get_roll()))/(float)(aparm.angle_max);
-
-    // Saturação das Forças
-    Fx = constrain_float(Fx,-1.0f,1.0f);
-    Fy = constrain_float(Fy,-1.0f,1.0f);
-
-    // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
-    Fx = map(Fx,Fy);
-    Fy = map(Fy,Fx);
-}
 
 // brake_run - runs the brake controller
 // should be called at 100hz or more
@@ -85,7 +70,7 @@ void Copter::brake_run()
     wp_nav->update_brake(ekfGndSpdLimit, ekfNavVelGainScaler);
 
     //Mathaus
-    force_calc_break();
+    FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
     // call attitude controller
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), 0.0f, get_smoothing_gain());

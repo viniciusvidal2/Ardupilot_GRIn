@@ -422,6 +422,9 @@ void Copter::guided_pos_control_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
+    //Mathaus
+    FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
+
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
         // roll & pitch from waypoint controller, yaw rate from pilot
@@ -475,6 +478,9 @@ void Copter::guided_vel_control_run()
 
     // call velocity controller which includes z axis controller
     pos_control->update_vel_controller_xyz(ekfNavVelGainScaler);
+
+    //Mathaus
+    FxFy_calc(pos_control->get_roll(), pos_control->get_pitch());
 
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
@@ -550,6 +556,9 @@ void Copter::guided_posvel_control_run()
 
     pos_control->update_z_controller();
 
+    //Mathaus
+    FxFy_calc(pos_control->get_roll(),pos_control->get_pitch());
+
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
         // roll & pitch from waypoint controller, yaw rate from pilot
@@ -560,21 +569,6 @@ void Copter::guided_posvel_control_run()
     }
 }
 
-//Mathaus
-void Copter::force_calc_guided(float roll, float pitch)
-{
-    // Forças Calculadas pelo controlador de posição são calculadas aqui.
-    Fx = -((float)(pitch))/(float)(aparm.angle_max);
-    Fy =  ((float)(roll))/(float)(aparm.angle_max);
-
-    // Saturação das Forças
-    Fx = constrain_float(Fx,-1.0f,1.0f);
-    Fy = constrain_float(Fy,-1.0f,1.0f);
-
-    // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
-    Fx = map(Fx,Fy);
-    Fy = map(Fy,Fx);
-}
 
 // guided_angle_control_run - runs the guided angle controller
 // called from guided_run
@@ -629,13 +623,14 @@ void Copter::guided_angle_control_run()
     // set motors to full range
     motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
-    force_calc_guided(roll_in,pitch_in);
+    //Mathaus
+    FxFy_calc(roll_in,pitch_in);
 
     // call attitude controller
     if (guided_angle_state.use_yaw_rate) {
-        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0*roll_in, 0*pitch_in, yaw_rate_in, get_smoothing_gain());
+        attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(roll_in, pitch_in, yaw_rate_in, get_smoothing_gain());
     } else {
-        attitude_control->input_euler_angle_roll_pitch_yaw(0*roll_in, 0*pitch_in, yaw_in, true, get_smoothing_gain());
+        attitude_control->input_euler_angle_roll_pitch_yaw(roll_in, pitch_in, yaw_in, true, get_smoothing_gain());
     }
 
     // call position controller

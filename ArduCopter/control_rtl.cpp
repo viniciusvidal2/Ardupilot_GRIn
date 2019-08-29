@@ -165,6 +165,9 @@ void Copter::rtl_climb_return_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
+    //Mathaus
+    FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
+
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
         // roll & pitch from waypoint controller, yaw rate from pilot
@@ -232,6 +235,9 @@ void Copter::rtl_loiterathome_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
+    //Mathaus
+    FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
+
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
         // roll & pitch from waypoint controller, yaw rate from pilot
@@ -271,21 +277,6 @@ void Copter::rtl_descent_start()
     set_auto_yaw_mode(AUTO_YAW_HOLD);
 }
 
-//Mathaus
-void Copter::force_calc_rtl()
-{
-    // Forças Calculadas pelo controlador de posição são calculadas aqui.
-    Fx = -((float)(wp_nav->get_pitch()))/(float)(aparm.angle_max);
-    Fy =  ((float)(wp_nav->get_roll()))/(float)(aparm.angle_max);
-
-    // Saturação das Forças
-    Fx = constrain_float(Fx,-1.0f,1.0f);
-    Fy = constrain_float(Fy,-1.0f,1.0f);
-
-    // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
-    Fx = map(Fx,Fy);
-    Fy = map(Fy,Fx);
-}
 
 // rtl_descent_run - implements the final descent to the RTL_ALT
 //      called by rtl_run at 100hz or more
@@ -347,7 +338,7 @@ void Copter::rtl_descent_run()
     pos_control->update_z_controller();
 
     //Mathaus
-    void force_calc_rtl();
+    FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
     // roll & pitch from waypoint controller, yaw rate from pilot
     attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
