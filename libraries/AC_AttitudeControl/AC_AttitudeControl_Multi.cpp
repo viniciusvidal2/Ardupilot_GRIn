@@ -278,6 +278,7 @@ void AC_AttitudeControl_Multi::rate_controller_run()
     _motors.set_pitch(rate_target_to_motor_pitch(gyro_latest.y, _rate_target_ang_vel.y));
     _motors.set_yaw(rate_target_to_motor_yaw(gyro_latest.z, _rate_target_ang_vel.z));
     control_monitor_update();
+
 }
 
 // sanity check parameters.  should be called once before takeoff

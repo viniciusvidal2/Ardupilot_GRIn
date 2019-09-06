@@ -17,8 +17,8 @@
  *  Wiki:           copter.ardupilot.org
  *  Creator:        Jason Short
  *  Lead Developer: Randy Mackay
- *  Lead Tester:    Marco Robustini 
- *  Based on code and ideas from the Arducopter team: Leonard Hall, Andrew Tridgell, Robert Lefebvre, Pat Hickey, Michael Oborne, Jani Hirvinen, 
+ *  Lead Tester:    Marco Robustini
+ *  Based on code and ideas from the Arducopter team: Leonard Hall, Andrew Tridgell, Robert Lefebvre, Pat Hickey, Michael Oborne, Jani Hirvinen,
                                                       Olivier Adler, Kevin Hester, Arthur Benemann, Jonathan Challinger, John Arne Birkeland,
                                                       Jean-Louis Naudin, Mike Smith, and more
  *  Thanks to:	Chris Anderson, Jordi Munoz, Jason Short, Doug Weibel, Jose Julio
@@ -84,9 +84,9 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(rc_loop,              100,    130),
     SCHED_TASK(throttle_loop,         50,     75),
     SCHED_TASK(update_GPS,            50,    200),
-#if OPTFLOW == ENABLED
+    #if OPTFLOW == ENABLED
     SCHED_TASK(update_optical_flow,  200,    160),
-#endif
+    #endif
     SCHED_TASK(update_batt_compass,   10,    120),
     SCHED_TASK(read_aux_switches,     10,     50),
     SCHED_TASK(arm_motors_check,      10,     50),
@@ -102,12 +102,12 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(three_hz_loop,          3,     75),
     SCHED_TASK(compass_accumulate,   100,    100),
     SCHED_TASK(barometer_accumulate,  50,     90),
-#if PRECISION_LANDING == ENABLED
+    #if PRECISION_LANDING == ENABLED
     SCHED_TASK(update_precland,      400,     50),
-#endif
-#if FRAME_CONFIG == HELI_FRAME
+    #endif
+    #if FRAME_CONFIG == HELI_FRAME
     SCHED_TASK(check_dynamic_flight,  50,     75),
-#endif
+    #endif
     SCHED_TASK(update_notify,         50,     90),
     SCHED_TASK(one_hz_loop,            1,    100),
     SCHED_TASK(ekf_check,             10,     75),
@@ -127,31 +127,31 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(rpm_update,            10,    200),
     SCHED_TASK(compass_cal_update,   100,    100),
     SCHED_TASK(accel_cal_update,      10,    100),
-#if ADSB_ENABLED == ENABLED
+    #if ADSB_ENABLED == ENABLED
     SCHED_TASK(avoidance_adsb_update, 10,    100),
-#endif
-#if ADVANCED_FAILSAFE == ENABLED
+    #endif
+    #if ADVANCED_FAILSAFE == ENABLED
     SCHED_TASK(afs_fs_check,          10,    100),
-#endif
+    #endif
     SCHED_TASK(terrain_update,        10,    100),
-#if GRIPPER_ENABLED == ENABLED
+    #if GRIPPER_ENABLED == ENABLED
     SCHED_TASK(gripper_update,        10,     75),
-#endif
-#ifdef USERHOOK_FASTLOOP
+    #endif
+    #ifdef USERHOOK_FASTLOOP
     SCHED_TASK(userhook_FastLoop,    100,     75),
-#endif
-#ifdef USERHOOK_50HZLOOP
+    #endif
+    #ifdef USERHOOK_50HZLOOP
     SCHED_TASK(userhook_50Hz,         50,     75),
-#endif
-#ifdef USERHOOK_MEDIUMLOOP
+    #endif
+    #ifdef USERHOOK_MEDIUMLOOP
     SCHED_TASK(userhook_MediumLoop,   10,     75),
-#endif
-#ifdef USERHOOK_SLOWLOOP
+    #endif
+    #ifdef USERHOOK_SLOWLOOP
     SCHED_TASK(userhook_SlowLoop,     3.3,    75),
-#endif
-#ifdef USERHOOK_SUPERSLOWLOOP
+    #endif
+    #ifdef USERHOOK_SUPERSLOWLOOP
     SCHED_TASK(userhook_SuperSlowLoop, 1,   75),
-#endif
+    #endif
     SCHED_TASK(button_update,          5,    100),
     SCHED_TASK(stats_update,           1,    100),
 };
@@ -254,11 +254,12 @@ void Copter::fast_loop()
     ins.update();
     
     if(control_mode==AUTO){
-    // run low level rate controllers that only require IMU data
-    attitude_control->rate_controller_run(tN);
+        // run low level rate controllers that only require IMU data
+        attitude_control->rate_controller_run(tN);
     }else{
-    // run low level rate controllers that only require IMU data
-    attitude_control->rate_controller_run();
+        // run low level rate controllers that only require IMU data
+        tN = 0.0f;
+        attitude_control->rate_controller_run();
     }
 
     // send outputs to the motors library immediately
@@ -352,7 +353,7 @@ void Copter::update_trigger(void)
         if (should_log(MASK_LOG_CAMERA)) {
             DataFlash.Log_Write_Camera(ahrs, gps, current_loc);
         }
-    }    
+    }
 #endif
 }
 

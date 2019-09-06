@@ -77,8 +77,6 @@ void Copter::auto_run()
     case Auto_Circle:
         auto_circle_run();
         break;
-
-        // MURILLO mexer ainda
     case Auto_Spline:
         auto_spline_run();
         break;
@@ -89,7 +87,6 @@ void Copter::auto_run()
 #endif
         break;
 
-        // MURILLO
     case Auto_Loiter:
         auto_loiter_run();
         break;
@@ -646,6 +643,8 @@ uint8_t Copter::get_default_auto_yaw_mode(bool rtl)
 // set_auto_yaw_mode - sets the yaw mode for auto
 void Copter::set_auto_yaw_mode(uint8_t yaw_mode)
 {
+    //Mathaus
+    tN = 0.0f;
     // return immediately if no change
     if (auto_yaw_mode == yaw_mode) {
         return;
