@@ -174,10 +174,10 @@ private:
 
     // Propriedade Física do Barco
     float FT = 0.0f;
-    float FM1 = 10*0.86;
-    float FM2 = 10*2.60;
-    float FM3 = 10*0.86;
-    float FM4 = 10*2.60;
+    float FM1 = 10*0.8f;
+    float FM2 = 10*2.6f;
+    float FM3 = 10*0.8f;
+    float FM4 = 10*2.6f;
 
     float Fmax = FM1 + FM2 + FM3 + FM4;       // Força e torque maximos do barco
 

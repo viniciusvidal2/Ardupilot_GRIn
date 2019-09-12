@@ -84,16 +84,19 @@ void Copter::get_pilot_desired_force_to_boat_M()
     float_t med_pitch = (channel_pitch->get_radio_min()+ ((channel_pitch->get_radio_max()- channel_pitch->get_radio_min())/2.0));
     float_t med_yaw   = (channel_yaw->get_radio_min()  + ((channel_yaw->get_radio_max()  - channel_yaw->get_radio_min())/2.0));
 
+    float_t X;
+    float_t Y;
+
     //Calcula a força em Y a partir do stick de Rolagem
-    Fy = float(channel_roll->get_radio_in()- med_roll)/float(channel_roll->get_radio_max() - med_roll);
+    Y = float(channel_roll->get_radio_in()- med_roll)/float(channel_roll->get_radio_max() - med_roll);
     //Calcula a força em X a partir do stick de Arfagem
-    Fx = float(channel_pitch->get_radio_in()-med_pitch)/float(channel_pitch->get_radio_max()- med_pitch);
+    X = float(channel_pitch->get_radio_in()-med_pitch)/float(channel_pitch->get_radio_max()- med_pitch);
     //Calcula o torque em Z a partir do stick de Guinada
     tN = float(channel_yaw->get_radio_in()-  med_yaw)/float(channel_yaw->get_radio_max() - med_yaw);
 
-    Fx = constrain_float(Fx,-1.0f,1.0f);
-    Fy = constrain_float(Fy,-1.0f,1.0f);
+    X = constrain_float(X,-1.0f,1.0f);
+    Y = constrain_float(Y,-1.0f,1.0f);
 
-    Fx = map(Fx,Fy);
-    Fy = map(Fy,Fx);
+    Fx = map(X,Y);
+    Fy = map(Y,X);
 }
