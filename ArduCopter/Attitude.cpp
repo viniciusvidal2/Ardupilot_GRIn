@@ -69,6 +69,14 @@ float Copter::PWMtoNorm(float pwm)
     return constrain_float(V,0.0f,1.0f);
 }
 
+void Copter::Allocacao_Direta(float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4)
+{
+    /// Entra um valor de 0 a 1 e sai um PWM
+    FX_out = (float)(PWM1*k1*cosf(Theta1) + PWM2*k2*cosf(Theta2) + PWM3*k3*cosf(Theta3) + PWM4*k4*cosf(Theta4));
+    FY_out = (float)(PWM1*k1*sinf(Theta1) + PWM2*k2*sinf(Theta2) + PWM3*k3*sinf(Theta3) + PWM4*k4*sinf(Theta4));
+    TN_out = (float)(Ly*(PWM1*k1*sinf(Theta1) - PWM2*k2*sinf(Theta2) + PWM3*k3*sinf(Theta3) - PWM4*k4*sinf(Theta4)) - Lx*(PWM1*k1*cosf(Theta1) - PWM2*k2*cosf(Theta2) - PWM3*k3*cosf(Theta3) + PWM4*k4*cosf(Theta4)));
+}
+
 float Copter::NormtoPWM(float val)
 {
     /// Entra um valor de 0 a 1 e sai um PWM
@@ -182,6 +190,10 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
 
 
     }
+
+    Allocacao_Direta( Theta1, Theta2, Theta3, Theta4, PWM1, PWM2, PWM3, PWM4);
+
+
     // Normaliza o valor de PWM encontrado entre 0 e 1 para ativar a saida entre mínima e maxima potência
     PWM1 = PWMtoNorm(PWM1);
     PWM2 = PWMtoNorm(PWM2);

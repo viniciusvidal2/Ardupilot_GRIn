@@ -180,14 +180,14 @@ void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan) //NAV_c
     //const Vector3f &targets = attitude_control->get_att_target_euler_cd();
     mavlink_msg_nav_controller_output_send(
         chan,
-        (servo_m1*100),//targets.x / 1.0e2f,
+        (theta_m1*100),//targets.x / 1.0e2f,
         (theta_m2*100),//targets.y / 1.0e2f,
         (theta_m3*100),//targets.z / 1.0e2,
         (theta_m4*100),//wp_bearing / 1.0e2f,
-        (FT*100),//round(100*sqrt(sq(Fx)+sq(Fy))), //- Uint
-        tN*1000,
-        Fx*1000,
-        Fy*1000);
+        (0*100),//round(100*sqrt(sq(Fx)+sq(Fy))), //- Uint
+        TN_out*1000,
+        FX_out*1000,
+        FY_out*1000);
 }
 
 // report simulator stat4e
@@ -249,21 +249,6 @@ NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan) //SYS_status
 
 
 
-void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
-{
-    mavlink_msg_vfr_hud_send(
-        chan,
-        gps.ground_speed(),
-        ahrs.groundspeed(),
-        (ahrs.yaw_sensor / 100) % 360,
-        (int16_t)(motors->get_throttle() * 100),
-        channel_pitch->get_control_in(),
-        climb_rate / 100.0f);
-}
-
-
-//===========================================================================================================
-
 //void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
 //{
 //    mavlink_msg_vfr_hud_send(
@@ -275,6 +260,21 @@ void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
 //        channel_pitch->get_control_in(),
 //        climb_rate / 100.0f);
 //}
+
+
+//===========================================================================================================
+
+void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
+{
+    mavlink_msg_vfr_hud_send(
+        chan,
+        FX_out,//gps.ground_speed(),
+        FY_out,//ahrs.groundspeed(),
+        (ahrs.yaw_sensor / 100) % 360,
+        (int16_t)(motors->get_throttle() * 100),
+        channel_pitch->get_control_in(),
+        TN_out);//climb_rate / 100.0f);
+}
 
 void NOINLINE Copter::send_current_waypoint(mavlink_channel_t chan)
 {

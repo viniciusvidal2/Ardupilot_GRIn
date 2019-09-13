@@ -210,9 +210,15 @@ private:
     float Pwm3 = 0.0f;
     float Pwm4 = 0.0f;
 
+    //    Forcas enviadas para a alocacao
     float Fx = 0.0f;
     float Fy = 0.0f;
     float tN = 0.0f;
+
+    //    Forcas Alocadas realmente
+    float FX_out = 0.0f;
+    float FY_out = 0.0f;
+    float TN_out = 0.0f;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -405,9 +411,9 @@ private:
 
     // Motor Output
 #if FRAME_CONFIG == HELI_FRAME
- #define MOTOR_CLASS AP_MotorsHeli
+#define MOTOR_CLASS AP_MotorsHeli
 #else
- #define MOTOR_CLASS AP_MotorsMulticopter
+#define MOTOR_CLASS AP_MotorsMulticopter
 #endif
 
     MOTOR_CLASS *motors;
@@ -610,8 +616,8 @@ private:
     AP_Rally_Copter rally;
 #endif
 
-    // RSSI 
-    AP_RSSI rssi;      
+    // RSSI
+    AP_RSSI rssi;
 
     // Crop Sprayer
 #if SPRAYER == ENABLED
@@ -702,12 +708,12 @@ private:
     float max(float *vet);
     // Mathaus
 
-
     int servo_angle_to_pwm(float angle,float srv_min_pwm,float srv_max_pwm);
     float servo_pwm_to_angle(int PWM_aux);
     float PWMtoNorm(float pwm);
     float NormtoPWM(float pwm);
     float map(float X, float Y);
+    void Allocacao_Direta(float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4);
     void get_pilot_desired_force_to_boat_M();
     void pwm_servo_angle();
     void FOSSEN_alocation_matrix(float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
