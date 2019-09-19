@@ -236,16 +236,16 @@ void Copter::auto_wp_start(const Location_Class& dest_loc)
 void Copter::FxFy_calc(float roll, float pitch)
 {
     // Forças Calculadas pelo controlador de posição são calculadas aqui.
-    Fx = -((float)pitch)/(float)(aparm.angle_max);
-    Fy =  ((float)roll) /(float)(aparm.angle_max);
+    X = -((float)pitch)/(float)(aparm.angle_max);
+    Y =  ((float)roll) /(float)(aparm.angle_max);
 
     // Saturação das Forças
-    Fx = constrain_float(Fx,-1.0f,1.0f);
-    Fy = constrain_float(Fy,-1.0f,1.0f);
+    X = constrain_float(X,-1.0f,1.0f);
+    Y = constrain_float(Y,-1.0f,1.0f);
 
     // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
-    Fx = map(Fx,Fy);
-    Fy = map(Fy,Fx);
+    Fx = map(X,Y);
+    Fy = map(Y,X);
 }
 
 // auto_wp_run - runs the auto waypoint controller

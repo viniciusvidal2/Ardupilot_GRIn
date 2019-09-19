@@ -71,7 +71,7 @@ float Copter::PWMtoNorm(float pwm)
 
 void Copter::Allocacao_Direta(float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4)
 {
-    /// Entra um valor de 0 a 1 e sai um PWM
+
     FX_out = (float)(PWM1*k1*cosf(Theta1) + PWM2*k2*cosf(Theta2) + PWM3*k3*cosf(Theta3) + PWM4*k4*cosf(Theta4));
     FY_out = (float)(PWM1*k1*sinf(Theta1) + PWM2*k2*sinf(Theta2) + PWM3*k3*sinf(Theta3) + PWM4*k4*sinf(Theta4));
     TN_out = (float)(Ly*(PWM1*k1*sinf(Theta1) - PWM2*k2*sinf(Theta2) + PWM3*k3*sinf(Theta3) - PWM4*k4*sinf(Theta4)) - Lx*(PWM1*k1*cosf(Theta1) - PWM2*k2*cosf(Theta2) - PWM3*k3*cosf(Theta3) + PWM4*k4*cosf(Theta4)));
@@ -145,9 +145,8 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
 //        PWM3 = (sqrt((sq(k3)*sq(FY*sq(Lx)*powf(k2,4) + FY*sq(Lx)*powf(k4,4) + Lx*TN*powf(k2,4) + Lx*TN*powf(k4,4) - FX*Lx*Ly*powf(k2,4) + FX*Lx*Ly*powf(k4,4) + Lx*TN*sq(k1)*sq(k2) + Lx*TN*sq(k1)*sq(k4) + Lx*TN*sq(k2)*sq(k3) + 2*Lx*TN*sq(k2)*sq(k4) + Lx*TN*sq(k3)*sq(k4) + FY*sq(Lx)*sq(k1)*sq(k2) + FY*sq(Lx)*sq(k1)*sq(k4) + FY*sq(Lx)*sq(k2)*sq(k3) + 2*FY*sq(Lx)*sq(k2)*sq(k4) + FY*sq(Lx)*sq(k3)*sq(k4) + 2*FY*sq(Ly)*sq(k1)*sq(k2) + 2*FY*sq(Ly)*sq(k1)*sq(k3) + 2*FY*sq(Ly)*sq(k2)*sq(k4) + 2*FY*sq(Ly)*sq(k3)*sq(k4) + FX*Lx*Ly*sq(k1)*sq(k2) + FX*Lx*Ly*sq(k1)*sq(k4) - FX*Lx*Ly*sq(k2)*sq(k3) - FX*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (sq(k3)*sq(FX*sq(Ly)*powf(k1,4) + FX*sq(Ly)*powf(k4,4) + Ly*TN*powf(k1,4) + Ly*TN*powf(k4,4) - FY*Lx*Ly*powf(k1,4) + FY*Lx*Ly*powf(k4,4) + Ly*TN*sq(k1)*sq(k2) + Ly*TN*sq(k1)*sq(k3) + 2*Ly*TN*sq(k1)*sq(k4) + Ly*TN*sq(k2)*sq(k4) + Ly*TN*sq(k3)*sq(k4) + 2*FX*sq(Lx)*sq(k1)*sq(k2) + 2*FX*sq(Lx)*sq(k1)*sq(k4) + 2*FX*sq(Lx)*sq(k2)*sq(k3) + 2*FX*sq(Lx)*sq(k3)*sq(k4) + FX*sq(Ly)*sq(k1)*sq(k2) + FX*sq(Ly)*sq(k1)*sq(k3) + 2*FX*sq(Ly)*sq(k1)*sq(k4) + FX*sq(Ly)*sq(k2)*sq(k4) + FX*sq(Ly)*sq(k3)*sq(k4) + FY*Lx*Ly*sq(k1)*sq(k2) - FY*Lx*Ly*sq(k1)*sq(k3) + FY*Lx*Ly*sq(k2)*sq(k4) - FY*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
 //        PWM4 = (sqrt((sq(k4)*sq(FY*sq(Lx)*powf(k1,4) + FY*sq(Lx)*powf(k3,4) - Lx*TN*powf(k1,4) - Lx*TN*powf(k3,4) - FX*Lx*Ly*powf(k1,4) + FX*Lx*Ly*powf(k3,4) - Lx*TN*sq(k1)*sq(k2) - 2*Lx*TN*sq(k1)*sq(k3) - Lx*TN*sq(k1)*sq(k4) - Lx*TN*sq(k2)*sq(k3) - Lx*TN*sq(k3)*sq(k4) + FY*sq(Lx)*sq(k1)*sq(k2) + 2*FY*sq(Lx)*sq(k1)*sq(k3) + FY*sq(Lx)*sq(k1)*sq(k4) + FY*sq(Lx)*sq(k2)*sq(k3) + FY*sq(Lx)*sq(k3)*sq(k4) + 2*FY*sq(Ly)*sq(k1)*sq(k2) + 2*FY*sq(Ly)*sq(k1)*sq(k3) + 2*FY*sq(Ly)*sq(k2)*sq(k4) + 2*FY*sq(Ly)*sq(k3)*sq(k4) + FX*Lx*Ly*sq(k1)*sq(k2) - FX*Lx*Ly*sq(k1)*sq(k4) + FX*Lx*Ly*sq(k2)*sq(k3) - FX*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (sq(k4)*sq(FX*sq(Ly)*powf(k2,4) + FX*sq(Ly)*powf(k3,4) - Ly*TN*powf(k2,4) - Ly*TN*powf(k3,4) - FY*Lx*Ly*powf(k2,4) + FY*Lx*Ly*powf(k3,4) - Ly*TN*sq(k1)*sq(k2) - Ly*TN*sq(k1)*sq(k3) - 2*Ly*TN*sq(k2)*sq(k3) - Ly*TN*sq(k2)*sq(k4) - Ly*TN*sq(k3)*sq(k4) + 2*FX*sq(Lx)*sq(k1)*sq(k2) + 2*FX*sq(Lx)*sq(k1)*sq(k4) + 2*FX*sq(Lx)*sq(k2)*sq(k3) + 2*FX*sq(Lx)*sq(k3)*sq(k4) + FX*sq(Ly)*sq(k1)*sq(k2) + FX*sq(Ly)*sq(k1)*sq(k3) + 2*FX*sq(Ly)*sq(k2)*sq(k3) + FX*sq(Ly)*sq(k2)*sq(k4) + FX*sq(Ly)*sq(k3)*sq(k4) + FY*Lx*Ly*sq(k1)*sq(k2) + FY*Lx*Ly*sq(k1)*sq(k3) - FY*Lx*Ly*sq(k2)*sq(k4) - FY*Lx*Ly*sq(k3)*sq(k4)))/(4*sq(sq(k1) + sq(k2) + sq(k3) + sq(k4))*sq(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
 
-
 //        PWM1 = (sqrt(sq(FX/(4*k1) - (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))) + sq(FY/(4*k1) + (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1)))));
-//        PWM2 = (sqrt(sq(FX/(4*k1) + (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))) + sq(FY/(4*k1) - (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1)))));
+//        PWM2 = (sqrt(sq(FX/(4*k2) + (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))) + sq(FY/(4*k1) - (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1)))));
 //        PWM3 = (sqrt(sq(FX/(4*k1) + (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))) + sq(FY/(4*k1) + (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1)))));
 //        PWM4 = (sqrt(sq(FX/(4*k1) - (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))) + sq(FY/(4*k1) - (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1)))));
 
@@ -172,11 +171,11 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
 //        Theta4 = atan2f(((FY*(sq(Lx)*powf(k1,4)*k4 + sq(Lx)*powf(k3,4)*k4 + sq(Lx)*sq(k1)*powf(k4,3) + sq(Lx)*sq(k3)*powf(k4,3) + 2*sq(Ly)*sq(k2)*powf(k4,3) + 2*sq(Ly)*sq(k3)*powf(k4,3) + sq(Lx)*sq(k1)*sq(k2)*k4 + 2*sq(Lx)*sq(k1)*sq(k3)*k4 + sq(Lx)*sq(k2)*sq(k3)*k4 + 2*sq(Ly)*sq(k1)*sq(k2)*k4 + 2*sq(Ly)*sq(k1)*sq(k3)*k4))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (TN*(Lx*sq(k1)*k4 + Lx*sq(k3)*k4))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (FX*(Lx*sq(k1)*k4 + Lx*sq(k3)*k4)*(Ly*sq(k1) - Ly*sq(k2) - Ly*sq(k3) + Ly*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))),((FX*(sq(Ly)*powf(k2,4)*k4 + sq(Ly)*powf(k3,4)*k4 + 2*sq(Lx)*sq(k1)*powf(k4,3) + 2*sq(Lx)*sq(k3)*powf(k4,3) + sq(Ly)*sq(k2)*powf(k4,3) + sq(Ly)*sq(k3)*powf(k4,3) + 2*sq(Lx)*sq(k1)*sq(k2)*k4 + 2*sq(Lx)*sq(k2)*sq(k3)*k4 + sq(Ly)*sq(k1)*sq(k2)*k4 + sq(Ly)*sq(k1)*sq(k3)*k4 + 2*sq(Ly)*sq(k2)*sq(k3)*k4))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) - (TN*(Ly*sq(k2)*k4 + Ly*sq(k3)*k4))/(2*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4))) + (FY*(Ly*sq(k2)*k4 + Ly*sq(k3)*k4)*(Lx*sq(k1) - Lx*sq(k2) + Lx*sq(k3) - Lx*sq(k4)))/(2*(sq(k1) + sq(k2) + sq(k3) + sq(k4))*(sq(Lx)*sq(k1)*sq(k2) + sq(Lx)*sq(k1)*sq(k4) + sq(Lx)*sq(k2)*sq(k3) + sq(Lx)*sq(k3)*sq(k4) + sq(Ly)*sq(k1)*sq(k2) + sq(Ly)*sq(k1)*sq(k3) + sq(Ly)*sq(k2)*sq(k4) + sq(Ly)*sq(k3)*sq(k4)))));
 
 //        Theta1 = atan2f((FY/(4*k1) + (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))),( FX/(4*k1) - (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))));
-//        Theta2 = atan2f((FY/(4*k1) - (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))),( FX/(4*k1) + (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))));
-//        Theta3 = atan2f((FY/(4*k1) + (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))),( FX/(4*k1) + (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))));
-//        Theta4 = atan2f((FY/(4*k1) - (Lx*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))),( FX/(4*k1) - (Ly*TN)/(4*(sq(Lx)*k1 + sq(Ly)*k1))));
+//        Theta2 = atan2f((FY/(4*k2) - (Lx*TN)/(4*(sq(Lx)*k2 + sq(Ly)*k2))),( FX/(4*k2) + (Ly*TN)/(4*(sq(Lx)*k2 + sq(Ly)*k2))));
+//        Theta3 = atan2f((FY/(4*k3) + (Lx*TN)/(4*(sq(Lx)*k3 + sq(Ly)*k3))),( FX/(4*k3) + (Ly*TN)/(4*(sq(Lx)*k3 + sq(Ly)*k3))));
+//        Theta4 = atan2f((FY/(4*k4) - (Lx*TN)/(4*(sq(Lx)*k4 + sq(Ly)*k4))),( FX/(4*k4) - (Ly*TN)/(4*(sq(Lx)*k4 + sq(Ly)*k4))));
 
-        //ULTIMA
+//        ULTIMA
         Theta1 = atan2f((FY/(4*PWM1*k1) + (Lx*TN)/(4*PWM1*k1*(sq(Lx) + sq(Ly)))), (FX/(4*PWM1*k1) - (Ly*TN)/(4*PWM1*k1*(sq(Lx) + sq(Ly)))));
         Theta2 = atan2f((FY/(4*PWM2*k2) - (Lx*TN)/(4*PWM2*k2*(sq(Lx) + sq(Ly)))), (FX/(4*PWM2*k2) + (Ly*TN)/(4*PWM2*k2*(sq(Lx) + sq(Ly)))));
         Theta3 = atan2f((FY/(4*PWM3*k3) + (Lx*TN)/(4*PWM3*k3*(sq(Lx) + sq(Ly)))), (FX/(4*PWM3*k3) + (Ly*TN)/(4*PWM3*k3*(sq(Lx) + sq(Ly)))));
@@ -187,12 +186,9 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
         Theta2 = constrain_float(Theta2,-M_PI,M_PI);
         Theta3 = constrain_float(Theta3,-M_PI,M_PI);
         Theta4 = constrain_float(Theta4,-M_PI,M_PI);
-
-
     }
 
     Allocacao_Direta( Theta1, Theta2, Theta3, Theta4, PWM1, PWM2, PWM3, PWM4);
-
 
     // Normaliza o valor de PWM encontrado entre 0 e 1 para ativar a saida entre mínima e maxima potência
     PWM1 = PWMtoNorm(PWM1);
@@ -208,10 +204,10 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
 }
 
 
-float Copter::map(float X, float Y)
+float Copter::map(float x, float y)
 {
     /// Função para mapeamento da entrada do controle quadrada para circulo
-    return  X*(float)(sqrt(1.0f-sq(Y)/2.0f));
+    return  x*(float)(sqrt(1.0f-sq(y)/2.0f));
 }
 
 // get_pilot_desired_heading - transform pilot's yaw input into a

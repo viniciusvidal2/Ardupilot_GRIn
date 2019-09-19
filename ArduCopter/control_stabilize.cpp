@@ -83,9 +83,7 @@ void Copter::get_pilot_desired_force_to_boat_M()
     float_t med_roll  = (channel_roll->get_radio_min() + ((channel_roll->get_radio_max() - channel_roll->get_radio_min())/2.0));
     float_t med_pitch = (channel_pitch->get_radio_min()+ ((channel_pitch->get_radio_max()- channel_pitch->get_radio_min())/2.0));
     float_t med_yaw   = (channel_yaw->get_radio_min()  + ((channel_yaw->get_radio_max()  - channel_yaw->get_radio_min())/2.0));
-
-    float_t X;
-    float_t Y;
+    float_t GanhoF    = (float)(canalGanho->get_radio_in() - canalGanho->get_radio_min())/(canalGanho->get_radio_max()-canalGanho->get_radio_min());
 
     //Calcula a força em Y a partir do stick de Rolagem
     Y = float(channel_roll->get_radio_in()- med_roll)/float(channel_roll->get_radio_max() - med_roll);
@@ -94,8 +92,13 @@ void Copter::get_pilot_desired_force_to_boat_M()
     //Calcula o torque em Z a partir do stick de Guinada
     tN = float(channel_yaw->get_radio_in()-  med_yaw)/float(channel_yaw->get_radio_max() - med_yaw);
 
-    X = constrain_float(X,-1.0f,1.0f);
-    Y = constrain_float(Y,-1.0f,1.0f);
+    X = X*GanhoF;
+    Y = Y*GanhoF;
+    tN = tN*GanhoF;
+
+    X  = constrain_float(X,-1.0f,1.0f);
+    Y  = constrain_float(Y,-1.0f,1.0f);
+    tN = constrain_float(tN,-1.0f,1.0f);
 
     Fx = map(X,Y);
     Fy = map(Y,X);

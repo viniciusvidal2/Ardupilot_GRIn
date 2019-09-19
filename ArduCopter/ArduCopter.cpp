@@ -258,7 +258,7 @@ void Copter::fast_loop()
         attitude_control->rate_controller_run(tN);
     }else{
         // run low level rate controllers that only require IMU data
-        tN = 0.0f;
+//        tN = 0.0f;
         attitude_control->rate_controller_run();
     }
 

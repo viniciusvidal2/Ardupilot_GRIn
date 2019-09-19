@@ -220,6 +220,12 @@ private:
     float FY_out = 0.0f;
     float TN_out = 0.0f;
 
+//    float GanhoF = 1.0f;
+
+    // Variáveis auxiliares para Fx e Fy
+    float X = 0.0f;
+    float Y = 0.0f;
+
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
 
@@ -249,7 +255,7 @@ private:
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
 
-    RC_Channel *canalservo;
+    RC_Channel *canalGanho;
 
     // Dataflash
     DataFlash_Class DataFlash;
@@ -712,11 +718,11 @@ private:
     float servo_pwm_to_angle(int PWM_aux);
     float PWMtoNorm(float pwm);
     float NormtoPWM(float pwm);
-    float map(float X, float Y);
+    float map(float x, float y);
     void Allocacao_Direta(float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4);
     void get_pilot_desired_force_to_boat_M();
     void pwm_servo_angle();
-    void FOSSEN_alocation_matrix(float &FX,float &FY,float &N,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
+    void FOSSEN_alocation_matrix(float &FX,float &FY,float &tN,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
     void FxFy_calc(float roll, float pitch);
 
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);

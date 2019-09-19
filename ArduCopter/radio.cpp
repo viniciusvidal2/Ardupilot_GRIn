@@ -26,15 +26,14 @@ void Copter::init_rc_in()
     channel_throttle = RC_Channels::rc_channel(rcmap.throttle()-1);
     channel_yaw      = RC_Channels::rc_channel(rcmap.yaw()-1);
 
-    canalservo      = RC_Channels::rc_channel(5);       //(mathaus) Adiciona um canal para o controle do quinto motor
-
+    canalGanho      = RC_Channels::rc_channel(CH_6);       //(mathaus) Adiciona um canal para controlar a intensidade da força no barco
     // set rc channel ranges
     channel_roll->set_angle(ROLL_PITCH_YAW_INPUT_MAX);      // Utilizado para andar lateralmente com o barco sem mudar a orientação
     channel_pitch->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
     channel_yaw->set_angle(ROLL_PITCH_YAW_INPUT_MAX);      // vai ser usado para rotacionar o  barco
     channel_throttle->set_range(1000);                     // utilizado para a força em X
 
-    canalservo->set_angle(ROLL_PITCH_YAW_INPUT_MAX); //(mathaus) Seta o angulo maximo de entrada
+    canalGanho->set_angle(ROLL_PITCH_YAW_INPUT_MAX); //(mathaus) Seta o angulo maximo de entrada
 
 
     //set auxiliary servo ranges
