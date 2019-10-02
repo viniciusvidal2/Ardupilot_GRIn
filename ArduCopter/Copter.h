@@ -165,8 +165,8 @@ private:
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::MultiCopter aparm;
 
-    double pitch_to_Thro5M = 0.0;
-    double teste_wp = 0.0;
+//    double pitch_to_Thro5M = 0.0;
+//    double teste_wp = 0.0;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /// Declaração de Variáveis ( Mathaus )
@@ -210,7 +210,6 @@ private:
     float Fy = 0.0f;
     float tN = 0.0f;
 
-    /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
 
     // cliSerial isn't strictly necessary - it is an alias for hal.console. It may

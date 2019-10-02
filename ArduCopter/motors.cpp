@@ -311,7 +311,6 @@ void Copter::pwm_servo_angle()
     servo_m3 = servo_angle_to_pwm(theta_m3,502.0,2408.0);
     servo_m4 = servo_angle_to_pwm(theta_m4,520.0,2390.0);
 
-
 }
 
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
