@@ -210,6 +210,9 @@ private:
     float Fy = 0.0f;
     float tN = 0.0f;
 
+    float_t Y;
+    float_t X;
+    float_t N;
     /////////////////////////////////////////////////////////////////////////////////////
 
     // cliSerial isn't strictly necessary - it is an alias for hal.console. It may
@@ -238,7 +241,7 @@ private:
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
 
-    RC_Channel *canalservo;
+    RC_Channel *canalGanho;
 
     // Dataflash
     DataFlash_Class DataFlash;
