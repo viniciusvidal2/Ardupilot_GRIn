@@ -914,6 +914,7 @@ const struct LogStructure Copter::log_structure[] = {
     "MAT",   "Qfffffffffff","TimeUS,Th1,Th2,Th3,Th4,Pwm1,Pwm2,Pwm3,Pwm4,Fx,Fy,TN" },
 };
 
+
 #if CLI_ENABLED == ENABLED
 // Read the DataFlash log memory
 void Copter::Log_Read(uint16_t list_entry, uint16_t start_page, uint16_t end_page)
