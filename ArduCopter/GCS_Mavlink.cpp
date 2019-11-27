@@ -268,12 +268,12 @@ void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
 {
     mavlink_msg_vfr_hud_send(
         chan,
-        FX_out,//gps.ground_speed(),
-        FY_out,//ahrs.groundspeed(),
-        (ahrs.yaw_sensor / 100) % 360,
-        (int16_t)(motors->get_throttle() * 100),
-        channel_pitch->get_control_in(),
-        TN_out);//climb_rate / 100.0f);
+        FX_out,//gps.ground_speed(),   // airspeed - float
+        FY_out,//ahrs.groundspeed(),   // groundspeed - float
+        (ahrs.yaw_sensor / 100) % 360, //int16_t - heading
+        (int16_t)(motors->get_throttle() * 100), // throttle - int16_t
+        millis(),//channel_pitch->get_control_in(), //float
+        TN_out);//climb_rate / 100.0f);  // climbrate - float
 }
 
 void NOINLINE Copter::send_current_waypoint(mavlink_channel_t chan)
