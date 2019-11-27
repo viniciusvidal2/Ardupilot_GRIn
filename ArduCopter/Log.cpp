@@ -209,6 +209,43 @@ void Copter::Log_Write_AutoTuneDetails(float angle_cd, float rate_cds)
 }
 #endif
 
+struct PACKED log_Mathaus{
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float theta1;
+    float theta2;
+    float theta3;
+    float theta4;
+    float pwm1;
+    float pwm2;
+    float pwm3;
+    float pwm4;
+    float fx;
+    float fy;
+    float Tn;
+};
+
+// Write mathaus Packet
+void Copter::Log_Write_Mathaus()
+{
+    struct log_Mathaus pkt={
+        LOG_PACKET_HEADER_INIT(LOG_MATHAUS_MSG),
+        time_us         :   AP_HAL::micros64(),
+        theta1          :   theta_m1,
+        theta2          :   theta_m2,
+        theta3          :   theta_m3,
+        theta4          :   theta_m4,
+        pwm1            :   Pwm1,
+        pwm2            :   Pwm2,
+        pwm3            :   Pwm3,
+        pwm4            :   Pwm4,
+        fx              :   Fx,
+        fy              :   Fy,
+        Tn              :   tN,
+    };
+    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+}
+
 // Write a Current data packet
 void Copter::Log_Write_Current()
 {
@@ -873,6 +910,8 @@ const struct LogStructure Copter::log_structure[] = {
       "THRO",  "QBffffbbbb",  "TimeUS,Stage,Vel,VelZ,Acc,AccEfZ,Throw,AttOk,HgtOk,PosOk" },
     { LOG_PROXIMITY_MSG, sizeof(log_Proximity),
       "PRX",   "QBfffffffffff","TimeUS,Health,D0,D45,D90,D135,D180,D225,D270,D315,DUp,CAn,CDis" },
+    { LOG_MATHAUS_MSG, sizeof(log_Mathaus),
+    "MAT",   "Qfffffffffff","TimeUS,Th1,Th2,Th3,Th4,Pwm1,Pwm2,Pwm3,Pwm4,Fx,Fy,TN" },
 };
 
 #if CLI_ENABLED == ENABLED

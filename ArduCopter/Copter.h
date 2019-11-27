@@ -730,6 +730,8 @@ private:
     void calcPWM();
     int servo_angle_to_pwm(float ang);
 
+    void Log_Write_Mathaus();
+
     //
     void compass_accumulate(void);
     void compass_cal_update(void);

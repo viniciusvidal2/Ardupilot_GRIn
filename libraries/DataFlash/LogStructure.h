@@ -376,6 +376,15 @@ struct PACKED log_EKF5 {
     uint16_t errHAGL;
 };
 
+//struct PACKED log_Mathaus{
+//    LOG_PACKET_HEADER;
+//    uint64_t time_us;
+//    float motor1;
+//    float motor2;
+//    float motor3;
+//    float motor4;
+//};
+
 struct PACKED log_NKF5 {
     LOG_PACKET_HEADER;
     uint64_t time_us;
