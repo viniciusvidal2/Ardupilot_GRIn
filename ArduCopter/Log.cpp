@@ -288,8 +288,54 @@ void Copter::Log_Write_Grin()
 }
 
 //==================================================================================================
+// Accacio
 
+  struct PACKED log_Accacio{
+        LOG_PACKET_HEADER;
+        uint64_t time_us;
+        float Lat;
+        float Lon;
+        float Roll;
+        float Pitch;
+        float Yaw;
+        float Vx;
+        float Vy;
+        float r;
+        int16_t fx;
+        int16_t fy;
+        int16_t tn;
+};
+ void Copter::Log_Write_Accacio()
+  {
+      float lat = current_loc.lat;
+      float lon = current_loc.lng;
+      float Roll  = ahrs.roll;
+      float Pitch = ahrs.pitch;
+      float Yaw   = ahrs.yaw;
 
+     //const Vector3f &position = inertial_nav.get_position();
+     const Vector3f &velocity = inertial_nav.get_velocity();
+     const Vector3f &gyro     = ins.get_gyro();
+
+     struct log_Accacio pkt={
+         LOG_PACKET_HEADER_INIT(LOG_ACCACIO_MSG),
+         time_us      : AP_HAL::micros64(),
+         Lat          : lat,
+         Lon          : lon,
+         Roll         : Roll,
+         Pitch        : Pitch,
+         Yaw          : Yaw,
+         Vx           : velocity.x,
+         Vy           : velocity.y,
+         r            : gyro.z,
+         fx           : channel_pitch->get_radio_in(),
+         fy           : channel_roll->get_radio_in(),
+         tn           : channel_yaw->get_radio_in(),
+     };
+     DataFlash.WriteBlock(&pkt, sizeof(pkt));
+}
+
+//==================================================================================================
 // Write a Current data packet
 void Copter::Log_Write_Current()
 {
@@ -958,6 +1004,8 @@ const struct LogStructure Copter::log_structure[] = {
       "MAT",   "Qfffffffffff","TimeUS,Th1,Th2,Th3,Th4,Pwm1,Pwm2,Pwm3,Pwm4,Fx,Fy,TN" },
     { LOG_GRIN_MSG, sizeof(log_Grin),
       "GRIN",   "Qfffffffff","TimeUS,Lat,Lon,Px,Py,Vx,Vy,yaw,cyaw,syaw" },
+    { LOG_ACCACIO_MSG, sizeof(log_Accacio),
+      "AFSN",   "Qffffffffhhh","TimeUS,Lat,Lon,Roll,Pitch,Yaw,Vx,Vy,r,fx,fy,tn" },
 };
 
 

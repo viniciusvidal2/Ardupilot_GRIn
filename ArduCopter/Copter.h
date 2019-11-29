@@ -733,6 +733,8 @@ private:
     void Log_Write_Mathaus();
     void Log_Write_Grin();
 
+    // Accacio
+    void Log_Write_Accacio();
     //
     void compass_accumulate(void);
     void compass_cal_update(void);
