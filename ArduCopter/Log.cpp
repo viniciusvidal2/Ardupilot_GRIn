@@ -208,7 +208,7 @@ void Copter::Log_Write_AutoTuneDetails(float angle_cd, float rate_cds)
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 #endif
-
+// ==========================================================================================
 struct PACKED log_Mathaus{
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -245,6 +245,50 @@ void Copter::Log_Write_Mathaus()
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
+
+struct PACKED log_Grin{
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float Lat;
+    float Lon;
+    float Px;
+    float Py;
+    float Vx;
+    float Vy;
+    float yaw;
+    float cyaw;
+    float syaw;
+};
+
+// Write mathaus Packet
+void Copter::Log_Write_Grin()
+{
+    float cy = ahrs.cos_yaw();
+    float sy = ahrs.sin_yaw();
+    float yw = ahrs.yaw_sensor;
+    float lat = current_loc.lat;
+    float lon = current_loc.lng;
+    const Vector3f &position = inertial_nav.get_position();
+    const Vector3f &velocity = inertial_nav.get_velocity();
+
+    struct log_Grin pkt={
+        LOG_PACKET_HEADER_INIT(LOG_GRIN_MSG),
+        time_us         :   AP_HAL::micros64(),
+        Lat          :   lat,
+        Lon          :   lon,
+        Px           :   position.x,
+        Py           :   position.y,
+        Vx           :   velocity.x,
+        Vy           :   velocity.y,
+        yaw          :   yw,
+        cyaw         :   cy,
+        syaw         :   sy,
+    };
+    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+}
+
+//==================================================================================================
+
 
 // Write a Current data packet
 void Copter::Log_Write_Current()
@@ -911,7 +955,9 @@ const struct LogStructure Copter::log_structure[] = {
     { LOG_PROXIMITY_MSG, sizeof(log_Proximity),
       "PRX",   "QBfffffffffff","TimeUS,Health,D0,D45,D90,D135,D180,D225,D270,D315,DUp,CAn,CDis" },
     { LOG_MATHAUS_MSG, sizeof(log_Mathaus),
-    "MAT",   "Qfffffffffff","TimeUS,Th1,Th2,Th3,Th4,Pwm1,Pwm2,Pwm3,Pwm4,Fx,Fy,TN" },
+      "MAT",   "Qfffffffffff","TimeUS,Th1,Th2,Th3,Th4,Pwm1,Pwm2,Pwm3,Pwm4,Fx,Fy,TN" },
+    { LOG_GRIN_MSG, sizeof(log_Grin),
+      "GRIN",   "Qfffffffff","TimeUS,Lat,Lon,Px,Py,Vx,Vy,yaw,cyaw,syaw" },
 };
 
 

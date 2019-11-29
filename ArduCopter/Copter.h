@@ -731,6 +731,7 @@ private:
     int servo_angle_to_pwm(float ang);
 
     void Log_Write_Mathaus();
+    void Log_Write_Grin();
 
     //
     void compass_accumulate(void);
