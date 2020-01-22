@@ -223,6 +223,9 @@ struct PACKED log_Mathaus{
     float fx;
     float fy;
     float Tn;
+    float fxo;
+    float fyo;
+    float Tno;
 };
 
 // Write mathaus Packet
@@ -242,6 +245,10 @@ void Copter::Log_Write_Mathaus()
         fx              :   Fx,
         fy              :   Fy,
         Tn              :   tN,
+        fxo             : FX_out,
+        fyo             : FY_out,
+        Tno             : TN_out,
+
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -295,9 +302,9 @@ void Copter::Log_Write_Grin()
         uint64_t time_us;
         float Lat;
         float Lon;
-        float Roll;
-        float Pitch;
-        float Yaw;
+        float roll;
+        float pitch;
+        float yaw;
         float Vx;
         float Vy;
         float r;
@@ -322,9 +329,9 @@ void Copter::Log_Write_Grin()
          time_us      : AP_HAL::micros64(),
          Lat          : lat,
          Lon          : lon,
-         Roll         : Roll,
-         Pitch        : Pitch,
-         Yaw          : Yaw,
+         roll         : Roll,
+         pitch        : Pitch,
+         yaw          : Yaw,
          Vx           : velocity.x,
          Vy           : velocity.y,
          r            : gyro.z,
@@ -1001,7 +1008,7 @@ const struct LogStructure Copter::log_structure[] = {
     { LOG_PROXIMITY_MSG, sizeof(log_Proximity),
       "PRX",   "QBfffffffffff","TimeUS,Health,D0,D45,D90,D135,D180,D225,D270,D315,DUp,CAn,CDis" },
     { LOG_MATHAUS_MSG, sizeof(log_Mathaus),
-      "MAT",   "Qfffffffffff","TimeUS,Th1,Th2,Th3,Th4,Pwm1,Pwm2,Pwm3,Pwm4,Fx,Fy,TN" },
+      "MAT",   "Qffffffffffffff","TimeUS,Th1,Th2,Th3,Th4,Pwm1,Pwm2,Pwm3,Pwm4,Fx,Fy,TN,FxO,FyO,TNO" },
     { LOG_GRIN_MSG, sizeof(log_Grin),
       "GRIN",   "Qfffffffff","TimeUS,Lat,Lon,Px,Py,Vx,Vy,yaw,cyaw,syaw" },
     { LOG_ACCACIO_MSG, sizeof(log_Accacio),
