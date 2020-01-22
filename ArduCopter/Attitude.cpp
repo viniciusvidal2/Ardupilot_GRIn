@@ -175,10 +175,10 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
 //        Theta4 = atan2f((FY/(4*k4) - (Lx*TN)/(4*(sq(Lx)*k4 + sq(Ly)*k4))),( FX/(4*k4) - (Ly*TN)/(4*(sq(Lx)*k4 + sq(Ly)*k4))));
 
 //        ULTIMA
-        Theta1 = atan2f((FY/(4*PWM1*k1) + (Lx*TN)/(4*PWM1*k1*(sq(Lx) + sq(Ly)))), (FX/(4*PWM1*k1) - (Ly*TN)/(4*PWM1*k1*(sq(Lx) + sq(Ly)))));
-        Theta2 = atan2f((FY/(4*PWM2*k2) - (Lx*TN)/(4*PWM2*k2*(sq(Lx) + sq(Ly)))), (FX/(4*PWM2*k2) + (Ly*TN)/(4*PWM2*k2*(sq(Lx) + sq(Ly)))));
-        Theta3 = atan2f((FY/(4*PWM3*k3) + (Lx*TN)/(4*PWM3*k3*(sq(Lx) + sq(Ly)))), (FX/(4*PWM3*k3) + (Ly*TN)/(4*PWM3*k3*(sq(Lx) + sq(Ly)))));
-        Theta4 = atan2f((FY/(4*PWM4*k4) - (Lx*TN)/(4*PWM4*k4*(sq(Lx) + sq(Ly)))), (FX/(4*PWM4*k4) - (Ly*TN)/(4*PWM4*k4*(sq(Lx) + sq(Ly)))));
+        Theta1 = atan2f((FY/(4*PWM1*k1) - (Lx*TN)/(4*PWM1*k1*(sq(Lx) + sq(Ly)))), (FX/(4*PWM1*k1) - (Ly*TN)/(4*PWM1*k1*(sq(Lx) + sq(Ly)))));
+        Theta2 = atan2f((FY/(4*PWM2*k2) + (Lx*TN)/(4*PWM2*k2*(sq(Lx) + sq(Ly)))), (FX/(4*PWM2*k2) + (Ly*TN)/(4*PWM2*k2*(sq(Lx) + sq(Ly)))));
+        Theta3 = atan2f((FY/(4*PWM3*k3) - (Lx*TN)/(4*PWM3*k3*(sq(Lx) + sq(Ly)))), (FX/(4*PWM3*k3) + (Ly*TN)/(4*PWM3*k3*(sq(Lx) + sq(Ly)))));
+        Theta4 = atan2f((FY/(4*PWM4*k4) + (Lx*TN)/(4*PWM4*k4*(sq(Lx) + sq(Ly)))), (FX/(4*PWM4*k4) - (Ly*TN)/(4*PWM4*k4*(sq(Lx) + sq(Ly)))));
 
         // Saturação
         Theta1 = constrain_float(Theta1,-M_PI,M_PI);
