@@ -92,7 +92,8 @@ void Copter::get_pilot_desired_force_to_boat_M()
     //Calcula o torque em Z a partir do stick de Guinada
     tN = float(channel_yaw->get_radio_in()-  med_yaw)/float(channel_yaw->get_radio_max() - med_yaw);
 
-    GanhoF < 0.05 ? GanhoF = 0.05 : GanhoF = GanhoF;
+    GanhoF < 0.05f ? GanhoF = 0.05f : GanhoF = GanhoF;
+    GanhoF > 1.0f  ? GanhoF = 1.0f  : GanhoF = GanhoF;
 
     X = X   * GanhoF;
     Y = Y   * GanhoF;
