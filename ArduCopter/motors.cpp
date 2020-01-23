@@ -283,7 +283,7 @@ int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm)
     //valor que o servo entende como 0 graus
     float srv_min_angle = 0.0;
 
-    //valor de pwm que o servo entende como 180
+    //valor que o servo entende como 360
     float srv_max_angle = 360.0;
 
     int pwm =  srv_min_pwm + angle * (srv_max_pwm - srv_min_pwm)/(srv_max_angle - srv_min_angle);
@@ -358,7 +358,6 @@ void Copter::motors_output() //(mathaus)
             motors->set_interlock(false);
             Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
         }
-
 
         FOSSEN_alocation_matrix(Fx,Fy,tN,theta_m1,theta_m2,theta_m3,theta_m4,Pwm1,Pwm2,Pwm3,Pwm4);
         pwm_servo_angle();
