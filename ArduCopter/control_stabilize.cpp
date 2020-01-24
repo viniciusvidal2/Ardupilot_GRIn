@@ -80,10 +80,10 @@ void Copter::get_pilot_desired_force_to_boat_M()
 
     // Calcula o valor médio dos sticks do controle para que seja possível dividir em forças positivas e negativas
 
-    float_t med_roll  = (channel_roll->get_radio_min() + ((channel_roll->get_radio_max() - channel_roll->get_radio_min())/2.0));
-    float_t med_pitch = (channel_pitch->get_radio_min()+ ((channel_pitch->get_radio_max()- channel_pitch->get_radio_min())/2.0));
-    float_t med_yaw   = (channel_yaw->get_radio_min()  + ((channel_yaw->get_radio_max()  - channel_yaw->get_radio_min())/2.0));
-    float_t GanhoF    = (float)(canalGanho->get_radio_in() - canalGanho->get_radio_min())/(canalGanho->get_radio_max()-canalGanho->get_radio_min());
+    float_t med_roll  = (channel_roll->get_radio_min() + ((channel_roll->get_radio_max() - channel_roll->get_radio_min())/2.0f));
+    float_t med_pitch = (channel_pitch->get_radio_min()+ ((channel_pitch->get_radio_max()- channel_pitch->get_radio_min())/2.0f));
+    float_t med_yaw   = (channel_yaw->get_radio_min()  + ((channel_yaw->get_radio_max()  - channel_yaw->get_radio_min())/2.0f));
+    float_t GanhoF    = (float)(1.0f*canalGanho->get_radio_in() - canalGanho->get_radio_min())/(canalGanho->get_radio_max()-canalGanho->get_radio_min());
 
     //Calcula a força em Y a partir do stick de Rolagem
     Y = float(channel_roll->get_radio_in()- med_roll)/float(channel_roll->get_radio_max() - med_roll);
@@ -92,7 +92,7 @@ void Copter::get_pilot_desired_force_to_boat_M()
     //Calcula o torque em Z a partir do stick de Guinada
     tN = float(channel_yaw->get_radio_in()-  med_yaw)/float(channel_yaw->get_radio_max() - med_yaw);
 
-    GanhoF < 0.05f ? GanhoF = 0.05f : GanhoF = GanhoF;
+    GanhoF < 0.0f ? GanhoF = 0.0f : GanhoF = GanhoF;
     GanhoF > 1.0f  ? GanhoF = 1.0f  : GanhoF = GanhoF;
 
     X = X   * GanhoF;

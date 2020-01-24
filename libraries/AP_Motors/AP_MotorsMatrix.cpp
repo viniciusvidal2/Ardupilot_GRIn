@@ -93,10 +93,10 @@ void AP_MotorsMatrix::update_srv_action(float srv1, float srv2, float srv3, floa
     srv3 = lround(srv3);
     srv4 = lround(srv4);
 
-    hal.rcout->write(8, uint16_t(srv1));  // Servo 1
-    hal.rcout->write(9, uint16_t(srv2));  // Servo 2
-    hal.rcout->write(10,uint16_t(srv3));  // Servo 3
-    hal.rcout->write(11,uint16_t(srv4));  // Servo 4
+    hal.rcout->write(CH_9, uint16_t(srv1));  // Servo 1
+    hal.rcout->write(CH_10, uint16_t(srv2));  // Servo 2
+    hal.rcout->write(CH_11,uint16_t(srv3));  // Servo 3
+    hal.rcout->write(CH_12,uint16_t(srv4));  // Servo 4
 }
 
 

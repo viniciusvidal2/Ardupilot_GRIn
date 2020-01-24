@@ -278,7 +278,7 @@ int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm)
     //Entrada de angulo deve ser  de -90 a 90 ELE CHEGARÁ A 180 DEVIDO A ENGRENAGEM
     angle = constrain_float(angle,-180.0,180.0);
 
-    angle = angle + 180.0;
+    angle = 180 - angle;
 
     //valor que o servo entende como 0 graus
     float srv_min_angle = 0.0;
@@ -303,7 +303,7 @@ void Copter::pwm_servo_angle()
         theta_m4 = 0.0;
     }
 //Linha utilizada para medir valores de pwm min e max
-//    servo_m4 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalGanho->get_radio_in()-canalGanho->get_radio_min());
+   // servo_m4 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalGanho->get_radio_in()-canalGanho->get_radio_min());
 
     //BARCO GRANDE
     servo_m1 = servo_angle_to_pwm(theta_m1,444.0,2490.0);//675.0,2329.0);

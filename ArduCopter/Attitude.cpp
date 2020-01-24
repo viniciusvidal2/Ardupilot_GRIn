@@ -74,7 +74,7 @@ void Copter::Allocacao_Direta(float &Theta1,float &Theta2,float &Theta3,float &T
 
     FX_out = (float)(PWM1*k1*cosf(Theta1) + PWM2*k2*cosf(Theta2) + PWM3*k3*cosf(Theta3) + PWM4*k4*cosf(Theta4));
     FY_out = (float)(PWM1*k1*sinf(Theta1) + PWM2*k2*sinf(Theta2) + PWM3*k3*sinf(Theta3) + PWM4*k4*sinf(Theta4));
-    TN_out = (float)(Ly*(PWM1*k1*sinf(Theta1) - PWM2*k2*sinf(Theta2) + PWM3*k3*sinf(Theta3) - PWM4*k4*sinf(Theta4)) - Lx*(PWM1*k1*cosf(Theta1) - PWM2*k2*cosf(Theta2) - PWM3*k3*cosf(Theta3) + PWM4*k4*cosf(Theta4)));
+    TN_out = (float)(Lx*(PWM1*k1*sinf(Theta1) - PWM2*k2*sinf(Theta2) + PWM3*k3*sinf(Theta3) - PWM4*k4*sinf(Theta4)) - Ly*(PWM1*k1*cosf(Theta1) - PWM2*k2*cosf(Theta2) - PWM3*k3*cosf(Theta3) + PWM4*k4*cosf(Theta4)));
 }
 
 float Copter::NormtoPWM(float val)
@@ -151,10 +151,11 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
         PWM4 = constrain_float(PWM4,Pwmmin,Pwmmax);
 
         // =============================== Arco seno do angulo calculado a partir da força e do novo PWM ===============================
-        Theta1 = atan2f((FY/(4*PWM1*k1) - (Lx*TN)/(4*PWM1*k1*(sq(Lx) + sq(Ly)))), (FX/(4*PWM1*k1) - (Ly*TN)/(4*PWM1*k1*(sq(Lx) + sq(Ly)))));
-        Theta2 = atan2f((FY/(4*PWM2*k2) + (Lx*TN)/(4*PWM2*k2*(sq(Lx) + sq(Ly)))), (FX/(4*PWM2*k2) + (Ly*TN)/(4*PWM2*k2*(sq(Lx) + sq(Ly)))));
-        Theta3 = atan2f((FY/(4*PWM3*k3) - (Lx*TN)/(4*PWM3*k3*(sq(Lx) + sq(Ly)))), (FX/(4*PWM3*k3) + (Ly*TN)/(4*PWM3*k3*(sq(Lx) + sq(Ly)))));
-        Theta4 = atan2f((FY/(4*PWM4*k4) + (Lx*TN)/(4*PWM4*k4*(sq(Lx) + sq(Ly)))), (FX/(4*PWM4*k4) - (Ly*TN)/(4*PWM4*k4*(sq(Lx) + sq(Ly)))));
+
+        Theta1 = atan2f((FY/(4*k1) + (Lx*TN)/(4*k1*(sq(Lx) + sq(Ly)))),(FX/(4*k1) - (Ly*TN)/(4*k1*(sq(Lx) + sq(Ly)))));
+        Theta2 = atan2f((FY/(4*k2) - (Lx*TN)/(4*k2*(sq(Lx) + sq(Ly)))),(FX/(4*k2) + (Ly*TN)/(4*k2*(sq(Lx) + sq(Ly)))));
+        Theta3 = atan2f((FY/(4*k3) + (Lx*TN)/(4*k3*(sq(Lx) + sq(Ly)))),(FX/(4*k3) + (Ly*TN)/(4*k3*(sq(Lx) + sq(Ly)))));
+        Theta4 = atan2f((FY/(4*k4) - (Lx*TN)/(4*k4*(sq(Lx) + sq(Ly)))),(FX/(4*k4) - (Ly*TN)/(4*k4*(sq(Lx) + sq(Ly)))));
 
         // Saturação
         Theta1 = constrain_float(Theta1,-M_PI,M_PI);
