@@ -324,6 +324,10 @@ void Copter::Log_Write_Grin()
      const Vector3f &velocity = inertial_nav.get_velocity();
      const Vector3f &gyro     = ins.get_gyro();
 
+     // Body Velocity
+     float vx_body = +cosf(Yaw)*(velocity.x) + sinf(Yaw)*(velocity.y);
+     float vy_body = -sinf(Yaw)*(velocity.x) + cosf(Yaw)*(velocity.y);
+
      struct log_Accacio pkt={
          LOG_PACKET_HEADER_INIT(LOG_ACCACIO_MSG),
          time_us      : AP_HAL::micros64(),
@@ -332,8 +336,8 @@ void Copter::Log_Write_Grin()
          roll         : Roll,
          pitch        : Pitch,
          yaw          : Yaw,
-         Vx           : velocity.x,
-         Vy           : velocity.y,
+         Vx           : vx_body,
+         Vy           : vy_body,
          r            : gyro.z,
          fx           : channel_pitch->get_radio_in(),
          fy           : channel_roll->get_radio_in(),
