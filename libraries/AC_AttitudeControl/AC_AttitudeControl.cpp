@@ -244,6 +244,7 @@ void AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw(float euler
 void AC_AttitudeControl::input_euler_angle_roll_pitch_yaw(float euler_roll_angle_cd, float euler_pitch_angle_cd, float euler_yaw_angle_cd, bool slew_yaw, float smoothing_gain)
 {
     // Convert from centidegrees on public interface to radians
+    //Mathaus
     float euler_roll_angle = 0*radians(euler_roll_angle_cd*0.01f);
     float euler_pitch_angle =0*radians(euler_pitch_angle_cd*0.01f);
     float euler_yaw_angle = radians(euler_yaw_angle_cd*0.01f);
