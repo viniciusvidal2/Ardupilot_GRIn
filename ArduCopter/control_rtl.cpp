@@ -146,8 +146,6 @@ void Copter::rtl_climb_return_run()
         return;
     }
 
-//    // Mathaus
-//    tN = 0.0f;
     // process pilot's yaw input
     float target_yaw_rate = 0;
     if (!failsafe.radio) {
@@ -186,8 +184,8 @@ void Copter::rtl_climb_return_run()
 // rtl_loiterathome_start - initialise return to home
 void Copter::rtl_loiterathome_start()
 {
-    //Mathaus
-    tN = 0.0f;
+//    //Mathaus
+//    tN = 0.0f;
     rtl_state = RTL_LoiterAtHome;
     rtl_state_complete = false;
     rtl_loiter_start_time = millis();
@@ -268,8 +266,8 @@ void Copter::rtl_loiterathome_run()
 // rtl_descent_start - initialise descent to final alt
 void Copter::rtl_descent_start()
 {
-    //Mathaus
-    tN = 0.0f;
+//    //Mathaus
+//    tN = 0.0f;
 
     rtl_state = RTL_FinalDescent;
     rtl_state_complete = false;
@@ -357,8 +355,8 @@ void Copter::rtl_descent_run()
 // rtl_loiterathome_start - initialise controllers to loiter over home
 void Copter::rtl_land_start()
 {
-    //Mathaus
-    tN = 0.0f;
+//    //Mathaus
+//    tN = 0.0f;
 
     rtl_state = RTL_Land;
     rtl_state_complete = false;
@@ -380,8 +378,8 @@ void Copter::rtl_land_start()
 //      called by rtl_run at 100hz or more
 void Copter::rtl_land_run()
 {
-    //Mathaus
-    tN = 0.0f;
+//    //Mathaus
+//    tN = 0.0f;
     // if not auto armed or landing completed or motor interlock not enabled set throttle to zero and exit immediately
     if (!motors->armed() || !ap.auto_armed || ap.land_complete || !motors->get_interlock()) {
 #if FRAME_CONFIG == HELI_FRAME  // Helicopters always stabilize roll/pitch/yaw
