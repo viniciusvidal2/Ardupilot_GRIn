@@ -258,16 +258,13 @@ void Copter::fast_loop()
     
     if(control_mode==AUTO){
         // run low level rate controllers that only require IMU data
-        tN = tN*GanhoF;
         attitude_control->rate_controller_run(tN);
     }else{
         // run low level rate controllers that only require IMU data
-//        tN = 0.0f;
         attitude_control->rate_controller_run();
     }
 
     // send outputs to the motors library immediately
-    //    uint16_t aux = (uint16_t) (channel_pitch->get_control_in()); //Mathaus
     motors_output();
 
     // run EKF state estimator (expensive)

@@ -239,13 +239,8 @@ void Copter::FxFy_calc(float roll, float pitch)
     X = -((float)pitch)/(float)(aparm.angle_max);
     Y =  ((float)roll) /(float)(aparm.angle_max);
 
-    GanhoF    = (float)(1.0f*canalGanho->get_radio_in() - canalGanho->get_radio_min())/(canalGanho->get_radio_max()-canalGanho->get_radio_min());
-
-    GanhoF < 0.0f ? GanhoF = 0.0f : GanhoF = GanhoF;
-    GanhoF > 1.0f  ? GanhoF = 1.0f  : GanhoF = GanhoF;
-
-    X = X   * GanhoF;
-    Y = Y   * GanhoF;
+    X = X ;
+    Y = Y ;
 
     // Saturação das Forças
     X = constrain_float(X,-1.0f,1.0f);
@@ -652,8 +647,6 @@ uint8_t Copter::get_default_auto_yaw_mode(bool rtl)
 // set_auto_yaw_mode - sets the yaw mode for auto
 void Copter::set_auto_yaw_mode(uint8_t yaw_mode)
 {
-    //Mathaus
-    tN = 0.0f;
     // return immediately if no change
     if (auto_yaw_mode == yaw_mode) {
         return;
