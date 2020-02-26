@@ -130,7 +130,7 @@ public:
 
     // MURILLO
     // Run angular velocity controller and send outputs to the motors
-    virtual void rate_controller_run(float &tN) = 0;
+    virtual void rate_controller_run(float &Z) = 0;
 
     // Run angular velocity controller and send outputs to the motors
     virtual void rate_controller_run() = 0;

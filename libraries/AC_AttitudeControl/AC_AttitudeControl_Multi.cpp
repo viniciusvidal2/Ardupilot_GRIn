@@ -251,7 +251,7 @@ void AC_AttitudeControl_Multi::update_throttle_rpy_mix()
 }
 
 // MURILLO
-void AC_AttitudeControl_Multi::rate_controller_run(float &tN)
+void AC_AttitudeControl_Multi::rate_controller_run(float &Z)
 {
     // move throttle vs attitude mixing towards desired (called from here because this is conveniently called on every iteration)
     update_throttle_rpy_mix();
@@ -262,8 +262,8 @@ void AC_AttitudeControl_Multi::rate_controller_run(float &tN)
     _motors.set_pitch(rate_target_to_motor_pitch(gyro_latest.y, _rate_target_ang_vel.y));
 
     // MURILLO
-    tN = rate_target_to_motor_yaw(gyro_latest.z, _rate_target_ang_vel.z);
-    _motors.set_yaw(tN);
+    Z = rate_target_to_motor_yaw(gyro_latest.z, _rate_target_ang_vel.z);
+    _motors.set_yaw(Z);
     control_monitor_update();
 }
 

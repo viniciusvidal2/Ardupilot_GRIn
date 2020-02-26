@@ -74,7 +74,7 @@ public:
 
     // MURILLO
     // run lowest level body-frame rate controller and send outputs to the motors
-    void rate_controller_run(float &tN);
+    void rate_controller_run(float &Z);
 
     // run lowest level body-frame rate controller and send outputs to the motors
     void rate_controller_run();

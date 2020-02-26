@@ -89,7 +89,7 @@ void Copter::get_pilot_desired_force_to_boat_M()
     //Calcula a força em X a partir do stick de Arfagem
     X = float(channel_pitch->get_radio_in()-med_pitch)/float(channel_pitch->get_radio_max()- med_pitch);
     //Calcula o torque em Z a partir do stick de Guinada
-    tN = float(channel_yaw->get_radio_in()-  med_yaw)/float(channel_yaw->get_radio_max() - med_yaw);
+    Z = float(channel_yaw->get_radio_in()-  med_yaw)/float(channel_yaw->get_radio_max() - med_yaw);
 
 
     GanhoF    = (float)(1.0f*canalGanho->get_radio_in() - canalGanho->get_radio_min())/(canalGanho->get_radio_max()-canalGanho->get_radio_min());
@@ -99,12 +99,13 @@ void Copter::get_pilot_desired_force_to_boat_M()
 
     X = X   * GanhoF;
     Y = Y   * GanhoF;
-    tN = tN * GanhoF;
+    Z = Z * GanhoF;
 
     X  = constrain_float(X,-1.0f,1.0f);
     Y  = constrain_float(Y,-1.0f,1.0f);
-    tN = constrain_float(tN,-1.0f,1.0f);
+    Z = constrain_float(Z,-1.0f,1.0f);
 
-    Fx = map(X,Y);
-    Fy = map(Y,X);
+    Fx = mapCube(X,Y,Z);
+    Fy = mapCube(Y,X,Z);
+    tN = mapCube(Z,X,Y);
 }

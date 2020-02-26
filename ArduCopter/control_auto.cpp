@@ -239,8 +239,8 @@ void Copter::FxFy_calc(float roll, float pitch)
     X = -((float)pitch)/(float)(aparm.angle_max);
     Y =  ((float)roll) /(float)(aparm.angle_max);
 
-    X = X ;
-    Y = Y ;
+//    X = X ;
+//    Y = Y ;
 
     // Saturação das Forças
     X = constrain_float(X,-1.0f,1.0f);
@@ -248,8 +248,9 @@ void Copter::FxFy_calc(float roll, float pitch)
 
 
     // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
-    Fx = map(X,Y);
-    Fy = map(Y,X);
+    Fx = mapCube(X,Y,Z); // DESATIVADO PARA MAPEAMENTO CUBICO EM ESFERA
+    Fy = mapCube(Y,X,Z);
+    tN = mapCube(Z,X,Y);
 }
 
 // auto_wp_run - runs the auto waypoint controller

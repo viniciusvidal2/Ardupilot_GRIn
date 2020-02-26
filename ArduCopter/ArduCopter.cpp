@@ -71,7 +71,7 @@
  *
  */
 
-// CÓDIGO PARA ENTREGAR SEM O CONTROLE DE YAW (ESSE SERÁ CONTROLADO PELO LEME)
+// CÓDIGO PARA ENTREGAR SEM O CONTROLE DE YAW (ESSE SERÁ CONTROLADO PELO LEME)- MAPECUBE
 
 #include "Copter.h"
 
@@ -260,7 +260,7 @@ void Copter::fast_loop()
     
     if(control_mode==AUTO){
         // run low level rate controllers that only require IMU data
-        attitude_control->rate_controller_run(tN);
+        attitude_control->rate_controller_run(Z);
     }else{
         // run low level rate controllers that only require IMU data
         attitude_control->rate_controller_run();

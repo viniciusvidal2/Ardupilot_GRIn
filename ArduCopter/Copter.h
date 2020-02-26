@@ -225,6 +225,7 @@ private:
     // Variáveis auxiliares para Fx e Fy
     float X = 0.0f;
     float Y = 0.0f;
+    float Z = 0.0f;
     float GanhoF ;
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -719,6 +720,7 @@ private:
     float PWMtoNorm(float pwm);
     float NormtoPWM(float pwm);
     float map(float x, float y);
+    float mapCube(float x, float y, float z);
     void Allocacao_Direta(float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4);
     void get_pilot_desired_force_to_boat_M();
     void pwm_servo_angle();

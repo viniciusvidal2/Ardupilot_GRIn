@@ -83,6 +83,13 @@ float Copter::NormtoPWM(float val)
     return val*(Pwmmax-Pwmmin) + Pwmmin;
 }
 
+float Copter::mapCube(float x, float y, float z)
+{
+    float out =0.0f;
+    out = x*sqrt(1 - powf(y,2)/2.0f - powf(z,2)/2.0f + (powf(y,2)*powf(z,2))/3.0f);
+    return out;
+}
+
 void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4)
 {
     /// TRABALHA COM RADIANOS
@@ -102,6 +109,7 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
     FX = constrain_float(FX,-1.0f,1.0f);
     FY = constrain_float(FY,-1.0f,1.0f);
     TN = constrain_float(TN,-1.0f,1.0f);
+
 
     TN = TN * Nmax;
     FX = FX * Fmax;
