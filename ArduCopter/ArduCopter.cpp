@@ -71,6 +71,8 @@
  *
  */
 
+// CÓDIGO PARA ENTREGAR SEM O CONTROLE DE YAW (ESSE SERÁ CONTROLADO PELO LEME)
+
 #include "Copter.h"
 
 #define SCHED_TASK(func, rate_hz, max_time_micros) SCHED_TASK_CLASS(Copter, &copter, func, rate_hz, max_time_micros)
