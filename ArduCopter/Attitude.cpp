@@ -86,7 +86,7 @@ float Copter::NormtoPWM(float val)
 float Copter::mapCube(float x, float y, float z)
 {
     float out =0.0f;
-    out = x*sqrt(1 - powf(y,2)/2.0f - powf(z,2)/2.0f + (powf(y,2)*powf(z,2))/3.0f);
+    out = x*sqrtf(1 - powf(y,2)/2.0f - powf(z,2)/2.0f + (powf(y,2)*powf(z,2))/3.0f);
     return out;
 }
 
@@ -115,7 +115,7 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
     FX = FX * Fmax;
     FY = FY * Fmax;
 
-    FT = sqrt(sq(TN/L) + sq(FX) + sq(FY));
+    FT = sqrtf(sq(TN/L) + sq(FX) + sq(FY));
     FT = constrain_float(FT,0.0f,Fmax);
 
     // Converte o valor normalizado de 0  a 1 para PWM
@@ -147,10 +147,10 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
     }else
     {
         // ========================================== PWM calculado a partir da força e dos angulos ====================================
-        PWM1 = (sqrt(sq(FX/(4*k1) - (Ly*TN)/(4*k1*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k1) + (Lx*TN)/(4*k1*(sq(Lx) + sq(Ly))))));
-        PWM2 = (sqrt(sq(FX/(4*k2) + (Ly*TN)/(4*k2*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k2) - (Lx*TN)/(4*k2*(sq(Lx) + sq(Ly))))));
-        PWM3 = (sqrt(sq(FX/(4*k3) + (Ly*TN)/(4*k3*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k3) + (Lx*TN)/(4*k3*(sq(Lx) + sq(Ly))))));
-        PWM4 = (sqrt(sq(FX/(4*k4) - (Ly*TN)/(4*k4*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k4) - (Lx*TN)/(4*k4*(sq(Lx) + sq(Ly))))));
+        PWM1 = (safe_sqrt(sq(FX/(4*k1) - (Ly*TN)/(4*k1*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k1) + (Lx*TN)/(4*k1*(sq(Lx) + sq(Ly))))));
+        PWM2 = (safe_sqrt(sq(FX/(4*k2) + (Ly*TN)/(4*k2*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k2) - (Lx*TN)/(4*k2*(sq(Lx) + sq(Ly))))));
+        PWM3 = (safe_sqrt(sq(FX/(4*k3) + (Ly*TN)/(4*k3*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k3) + (Lx*TN)/(4*k3*(sq(Lx) + sq(Ly))))));
+        PWM4 = (safe_sqrt(sq(FX/(4*k4) - (Ly*TN)/(4*k4*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k4) - (Lx*TN)/(4*k4*(sq(Lx) + sq(Ly))))));
 
         // Saturação
         PWM1 = constrain_float(PWM1,Pwmmin,Pwmmax);
@@ -191,7 +191,7 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
 float Copter::map(float x, float y)
 {
     /// Função para mapeamento da entrada do controle quadrada para circulo
-    return  x*(float)(sqrt(1.0f-sq(y)/2.0f));
+    return  x*(float)(sqrtf(1.0f-sq(y)/2.0f));
 }
 
 // get_pilot_desired_heading - transform pilot's yaw input into a
