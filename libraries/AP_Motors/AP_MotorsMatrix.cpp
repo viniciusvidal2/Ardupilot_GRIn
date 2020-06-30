@@ -131,6 +131,62 @@ void AP_MotorsMatrix::output_to_motors()
             rc_write(i, motor_out[i]);
         }
     }
+
+    //---------------------------------------------------------------------------
+    // MATRIZ DE ALOCAÇÃO - ACCACIO
+
+    // CONFIG. DO SINAL MÁXIMO E MINIMO DE SAÍDA [PWM] P/ r1 e r3
+    float r3_min    = 1004.00;
+    float r3_max    = 1924.00;
+    float r1_min    = 1104.00;
+    float r1_max    = 1924.00;
+    float trim      = 0.5f * (r1_max+r1_min);
+
+    // LEITURA DO RADIO CONTROLE
+    float steering  = float(hal.rcin->read(0)) - trim;
+    float throttle  = float(hal.rcin->read(2)) - r3_min;
+
+
+    // ZONA MORTA
+    int dz = 5.0f;
+    if ( int (abs(throttle)) <= dz) { throttle = 0.00f;}
+    if ( int (abs(steering)) <= dz){  steering = 0.00f;}
+
+    // NORMALIZAÇÃO
+    float steering_scaled = steering / ((r1_max-r1_min)/2.0f); 	// steering scaled -1 to +1
+    float throttle_scaled = throttle /  (r3_max-r3_min);  	// throttle scaled  0 to +1
+
+    // check for saturation and scale back throttle and steering proportionally
+    float alpha = 0.5f;
+    float saturation_value = float (abs(throttle_scaled)) + float (abs(steering_scaled)) * alpha;
+
+    if (saturation_value > 1.0f) {
+    steering_scaled = steering_scaled / saturation_value;
+    throttle_scaled = throttle_scaled / saturation_value;
+    }
+
+    // ALOCAÇÃO
+    float motor_left  = throttle_scaled + steering_scaled*alpha;
+    float motor_right = throttle_scaled - steering_scaled*alpha;
+
+    // TRATAMENTO DO SINAL NORMALIZADO:
+    if (motor_left<0.0f){
+        motor_right = motor_right + float (abs(motor_left));
+        motor_left = 0.0f;
+    }
+    if (motor_right<0.0f){
+        motor_left = motor_left + float (abs(motor_right));
+        motor_right = 0.0f;
+    }
+
+    // CONVERSÃO DO SINAL DE [N] P/ [PWM]:
+    motor_left  = 1100.0f + motor_left  * (800.0f);
+    motor_right = 1100.0f + motor_right * (800.0f);
+
+     // SINAL ENVIADO P/ A PLACA EM [PWM]:
+    hal.rcout->write(0, uint16_t(motor_left));
+    hal.rcout->write(1, uint16_t(motor_right));
+
 }
 
 
