@@ -44,7 +44,7 @@ void Copter::arm_motors_check()
             auto_disarm_begin = millis();
         }
 
-    // full left
+        // full left
     }else if (tmp < -4000) {
         if (!mode_has_manual_throttle(control_mode) && !ap.land_complete) {
             arming_counter = 0;
@@ -61,7 +61,7 @@ void Copter::arm_motors_check()
             init_disarm_motors();
         }
 
-    // Yaw is centered so reset arming counter
+        // Yaw is centered so reset arming counter
     }else{
         arming_counter = 0;
     }
@@ -269,10 +269,57 @@ void Copter::init_disarm_motors()
 }
 
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
+//void Copter::motors_output()
+//{
+//#if ADVANCED_FAILSAFE == ENABLED
+//    // this is to allow the failsafe module to deliberately crash
+//    // the vehicle. Only used in extreme circumstances to meet the
+//    // OBC rules
+//    if (g2.afs.should_crash_vehicle()) {
+//        g2.afs.terminate_vehicle();
+//        return;
+//    }
+//#endif
+
+//    // Update arming delay state
+//    if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f || control_mode == THROW)) {
+//        ap.in_arming_delay = false;
+//    }
+
+//    // output any servo channels
+//    SRV_Channels::calc_pwm();
+
+//    // cork now, so that all channel outputs happen at once
+//    hal.rcout->cork();
+
+//    // update output on any aux channels, for manual passthru
+//    SRV_Channels::output_ch_all();
+
+//    // check if we are performing the motor test
+//    if (ap.motor_test) {
+//        motor_test_output();
+//    } else {
+//        bool interlock = motors->armed() && !ap.in_arming_delay && (!ap.using_interlock || ap.motor_interlock_switch) && !ap.motor_emergency_stop;
+//        if (!motors->get_interlock() && interlock) {
+//            motors->set_interlock(true);
+//            Log_Write_Event(DATA_MOTORS_INTERLOCK_ENABLED);
+//        } else if (motors->get_interlock() && !interlock) {
+//            motors->set_interlock(false);
+//            Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
+//        }
+
+//        // send output signals to motors
+//        motors->output();
+//    }
+
+//    // push all channels
+//    hal.rcout->push();
+//}
+
 void Copter::motors_output()
 {
 #if ADVANCED_FAILSAFE == ENABLED
-    // this is to allow the failsafe module to deliberately crash 
+    // this is to allow the failsafe module to deliberately crash
     // the vehicle. Only used in extreme circumstances to meet the
     // OBC rules
     if (g2.afs.should_crash_vehicle()) {
@@ -291,10 +338,10 @@ void Copter::motors_output()
 
     // cork now, so that all channel outputs happen at once
     hal.rcout->cork();
-    
+
     // update output on any aux channels, for manual passthru
     SRV_Channels::output_ch_all();
-    
+
     // check if we are performing the motor test
     if (ap.motor_test) {
         motor_test_output();
@@ -314,6 +361,75 @@ void Copter::motors_output()
 
     // push all channels
     hal.rcout->push();
+
+    //---------------------------------------------------------------------------
+    // MATRIZ DE ALOCAÇÃO - ACCACIO
+
+    if( !motors->armed()){
+
+        // SINAL ENVIADO P/ A PLACA EM [PWM]:
+        hal.rcout->write(0, uint16_t(1100.0f));
+        hal.rcout->write(1, uint16_t(1100.0f));
+        hal.rcout->write(2, uint16_t(1100.0f));
+        hal.rcout->write(3, uint16_t(1100.0f));
+
+    } else{
+
+
+        // CONFIG. DO SINAL MÁXIMO E MINIMO DE SAÍDA [PWM] P/ r1 e r3
+        float r3_min    = float (channel_throttle->get_radio_min() );           //1104.00;
+        float r3_max    = float (channel_throttle->get_radio_max() );           //1924.00;
+
+        float r1_min    = float (channel_roll->get_radio_min()  );              //1103.00;
+        float r1_max    = float (channel_roll->get_radio_max()  );              //1924.00;
+        float trim      = float (channel_roll->get_radio_trim() );              //0.5f * (r1_max+r1_min);
+
+
+        // LEITURA DO RADIO CONTROLE
+        float steering  = float(channel_roll->get_radio_in()) - trim;           // hal.rcin->read(0)) - trim;
+        float throttle  = float(channel_throttle->get_radio_in()) - r3_min;     // hal.rcin->read(2)) - r3_min;
+
+        // ZONA MORTA
+        int dz = 5;
+        if ( abs(int(throttle)) <= dz) { throttle = 0.00f;}
+        if ( abs(int(steering)) <= dz) { steering = 0.00f;}
+
+        // NORMALIZAÇÃO
+        float steering_scaled = steering / ((r1_max-r1_min)/2.0f);              // steering scaled -1 to +1
+        float throttle_scaled = throttle /  (r3_max-r3_min);                    // throttle scaled  0 to +1
+
+        // check for saturation and scale back throttle and steering proportionally
+        float alpha = 0.5f;
+        float saturation_value = float (abs(throttle_scaled)) + float (abs(steering_scaled)) * alpha;
+
+        if (saturation_value > 1.0f) {
+            steering_scaled = steering_scaled / saturation_value;
+            throttle_scaled = throttle_scaled / saturation_value;
+        }
+
+        // ALOCAÇÃO
+        float motor_left  = throttle_scaled + steering_scaled*alpha;
+        float motor_right = throttle_scaled - steering_scaled*alpha;
+
+        // TRATAMENTO DO SINAL NORMALIZADO:
+        if (motor_left <0.0f){ motor_right = motor_right + float (abs( int (motor_left))); motor_left  = 0.0f; }
+        if (motor_right<0.0f){  motor_left =  motor_left + float (abs( int (motor_right)));motor_right = 0.0f;}
+
+        if (motor_right>1.0f){ motor_right = 1.0f;}
+        if (motor_left >1.0f){ motor_left  = 1.0f;}
+
+        // CONVERSÃO DO SINAL DE [N] P/ [PWM]:
+        motor_left  = 1100.0f + motor_left  * (800.0f);
+        motor_right = 1100.0f + motor_right * (800.0f);
+
+        // SINAL ENVIADO P/ A PLACA EM [PWM]:
+        hal.rcout->write(0, uint16_t(motor_left));
+        hal.rcout->write(1, uint16_t(motor_right));
+        hal.rcout->write(2, uint16_t(1100.0f));
+        hal.rcout->write(3, uint16_t(1100.0f));
+    }
+
+    //---------------------------------------------------------------------------
 }
 
 // check for pilot stick input to trigger lost vehicle alarm
