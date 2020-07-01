@@ -377,11 +377,12 @@ void Copter::motors_output()
 
 
         // CONFIG. DO SINAL MÁXIMO E MINIMO DE SAÍDA [PWM] P/ r1 e r3
-        float r3_min    = float (channel_throttle->get_radio_min() );           //1104.00;
-        float r3_max    = float (channel_throttle->get_radio_max() );           //1924.00;
+        float r3_min    = float (channel_throttle->get_radio_min() );
+        float r3_max    = float (channel_throttle->get_radio_max() );
 
         float r1_min    = float (channel_roll->get_radio_min()  );              //1103.00;
         float r1_max    = float (channel_roll->get_radio_max()  );              //1924.00;
+
         float trim      = float (channel_roll->get_radio_trim() );              //0.5f * (r1_max+r1_min);
 
 
