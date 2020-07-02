@@ -368,10 +368,10 @@ void Copter::motors_output()
     if( !motors->armed()){
 
         // SINAL ENVIADO P/ A PLACA EM [PWM]:
-        hal.rcout->write(0, uint16_t(1100.0f));
-        hal.rcout->write(1, uint16_t(1100.0f));
-        hal.rcout->write(2, uint16_t(1100.0f));
-        hal.rcout->write(3, uint16_t(1100.0f));
+        //hal.rcout->write(0, uint16_t(1100.0f));
+        //hal.rcout->write(1, uint16_t(1100.0f));
+        //hal.rcout->write(2, uint16_t(1100.0f));
+        //hal.rcout->write(3, uint16_t(1100.0f));
 
     } else{
 
@@ -401,7 +401,7 @@ void Copter::motors_output()
 
         // check for saturation and scale back throttle and steering proportionally
         float alpha = 0.5f;
-        float saturation_value = float (abs(throttle_scaled)) + float (abs(steering_scaled)) * alpha;
+        float saturation_value = float (abs(int (throttle_scaled) )) + float (abs( int(steering_scaled) )) * alpha;
 
         if (saturation_value > 1.0f) {
             steering_scaled = steering_scaled / saturation_value;
@@ -413,7 +413,7 @@ void Copter::motors_output()
         float motor_right = throttle_scaled - steering_scaled*alpha;
 
         // TRATAMENTO DO SINAL NORMALIZADO:
-        if (motor_left <0.0f){ motor_right = motor_right + float (abs( int (motor_left))); motor_left  = 0.0f; }
+        if (motor_left <0.0f){ motor_right = motor_right + float (abs( int (motor_left))); motor_left  = 0.0f;}
         if (motor_right<0.0f){  motor_left =  motor_left + float (abs( int (motor_right)));motor_right = 0.0f;}
 
         if (motor_right>1.0f){ motor_right = 1.0f;}
@@ -429,7 +429,6 @@ void Copter::motors_output()
         hal.rcout->write(2, uint16_t(1100.0f));
         hal.rcout->write(3, uint16_t(1100.0f));
     }
-
     //---------------------------------------------------------------------------
 }
 
