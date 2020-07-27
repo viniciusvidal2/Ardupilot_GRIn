@@ -292,18 +292,16 @@ int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm)
 }
 
 
-void Copter::pwm_servo_angle()
-{
+void Copter::pwm_servo_angle(){
     /// todos os angulos devem estar em graus nesta função
-    if(!motors->armed())
-    {
+    if(!motors->armed()){
         theta_m1 = 0.0;
         theta_m2 = 0.0;
         theta_m3 = 0.0;
         theta_m4 = 0.0;
     }
 //Linha utilizada para medir valores de pwm min e max
-   // servo_m4 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalGanho->get_radio_in()-canalGanho->get_radio_min());
+// servo_m4 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalGanho->get_radio_in()-canalGanho->get_radio_min());
 
     //BARCO GRANDE
     servo_m1 = servo_angle_to_pwm(theta_m1,444.0,2490.0);//675.0,2329.0);
@@ -312,11 +310,10 @@ void Copter::pwm_servo_angle()
     servo_m4 = servo_angle_to_pwm(theta_m4,421.0,2501.0);//700.0,2345.0);
 
     //BARCO PEQUENO
-//    servo_m1 = servo_angle_to_pwm(theta_m1,986.0,1897.0);
-//    servo_m2 = servo_angle_to_pwm(theta_m2,550.0,2270.0);
-//    servo_m3 = servo_angle_to_pwm(theta_m3,502.0,2408.0);
-//    servo_m4 = servo_angle_to_pwm(theta_m4,520.0,2390.0);
-
+    //    servo_m1 = servo_angle_to_pwm(theta_m1,986.0,1897.0);
+    //    servo_m2 = servo_angle_to_pwm(theta_m2,550.0,2270.0);
+    //    servo_m3 = servo_angle_to_pwm(theta_m3,502.0,2408.0);
+    //    servo_m4 = servo_angle_to_pwm(theta_m4,520.0,2390.0);
 }
 
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
@@ -382,21 +379,16 @@ void Copter::motors_output() //(mathaus)
 //        return;
 //    }
 //#endif
-
 //    // Update arming delay state
 //    if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f || control_mode == THROW)) {
 //        ap.in_arming_delay = false;
 //    }
-
 //    // output any servo channels
 //    SRV_Channels::calc_pwm();
-
 //    // cork now, so that all channel outputs happen at once
 //    hal.rcout->cork();
-
 //    // update output on any aux channels, for manual passthru
 //    SRV_Channels::output_ch_all();
-
 //    // check if we are performing the motor test
 //    if (ap.motor_test) {
 //        motor_test_output();
@@ -409,11 +401,9 @@ void Copter::motors_output() //(mathaus)
 //            motors->set_interlock(false);
 //            Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
 //        }
-
 //        // send output signals to motors
 //         motors->output(servo_m1,servo_m2,servo_m3,servo_m4);
 //    }
-
 //    // push all channels
 //    hal.rcout->push();
 //}

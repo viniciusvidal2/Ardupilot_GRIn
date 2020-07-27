@@ -101,8 +101,8 @@ void Copter::get_pilot_desired_force_to_boat_M()
     Y = Y   * GanhoF;
     Z = Z   * GanhoF;
 
-    X  = constrain_float(X,-1.0f,1.0f);
-    Y  = constrain_float(Y,-1.0f,1.0f);
+    X = constrain_float(X,-1.0f,1.0f);
+    Y = constrain_float(Y,-1.0f,1.0f);
     Z = constrain_float(Z,-1.0f,1.0f);
 
     Fx = mapCube(X,Y,Z);

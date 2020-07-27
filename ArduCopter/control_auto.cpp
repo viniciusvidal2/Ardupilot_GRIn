@@ -57,19 +57,13 @@ void Copter::auto_run()
     // call the correct auto controller
     switch (auto_mode) {
 
+    case Auto_Land:
     case Auto_TakeOff:
-        //        auto_takeoff_run();
-        break;
-
     case Auto_WP:
     case Auto_CircleMoveToEdge:
         auto_wp_run();
         break;
-
-    case Auto_Land:
-        //        auto_land_run();
-        break;
-
+        
     case Auto_RTL:
         auto_rtl_run();
         break;
@@ -165,14 +159,12 @@ void Copter::auto_takeoff_start(const Location& dest_loc)
 //        set_throttle_takeoff();
 //        return;
 //    }
-
 //    // process pilot's yaw input
 //    float target_yaw_rate = 0;
 //    if (!failsafe.radio) {
 //        // get pilot's desired yaw rate
 //        target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
 //    }
-
 //#if FRAME_CONFIG == HELI_FRAME
 //    // helicopters stay in landed state until rotor speed runup has finished
 //    if (motors->rotor_runup_complete()) {
@@ -184,16 +176,12 @@ void Copter::auto_takeoff_start(const Location& dest_loc)
 //#else
 //    set_land_complete(false);
 //#endif
-
 //    // set motors to full range
 //    motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
-
 //    // run waypoint controller
 //    failsafe_terrain_set_status(wp_nav->update_wpnav());
-
 //    // call z-axis position controller (wpnav should have already updated it's alt target)
 //    pos_control->update_z_controller();
-
 //    // call attitude controller
 //    auto_takeoff_attitude_run(target_yaw_rate);
 //}
@@ -245,6 +233,7 @@ void Copter::FxFy_calc(float roll, float pitch)
     // Saturação das Forças
     X = constrain_float(X,-1.0f,1.0f);
     Y = constrain_float(Y,-1.0f,1.0f);
+    // Z = motors->get_yaw(); // verificar essa Linha (nao testado ainda)
 
 
     // Mapeamento p/ transformar forças de uma ambiente quadrado para um circular
@@ -277,12 +266,10 @@ void Copter::auto_wp_run()
 
     // process pilot's yaw input
     float target_yaw_rate = 0;
-    if (!failsafe.radio)
-    {
+    if (!failsafe.radio){
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
-        if (!is_zero(target_yaw_rate))
-        {
+        if (!is_zero(target_yaw_rate)){
             set_auto_yaw_mode(AUTO_YAW_HOLD);
         }
     }
@@ -558,6 +545,8 @@ void Copter::auto_nav_guided_run()
 {
     // call regular guided flight mode run function
     guided_run();
+    //Mathaus
+    FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 }
 #endif  // NAV_GUIDED
 

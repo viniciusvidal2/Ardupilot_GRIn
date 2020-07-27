@@ -45,7 +45,6 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
 
 }
 
-
 float Copter::max(float *vet)
 {
     int i =0;
@@ -90,8 +89,7 @@ float Copter::mapCube(float x, float y, float z)
     return out;
 }
 
-void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4)
-{
+void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4){
     /// TRABALHA COM RADIANOS
     /// Fx = força no eixo X - Seu valor deve variar de -1 a 1
     /// Fy = força no eixo y - Seu valor deve variar de -1 a 1
@@ -99,8 +97,7 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
     /// Função para alocar as forças do barco a partir da metodologia descrita em FOSSEN
 
     //Tratamento para o stick do throttle estar sempre acima da zona morta
-    if(channel_throttle->get_radio_in()<channel_throttle->get_radio_min()*1.1)
-    {
+    if(channel_throttle->get_radio_in()<channel_throttle->get_radio_min()*1.1){
         FX = 0.0f;
         FY = 0.0f;
         TN = 0.0f;
@@ -109,7 +106,6 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
     FX = constrain_float(FX,-1.0f,1.0f);
     FY = constrain_float(FY,-1.0f,1.0f);
     TN = constrain_float(TN,-1.0f,1.0f);
-
 
     TN = TN * Nmax;
     FX = FX * Fmax;
@@ -188,11 +184,11 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
 }
 
 
-float Copter::map(float x, float y)
-{
-    /// Função para mapeamento da entrada do controle quadrada para circulo
-    return  x*(float)(sqrtf(1.0f-sq(y)/2.0f));
-}
+// float Copter::map(float x, float y)
+// {
+//     /// Função para mapeamento da entrada do controle quadrada para circulo
+//     return  x*(float)(sqrtf(1.0f-sq(y)/2.0f));
+// }
 
 // get_pilot_desired_heading - transform pilot's yaw input into a
 // desired yaw rate
