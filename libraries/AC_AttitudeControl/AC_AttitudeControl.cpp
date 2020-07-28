@@ -247,7 +247,7 @@ void AC_AttitudeControl::input_euler_angle_roll_pitch_yaw(float euler_roll_angle
     //Mathaus
     float euler_roll_angle = 0*radians(euler_roll_angle_cd*0.01f);
     float euler_pitch_angle= 0*radians(euler_pitch_angle_cd*0.01f);
-    float euler_yaw_angle = radians(euler_yaw_angle_cd*0.01f);
+    float euler_yaw_angle  = radians(euler_yaw_angle_cd*0.01f);
 
     // calculate the attitude target euler angles
     _attitude_target_quat.to_euler(_attitude_target_euler_angle.x, _attitude_target_euler_angle.y, _attitude_target_euler_angle.z);
