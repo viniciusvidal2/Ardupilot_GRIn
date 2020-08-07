@@ -90,7 +90,7 @@ float Copter::mapCube(float x, float y, float z)
     return out;
 }
 
-void Copter::Diferential_alocation_matrix(float &FX,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4){
+void Copter::Diferential_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4){
     /// TRABALHA COM RADIANOS
     /// Fx = força no eixo X - Seu valor deve variar de -1 a 1
     /// Fy = força no eixo y - Seu valor deve variar de -1 a 1
@@ -102,6 +102,7 @@ void Copter::Diferential_alocation_matrix(float &FX,float &TN,float &Theta1,floa
         FX = 0.0f;
         TN = 0.0f;
     }
+    FY=0.0f;
 
     FX = constrain_float(FX,-1.0f,1.0f);
     TN = constrain_float(TN,-1.0f,1.0f);
@@ -133,10 +134,10 @@ void Copter::Diferential_alocation_matrix(float &FX,float &TN,float &Theta1,floa
 
     }else{
         // ========================================== PWM calculado a partir da força e dos angulos ====================================
-        // PWM1 = sqrt(sq(FX/(4*k1) - (Ly*TN)/(4*k1*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k1) + (Lx*TN)/(4*k1*(sq(Lx) + sq(Ly)))));
-        // PWM2 = sqrt(sq(FX/(4*k2) + (Ly*TN)/(4*k2*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k2) - (Lx*TN)/(4*k2*(sq(Lx) + sq(Ly)))));
-        // PWM3 = sqrt(sq(FX/(4*k3) + (Ly*TN)/(4*k3*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k3) + (Lx*TN)/(4*k3*(sq(Lx) + sq(Ly)))));
-        // PWM4 = sqrt(sq(FX/(4*k4) - (Ly*TN)/(4*k4*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k4) - (Lx*TN)/(4*k4*(sq(Lx) + sq(Ly)))));
+        PWM1 = FX/(4*k1) - TN/(4*Ly*k1);
+        PWM2 = FX/(4*k2) + TN/(4*Ly*k2);
+        PWM3 = FX/(4*k3) + TN/(4*Ly*k3);
+        PWM4 = FX/(4*k4) - TN/(4*Ly*k4);
 
         // Saturação
         PWM1 = constrain_float(PWM1,Pwmmin,Pwmmax);
