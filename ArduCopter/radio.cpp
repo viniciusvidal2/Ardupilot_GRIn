@@ -35,6 +35,8 @@ void Copter::init_rc_in()
 
     canalGanho->set_angle(ROLL_PITCH_YAW_INPUT_MAX); //(mathaus) Seta o angulo maximo de entrada
 
+    canal7->set_range(1000);
+    
 
     //set auxiliary servo ranges
     //(mathaus) Onde pode-se alterar o range dos motores auxiliares

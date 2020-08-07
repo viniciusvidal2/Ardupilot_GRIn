@@ -199,6 +199,7 @@ private:
     float servo_m2 = 0.0f;
     float servo_m3 = 0.0f;
     float servo_m4 = 0.0f;
+    
     //Usado para calcular valores
     float theta_m1 =  0.0f;
     float theta_m2 =  0.0f;
@@ -258,6 +259,8 @@ private:
     RC_Channel *channel_yaw;
 
     RC_Channel *canalGanho; //Mathaus
+
+    RC_Channel *canal7;
     // Dataflash
     DataFlash_Class DataFlash;
 
@@ -725,6 +728,7 @@ private:
     void get_pilot_desired_force_to_boat_M();
     void pwm_servo_angle();
     void FOSSEN_alocation_matrix(float &FX,float &FY,float &tN,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
+    void Diferential_alocation_matrix(float &FX,float &tN,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
     void FxFy_calc(float roll, float pitch);
 
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);

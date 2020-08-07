@@ -90,6 +90,71 @@ float Copter::mapCube(float x, float y, float z)
     return out;
 }
 
+void Copter::Diferential_alocation_matrix(float &FX,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4){
+    /// TRABALHA COM RADIANOS
+    /// Fx = força no eixo X - Seu valor deve variar de -1 a 1
+    /// Fy = força no eixo y - Seu valor deve variar de -1 a 1
+    /// N  = tork de guinada - Seu valor deve variar de -1 a 1
+    /// Função para alocar as forças do barco a partir da metodologia descrita em FOSSEN
+
+    //Tratamento para o stick do throttle estar sempre acima da zona morta
+    if(channel_throttle->get_radio_in()<channel_throttle->get_radio_min()*1.1){
+        FX = 0.0f;
+        TN = 0.0f;
+    }
+
+    FX = constrain_float(FX,-1.0f,1.0f);
+    TN = constrain_float(TN,-1.0f,1.0f);
+
+    TN = TN * Nmax;
+    FX = FX * Fmax;
+
+    FT = sqrt(sq(TN/L) + sq(FX));
+    FT = constrain_float(FT,0.0f,Fmax);
+
+    // Converte o valor normalizado de 0  a 1 para PWM
+    PWM1 = NormtoPWM(PWM1);
+    PWM2 = NormtoPWM(PWM2);
+    PWM3 = NormtoPWM(PWM3);
+    PWM4 = NormtoPWM(PWM4);
+
+    // Convertendo de grau para Radianos
+    Theta1 = 0.0f ;
+    Theta2 = 0.0f ;
+    Theta3 = 0.0f ;
+    Theta4 = 0.0f ;
+
+    if(FT<0.02*Fmax){
+        //Envia todos os PWMs muito pequenos (Nulos-Na prática) Os valores aqui, não estão normalizados entre 0 e 1
+        PWM1 = NormtoPWM(0.0f);
+        PWM2 = NormtoPWM(0.0f);
+        PWM3 = NormtoPWM(0.0f);
+        PWM4 = NormtoPWM(0.0f);
+
+    }else{
+        // ========================================== PWM calculado a partir da força e dos angulos ====================================
+        // PWM1 = sqrt(sq(FX/(4*k1) - (Ly*TN)/(4*k1*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k1) + (Lx*TN)/(4*k1*(sq(Lx) + sq(Ly)))));
+        // PWM2 = sqrt(sq(FX/(4*k2) + (Ly*TN)/(4*k2*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k2) - (Lx*TN)/(4*k2*(sq(Lx) + sq(Ly)))));
+        // PWM3 = sqrt(sq(FX/(4*k3) + (Ly*TN)/(4*k3*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k3) + (Lx*TN)/(4*k3*(sq(Lx) + sq(Ly)))));
+        // PWM4 = sqrt(sq(FX/(4*k4) - (Ly*TN)/(4*k4*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k4) - (Lx*TN)/(4*k4*(sq(Lx) + sq(Ly)))));
+
+        // Saturação
+        PWM1 = constrain_float(PWM1,Pwmmin,Pwmmax);
+        PWM2 = constrain_float(PWM2,Pwmmin,Pwmmax);
+        PWM3 = constrain_float(PWM3,Pwmmin,Pwmmax);
+        PWM4 = constrain_float(PWM4,Pwmmin,Pwmmax);
+    }
+
+    Allocacao_Direta(Theta1, Theta2, Theta3, Theta4, PWM1, PWM2, PWM3, PWM4);
+
+    // Normaliza o valor de PWM encontrado entre 0 e 1 para ativar a saida entre mínima e maxima potência
+    PWM1 = PWMtoNorm(PWM1);
+    PWM2 = PWMtoNorm(PWM2);
+    PWM3 = PWMtoNorm(PWM3);
+    PWM4 = PWMtoNorm(PWM4);
+
+}
+
 void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1,float &Theta2,float &Theta3,float &Theta4,float &PWM1,float &PWM2,float &PWM3,float &PWM4)
 {
     /// TRABALHA COM RADIANOS
@@ -99,8 +164,7 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
     /// Função para alocar as forças do barco a partir da metodologia descrita em FOSSEN
 
     //Tratamento para o stick do throttle estar sempre acima da zona morta
-    if(channel_throttle->get_radio_in()<channel_throttle->get_radio_min()*1.1)
-    {
+    if(channel_throttle->get_radio_in()<channel_throttle->get_radio_min()*1.1){
         FX = 0.0f;
         FY = 0.0f;
         TN = 0.0f;
@@ -130,8 +194,7 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
     Theta3 = Theta3 * DEG_TO_RAD;
     Theta4 = Theta4 * DEG_TO_RAD;
 
-    if(FT<0.02*Fmax)
-    {
+    if(FT<0.02*Fmax){
         // Se as forças são muito pequenas (proximas a zero) nao executa a matriz de alocação envia todos os angulos  nulos
         Theta1 = 0.0f;
         Theta2 = 0.0f;
@@ -144,8 +207,7 @@ void Copter::FOSSEN_alocation_matrix(float &FX,float &FY,float &TN,float &Theta1
         PWM3 = NormtoPWM(0.0f);
         PWM4 = NormtoPWM(0.0f);
 
-    }else
-    {
+    }else{
         // ========================================== PWM calculado a partir da força e dos angulos ====================================
         PWM1 = (sqrt(sq(FX/(4*k1) - (Ly*TN)/(4*k1*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k1) + (Lx*TN)/(4*k1*(sq(Lx) + sq(Ly))))));
         PWM2 = (sqrt(sq(FX/(4*k2) + (Ly*TN)/(4*k2*(sq(Lx) + sq(Ly)))) + sq(FY/(4*k2) - (Lx*TN)/(4*k2*(sq(Lx) + sq(Ly))))));
