@@ -27,6 +27,8 @@ void Copter::init_rc_in()
     channel_yaw      = RC_Channels::rc_channel(rcmap.yaw()-1);
 
     canalGanho      = RC_Channels::rc_channel(CH_6);       //(mathaus) Adiciona um canal para controlar a intensidade da força no barco
+    canal7          = RC_Channels::rc_channel(CH_7);
+    
     // set rc channel ranges
     channel_roll->set_angle(ROLL_PITCH_YAW_INPUT_MAX);      // Utilizado para andar lateralmente com o barco sem mudar a orientação
     channel_pitch->set_angle(ROLL_PITCH_YAW_INPUT_MAX);
