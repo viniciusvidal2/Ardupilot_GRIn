@@ -422,7 +422,7 @@ void Copter::guided_pos_control_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
     // call attitude controller
@@ -479,7 +479,7 @@ void Copter::guided_vel_control_run()
     // call velocity controller which includes z axis controller
     pos_control->update_vel_controller_xyz(ekfNavVelGainScaler);
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(pos_control->get_roll(), pos_control->get_pitch());
 
     // call attitude controller
@@ -556,7 +556,7 @@ void Copter::guided_posvel_control_run()
 
     pos_control->update_z_controller();
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(pos_control->get_roll(),pos_control->get_pitch());
 
     // call attitude controller
@@ -623,7 +623,7 @@ void Copter::guided_angle_control_run()
     // set motors to full range
     motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(roll_in,pitch_in);
 
     // call attitude controller

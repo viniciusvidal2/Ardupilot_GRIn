@@ -69,7 +69,7 @@ void Copter::brake_run()
     // run brake controller
     wp_nav->update_brake(ekfGndSpdLimit, ekfNavVelGainScaler);
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
     // call attitude controller

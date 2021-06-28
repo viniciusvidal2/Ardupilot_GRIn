@@ -55,7 +55,8 @@ bool Copter::auto_init(bool ignore_checks)
 void Copter::auto_run()
 {
     // call the correct auto controller
-    switch (auto_mode) {
+    switch (auto_mode) 
+    {
 
     case Auto_Land:
     case Auto_TakeOff:
@@ -220,7 +221,7 @@ void Copter::auto_wp_start(const Location_Class& dest_loc)
     }
 }
 
-//Mathaus
+// Mathaus
 void Copter::FxFy_calc(float roll, float pitch)
 {
     // Forças Calculadas pelo controlador de posição são calculadas aqui.
@@ -289,6 +290,7 @@ void Copter::auto_wp_run()
     if (auto_yaw_mode == AUTO_YAW_HOLD)
     {
         // roll & pitch from waypoint controller, yaw rate from pilot
+
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
     }else
     {
@@ -545,6 +547,7 @@ void Copter::auto_nav_guided_run()
 {
     // call regular guided flight mode run function
     guided_run();
+
     //Mathaus
     FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 }
@@ -603,7 +606,7 @@ void Copter::auto_loiter_run()
     // run waypoint and z-axis position controller
     failsafe_terrain_set_status(wp_nav->update_wpnav());
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
     pos_control->update_z_controller();

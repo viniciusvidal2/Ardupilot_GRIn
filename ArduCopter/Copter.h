@@ -172,7 +172,7 @@ private:
     /// Declaração de Variáveis ( Mathaus )
     /////////////////////////////////////////////////////////////////////////////////////
 
-    // Propriedade Física do Barco
+    //  Propriedade Física do Barco
     float FT = 0.0f;
     float FM1 = 10*2.1f;
     float FM2 = 10*2.1f;
@@ -257,7 +257,7 @@ private:
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
 
-    RC_Channel *canalGanho; //Mathaus
+    RC_Channel *canalGanho;  //Mathaus
     // Dataflash
     DataFlash_Class DataFlash;
 
@@ -713,6 +713,7 @@ private:
     static const struct LogStructure log_structure[];
 
     float max(float *vet);
+    
     // Mathaus
 
     int servo_angle_to_pwm(float angle,float srv_min_pwm,float srv_max_pwm);

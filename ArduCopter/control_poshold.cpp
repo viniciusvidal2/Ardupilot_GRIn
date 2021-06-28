@@ -206,7 +206,7 @@ void Copter::poshold_run()
         attitude_control->reset_rate_controller_I_terms();
         attitude_control->set_yaw_target_to_current_heading();
 
-        //Mathaus
+        // Mathaus
         FxFy_calc(0.0f,0.0f);
 
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0, 0, 0, get_smoothing_gain());
@@ -535,7 +535,7 @@ void Copter::poshold_run()
         poshold.roll = constrain_int16(poshold.roll, -aparm.angle_max, aparm.angle_max);
         poshold.pitch = constrain_int16(poshold.pitch, -aparm.angle_max, aparm.angle_max);
 
-        //Mathaus
+        // Mathaus
         FxFy_calc(poshold.roll, poshold.pitch);
 
         // update attitude controller targets

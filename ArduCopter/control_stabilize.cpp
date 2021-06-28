@@ -58,7 +58,7 @@ void Copter::stabilize_run()
 //    // Mathaus
     // get_pilot_desired_force_to_boat_M();
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(channel_roll->get_control_in(),channel_pitch->get_control_in());
 
     // call attitude controller

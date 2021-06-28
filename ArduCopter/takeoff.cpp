@@ -176,7 +176,7 @@ void Copter::auto_takeoff_attitude_run(float target_yaw_rate)
         nav_roll = wp_nav->get_roll();
         nav_pitch = wp_nav->get_pitch();
     }
-    //Mathaus
+    // Mathaus
     FxFy_calc(nav_roll,nav_pitch);
 
     // roll & pitch from waypoint controller, yaw rate from pilot

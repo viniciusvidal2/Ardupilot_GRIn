@@ -271,8 +271,7 @@ void Copter::init_disarm_motors()
 }
 
 
-int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm)
-{
+int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm){
     /// Nessa função deve-se inserir os valores mínimos e maxímos do pwm  considerando 0 a 180 como angulos mínimos e máximos
 
     //Entrada de angulo deve ser  de -90 a 90 ELE CHEGARÁ A 180 DEVIDO A ENGRENAGEM
@@ -293,6 +292,7 @@ int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm)
 
 
 void Copter::pwm_servo_angle(){
+
     /// todos os angulos devem estar em graus nesta função
     if(!motors->armed()){
         theta_m1 = 0.0;
@@ -357,7 +357,9 @@ void Copter::motors_output() //(mathaus)
         }
 
         FOSSEN_alocation_matrix(Fx,Fy,tN,theta_m1,theta_m2,theta_m3,theta_m4,Pwm1,Pwm2,Pwm3,Pwm4);
+
         pwm_servo_angle();
+        
         motors->output(servo_m1,servo_m2,servo_m3,servo_m4, Pwm1, Pwm2, Pwm3, Pwm4);
 //                motors->output();
     }

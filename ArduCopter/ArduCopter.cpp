@@ -260,7 +260,7 @@ void Copter::fast_loop()
     
     // if(control_mode==AUTO){
         // run low level rate controllers that only require IMU data
-        attitude_control->rate_controller_run(Z);
+        attitude_control->rate_controller_run(Z) ;
     // }else{
     //     // run low level rate controllers that only require IMU data
     //     attitude_control->rate_controller_run();

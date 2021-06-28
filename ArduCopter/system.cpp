@@ -618,8 +618,7 @@ void Copter::allocate_motors(void)
 //            motors = new AP_MotorsHeli_Dual(MAIN_LOOP_RATE);
 //            motors_var_info = AP_MotorsHeli_Dual::var_info;
 //            AP_Param::set_frame_type_flags(AP_PARAM_FRAME_HELI);
-//            break;
-            
+//            break;           
 //        case AP_Motors::MOTOR_FRAME_HELI:
 //        default:
 //            motors = new AP_MotorsHeli_Single(MAIN_LOOP_RATE);

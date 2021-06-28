@@ -165,7 +165,7 @@ void Copter::rtl_climb_return_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
     // call attitude controller
@@ -237,7 +237,7 @@ void Copter::rtl_loiterathome_run()
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control->update_z_controller();
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
     // call attitude controller

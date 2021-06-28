@@ -128,6 +128,7 @@ public:
     // Command an angular velocity with angular velocity feedforward and smoothing
     virtual void input_rate_bf_roll_pitch_yaw(float roll_rate_bf_cds, float pitch_rate_bf_cds, float yaw_rate_bf_cds);
 
+    
     // MURILLO
     // Run angular velocity controller and send outputs to the motors
     virtual void rate_controller_run(float &Z) = 0;

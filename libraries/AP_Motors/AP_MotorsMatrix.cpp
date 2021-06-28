@@ -91,7 +91,7 @@ void AP_MotorsMatrix::enable()
 }
 
 void AP_MotorsMatrix::update_srv_action(float srv1, float srv2, float srv3, float srv4)
-{
+{ // Mathaus
     srv1 = lround(srv1);
     srv2 = lround(srv2);
     srv3 = lround(srv3);
@@ -103,10 +103,10 @@ void AP_MotorsMatrix::update_srv_action(float srv1, float srv2, float srv3, floa
     hal.rcout->write(CH_12, uint16_t(srv4)); // Servo 4
 }
 
-void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4) //mathaus
+void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)   //mathaus
 {
     int8_t i;
-    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS]; // final pwm values sent to the motor
+    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];  // final pwm values sent to the motor
 
     switch (_spool_mode)
     {
@@ -141,6 +141,7 @@ void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, fl
     case SPOOL_UP:
     case THROTTLE_UNLIMITED:
     case SPOOL_DOWN:
+
         // set motor output based on thrust requests
         Pwm1 = constrain_float(Pwm1, 0.0f, 1.0f);
         Pwm2 = constrain_float(Pwm2, 0.0f, 1.0f);
@@ -154,7 +155,7 @@ void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, fl
         break;
     }
 
-    //Atualiza a saida dos servos
+    // Atualiza a saida dos servos
     update_srv_action(srv1, srv2, srv3, srv4);
 
     // send output to each motor

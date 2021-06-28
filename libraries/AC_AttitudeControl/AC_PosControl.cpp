@@ -243,7 +243,7 @@ void AC_PosControl::relax_alt_hold_controllers(float throttle_setting)
 // get_alt_error - returns altitude error in cm
 float AC_PosControl::get_alt_error() const
 {
-    return 0*(_pos_target.z - _inav.get_altitude());
+    return 0 *(_pos_target.z - _inav.get_altitude());
 }
 
 /// set_target_to_stopping_point_z - returns reasonable stopping altitude in cm above home
@@ -353,6 +353,7 @@ void AC_PosControl::calc_leash_length_z()
 // pos_to_rate_z - position to rate controller for Z axis
 // calculates desired rate in earth-frame z axis and passes to rate controller
 // vel_up_max, vel_down_max should have already been set before calling this method
+
 // MURILLO
 void AC_PosControl::pos_to_rate_z()
 {
@@ -376,7 +377,8 @@ void AC_PosControl::pos_to_rate_z()
         _pos_error.z = -_leash_down_z;
         _limit.pos_down = true;
     }
-    // MURILLO
+    
+    //  MURILLO
     _pos_error.z = 0;
 
     // MURILLO
@@ -401,6 +403,7 @@ void AC_PosControl::pos_to_rate_z()
         _vel_target.z += _vel_desired.z;
     }
 
+    
     // MURILLO
     _vel_target.z = 0;
 
@@ -475,6 +478,7 @@ void AC_PosControl::accel_to_throttle(float accel_target_z)
         // calculate accel error
         _accel_error.z = accel_target_z - z_accel_meas;
     }
+
     // Mathaus
     _accel_error.z = 0.0;
     accel_target_z = 0.0;
@@ -503,7 +507,7 @@ void AC_PosControl::accel_to_throttle(float accel_target_z)
     // get d term
     d = _pid_accel_z.get_d();
 
-    float thr_out = 0*((p+i+d)/1000.0f +_motors.get_throttle_hover());
+    float thr_out = 0*((p+i+d)/1000.0f +_motors.get_throttle_hover()); //what?
 
     // send throttle to attitude controller with angle boost
     _attitude_control.set_throttle_out(thr_out, true, POSCONTROL_THROTTLE_CUTOFF_FREQ);

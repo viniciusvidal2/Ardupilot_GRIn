@@ -81,7 +81,7 @@ void Copter::circle_run()
     // run circle controller
     circle_nav->update();
 
-    //Mathaus
+    // Mathaus
     FxFy_calc(circle_nav->get_roll(),circle_nav->get_pitch());
 
     // call attitude controller

@@ -250,6 +250,7 @@ void AC_AttitudeControl_Multi::update_throttle_rpy_mix()
     _throttle_rpy_mix = constrain_float(_throttle_rpy_mix, 0.1f, AC_ATTITUDE_CONTROL_MAX);
 }
 
+
 // MURILLO
 void AC_AttitudeControl_Multi::rate_controller_run(float &Z)
 {

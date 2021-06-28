@@ -194,9 +194,9 @@ void AC_AttitudeControl::input_quaternion(Quaternion attitude_desired_quat, floa
 void AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw(float euler_roll_angle_cd, float euler_pitch_angle_cd, float euler_yaw_rate_cds, float smoothing_gain)
 {
     // Convert from centidegrees on public interface to radians
-    float euler_roll_angle = 0*radians(euler_roll_angle_cd*0.01f);
+    float euler_roll_angle  = 0*radians(euler_roll_angle_cd*0.01f);
     float euler_pitch_angle = 0*radians(euler_pitch_angle_cd*0.01f);
-    float euler_yaw_rate = radians(euler_yaw_rate_cds*0.01f);
+    float euler_yaw_rate  = radians(euler_yaw_rate_cds*0.01f);
 
     // calculate the attitude target euler angles
     _attitude_target_quat.to_euler(_attitude_target_euler_angle.x, _attitude_target_euler_angle.y, _attitude_target_euler_angle.z);
@@ -214,7 +214,7 @@ void AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw(float euler
         // When acceleration limiting and feedforward are enabled, the sqrt controller is used to compute an euler
         // angular velocity that will cause the euler angle to smoothly stop at the input angle with limited deceleration
         // and an exponential decay specified by smoothing_gain at the end.
-        _attitude_target_euler_rate.x = input_shaping_angle((euler_roll_angle-_attitude_target_euler_angle.x)*0, smoothing_gain, euler_accel.x, _attitude_target_euler_rate.x); // mathaus -ultimo
+        _attitude_target_euler_rate.x = input_shaping_angle((euler_roll_angle-_attitude_target_euler_angle.x)*0, smoothing_gain, euler_accel.x, _attitude_target_euler_rate.x);  // mathaus -ultimo
         _attitude_target_euler_rate.y = input_shaping_angle((euler_pitch_angle-_attitude_target_euler_angle.y)*0, smoothing_gain, euler_accel.y, _attitude_target_euler_rate.y);
 
         // When yaw acceleration limiting is enabled, the yaw input shaper constrains angular acceleration about the yaw axis, slewing
@@ -244,9 +244,9 @@ void AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw(float euler
 void AC_AttitudeControl::input_euler_angle_roll_pitch_yaw(float euler_roll_angle_cd, float euler_pitch_angle_cd, float euler_yaw_angle_cd, bool slew_yaw, float smoothing_gain)
 {
     // Convert from centidegrees on public interface to radians
-    //Mathaus
-    float euler_roll_angle = 0*radians(euler_roll_angle_cd*0.01f);
-    float euler_pitch_angle= 0*radians(euler_pitch_angle_cd*0.01f);
+    // Mathaus
+    float euler_roll_angle  = 0*radians(euler_roll_angle_cd*0.01f);
+    float euler_pitch_angle = 0*radians(euler_pitch_angle_cd*0.01f);
     float euler_yaw_angle  = radians(euler_yaw_angle_cd*0.01f);
 
     // calculate the attitude target euler angles
@@ -265,6 +265,7 @@ void AC_AttitudeControl::input_euler_angle_roll_pitch_yaw(float euler_roll_angle
         // When acceleration limiting and feedforward are enabled, the sqrt controller is used to compute an euler
         // angular velocity that will cause the euler angle to smoothly stop at the input angle with limited deceleration
         // and an exponential decay specified by smoothing_gain at the end.
+        
         // MURILLO
         _attitude_target_euler_rate.x = input_shaping_angle((euler_roll_angle-_attitude_target_euler_angle.x)*0.0, smoothing_gain, euler_accel.x, _attitude_target_euler_rate.x);
         _attitude_target_euler_rate.y = input_shaping_angle((euler_pitch_angle-_attitude_target_euler_angle.y)*0.0, smoothing_gain, euler_accel.y, _attitude_target_euler_rate.y);

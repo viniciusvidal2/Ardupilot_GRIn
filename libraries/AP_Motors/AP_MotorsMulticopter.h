@@ -110,7 +110,7 @@ protected:
 
     // mathaus
     // output_to_motors - sends commands to the motors
-    virtual void        output_to_motors(float &srv1,float &srv2,float &srv3,float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4) = 0;
+    virtual void         output_to_motors(float &srv1,float &srv2,float &srv3,float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4) = 0;
 
     // update the throttle input filter
     virtual void        update_throttle_filter();

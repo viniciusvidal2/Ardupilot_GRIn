@@ -143,7 +143,7 @@ void Copter::loiter_run()
 #endif
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
-        //Mathaus
+        // Mathaus
         FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
@@ -172,7 +172,7 @@ void Copter::loiter_run()
         // run loiter controller
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
-        //Mathaus
+        // Mathaus
         FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
         // call attitude controller
@@ -195,7 +195,7 @@ void Copter::loiter_run()
         attitude_control->reset_rate_controller_I_terms();
         attitude_control->set_yaw_target_to_current_heading();
 
-        //Mathaus
+        // Mathaus
         FxFy_calc(0.0f,0.0f);
 
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0, 0, 0, get_smoothing_gain());
@@ -218,7 +218,7 @@ void Copter::loiter_run()
         // run loiter controller
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
-        //Mathaus
+        // Mathaus
         FxFy_calc(wp_nav->get_roll(),wp_nav->get_pitch());
 
         // call attitude controller
