@@ -258,6 +258,7 @@ private:
     RC_Channel *channel_yaw;
 
     RC_Channel *canalGanho;  //Mathaus
+    RC_Channel *canalKey;
     // Dataflash
     DataFlash_Class DataFlash;
 

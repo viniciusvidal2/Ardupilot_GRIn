@@ -61,7 +61,7 @@ float Copter::max(float *vet)
     return max_val;
 }
 
-float Copter::PWMtoNorm(float pwm{
+float Copter::PWMtoNorm(float pwm){
     /// Entra um valor de PWM e sai de 0 a 1
     float V;
     V = float(pwm - Pwmmin) / float(Pwmmax - Pwmmin);
