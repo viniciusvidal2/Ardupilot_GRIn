@@ -228,8 +228,6 @@ void Copter::FxFy_calc(float roll, float pitch)
     X = -((float)pitch)/(float)(aparm.angle_max);
     Y =  ((float)roll) /(float)(aparm.angle_max);
 
-//    X = X ;
-//    Y = Y ;
 
     // Saturação das Forças
     X = constrain_float(X,-1.0f,1.0f);

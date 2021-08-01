@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "*.ipp": "cpp",
+        "ratio": "cpp",
+        "condition_variable": "cpp"
     }
 }

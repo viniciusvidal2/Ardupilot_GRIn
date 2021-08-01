@@ -1,1 +1,3 @@
 arducopter.cpp
+*.d
+*.o

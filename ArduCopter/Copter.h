@@ -215,6 +215,8 @@ private:
     float Fy = 0.0f;
     float tN = 0.0f;
 
+    float Gain= 0.5;
+
     //    Forcas Alocadas realmente
     float FX_out = 0.0f;
     float FY_out = 0.0f;
@@ -728,7 +730,7 @@ private:
     void pwm_servo_angle();
     void FOSSEN_alocation_matrix(float &FX,float &FY,float &tN,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
     void FxFy_calc(float roll, float pitch);
-
+    float get_gain();
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
     void get_pilot_desired_force_to_boat();
     void calcPWM();
