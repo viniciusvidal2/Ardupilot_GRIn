@@ -516,7 +516,12 @@ void AP_MotorsMatrix::setup_motors(motor_frame_class frame_class, motor_frame_ty
     add_motor(AP_MOTORS_MOT_2, -135, AP_MOTORS_MATRIX_YAW_FACTOR_CCW, 3);
     add_motor(AP_MOTORS_MOT_3, -45, AP_MOTORS_MATRIX_YAW_FACTOR_CW, 4);
     add_motor(AP_MOTORS_MOT_4, 135, AP_MOTORS_MATRIX_YAW_FACTOR_CW, 2);
-    //                    add_motor(AP_MOTORS_MOT_5,    0,                              0,  5); //(mathaus) Adicionando quinto motor
+    add_motor(AP_MOTORS_MOT_7,    0,                              0,  5); //(mathaus) Adicionando quinto motor
+    add_motor(AP_MOTORS_MOT_8,    0,                              0,  6); //(mathaus) Adicionando quinto motor
+    add_motor(AP_MOTORS_MOT_9,    0,                              0,  7); //(mathaus) Adicionando quinto motor
+    add_motor(AP_MOTORS_MOT_10,    0,                              0,  8); //(mathaus) Adicionando quinto motor
+    
+    
     success = true;
 
     normalise_rpy_factors();
