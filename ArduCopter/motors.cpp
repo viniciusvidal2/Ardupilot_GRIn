@@ -271,20 +271,18 @@ void Copter::init_disarm_motors()
 }
 
 
-int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm)
-{
+int Copter::servo_angle_to_pwm(float angle,float srv_min_pwm, float srv_max_pwm) {
     /// Nessa função deve-se inserir os valores mínimos e maxímos do pwm  considerando 0 a 180 como angulos mínimos e máximos
+    //Entrada de angulo deve ser  de -180 a 180 ELE CHEGARÁ A 180 DEVIDO A ENGRENAGEM
+    angle = constrain_float(angle,-180.0f,180.0f);
 
-    //Entrada de angulo deve ser  de -90 a 90 ELE CHEGARÁ A 180 DEVIDO A ENGRENAGEM
-    angle = constrain_float(angle,-180.0,180.0);
-
-    angle = 180 - angle;
+    angle = 180.0f - angle;
 
     //valor que o servo entende como 0 graus
-    float srv_min_angle = 0.0;
+    float srv_min_angle = 0.0f;
 
     //valor que o servo entende como 360
-    float srv_max_angle = 360.0;
+    float srv_max_angle = 360.0f;
 
     int pwm =  srv_min_pwm + angle * (srv_max_pwm - srv_min_pwm)/(srv_max_angle - srv_min_angle);
 

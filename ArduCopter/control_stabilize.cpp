@@ -1,5 +1,5 @@
 #include "Copter.h"
-
+#include <GCS_MAVLink/GCS.h>
 /*
  * Init and run calls for stabilize flight mode
  */
@@ -58,11 +58,11 @@ void Copter::stabilize_run()
 //    // Mathaus
     // get_pilot_desired_force_to_boat_M();
 
-    //Mathaus
-    FxFy_calc(channel_roll->get_control_in(),channel_pitch->get_control_in());
+    // Mathaus
+    FxFy_calc(channel_roll->get_control_in()*get_gain(),channel_pitch->get_control_in()*get_gain());
 
     // call attitude controller
-    attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
+    attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate*get_gain(), get_smoothing_gain());
 
     // body-frame rate controller is run directly from 100hz loop
 
@@ -70,6 +70,34 @@ void Copter::stabilize_run()
     attitude_control->set_throttle_out(pilot_throttle_scaled, true, g.throttle_filt);
 }
 
+bool Max = false;
+bool Min = false;
+
+float Copter::get_gain(){
+    if (canalGanho->norm_input() > 0.5){
+        Gain = Gain - 1.0f / 400.0f;
+    }
+    if (canalGanho->norm_input() < -0.5){
+        Gain = Gain + 1.0f / 400.0f;
+    }
+
+    Gain = constrain_float(Gain, 0.05f, 1.0f);
+
+    if (Gain > 0.9975f && !Max){
+        gcs_send_text(MAV_SEVERITY_INFO, "MAXIMUM GAIN REACHED");
+        Max = true;
+    }
+
+    Max = (Gain < 0.9975f)? false: true;
+
+    if (Gain < 0.0525f && !Min){
+        gcs_send_text(MAV_SEVERITY_INFO, "MINIMUM GAIN REACHED");
+        Min = true;
+    }
+    
+    Min = (Gain > 0.0525f)? false: true;
+    return Gain;
+}
 
 //  MATHAUS
 void Copter::get_pilot_desired_force_to_boat_M()
@@ -80,22 +108,27 @@ void Copter::get_pilot_desired_force_to_boat_M()
 
     // Calcula o valor médio dos sticks do controle para que seja possível dividir em forças positivas e negativas
 
-    float_t med_roll  = (channel_roll->get_radio_min() + ((channel_roll->get_radio_max() - channel_roll->get_radio_min())/2.0f));
-    float_t med_pitch = (channel_pitch->get_radio_min()+ ((channel_pitch->get_radio_max()- channel_pitch->get_radio_min())/2.0f));
-    float_t med_yaw   = (channel_yaw->get_radio_min()  + ((channel_yaw->get_radio_max()  - channel_yaw->get_radio_min())/2.0f));
+    // float_t med_roll  = (channel_roll->get_radio_min() + ((channel_roll->get_radio_max() - channel_roll->get_radio_min())/2.0f));
+    // float_t med_pitch = (channel_pitch->get_radio_min()+ ((channel_pitch->get_radio_max()- channel_pitch->get_radio_min())/2.0f));
+    // float_t med_yaw   = (channel_yaw->get_radio_min()  + ((channel_yaw->get_radio_max()  - channel_yaw->get_radio_min())/2.0f));
 
-    //Calcula a força em Y a partir do stick de Rolagem
-    Y = float(channel_roll->get_radio_in()- med_roll)/float(channel_roll->get_radio_max() - med_roll);
-    //Calcula a força em X a partir do stick de Arfagem
-    X = float(channel_pitch->get_radio_in()-med_pitch)/float(channel_pitch->get_radio_max()- med_pitch);
-    //Calcula o torque em Z a partir do stick de Guinada
-    Z = float(channel_yaw->get_radio_in()-  med_yaw)/float(channel_yaw->get_radio_max() - med_yaw);
+    // //Calcula a força em Y a partir do stick de Rolagem
+    // Y = channel_roll->get_radio_in()- med_roll)/float(channel_roll->get_radio_max() - med_roll);
+    // //Calcula a força em X a partir do stick de Arfagem
+    // X = float(channel_pitch->get_radio_in()-med_pitch)/float(channel_pitch->get_radio_max()- med_pitch);
+    // //Calcula o torque em Z a partir do stick de Guinada
+    // Z = float(channel_yaw->get_radio_in()-  med_yaw)/float(channel_yaw->get_radio_max() - med_yaw);
 
+    Y = channel_roll->norm_input();
+    X = channel_pitch->norm_input();
+    Z = channel_yaw->norm_input();
 
-    GanhoF    = (float)(1.0f*canalGanho->get_radio_in() - canalGanho->get_radio_min())/(canalGanho->get_radio_max()-canalGanho->get_radio_min());
+    //GanhoF    = (float)(1.0f*canalGanho->get_radio_in() - canalGanho->get_radio_min())/(canalGanho->get_radio_max()-canalGanho->get_radio_min());
 
-    GanhoF < 0.0f ? GanhoF = 0.0f : GanhoF = GanhoF;
-    GanhoF > 1.0f  ? GanhoF = 1.0f  : GanhoF = GanhoF;
+    GanhoF = get_gain();
+
+    // GanhoF < 0.0f ? GanhoF = 0.0f : GanhoF = GanhoF;
+    // GanhoF > 1.0f  ? GanhoF = 1.0f  : GanhoF = GanhoF;
 
     X = X   * GanhoF;
     Y = Y   * GanhoF;

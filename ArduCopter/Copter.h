@@ -226,7 +226,8 @@ private:
     float X = 0.0f;
     float Y = 0.0f;
     float Z = 0.0f;
-    float GanhoF ;
+    float GanhoF = 0.5 ;
+    float Gain = 0.5;
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -727,6 +728,7 @@ private:
     void FOSSEN_alocation_matrix(float &FX,float &FY,float &tN,float &theta_motor1,float &theta_motor2,float &theta_motor3,float &theta_motor4,float &PWM1 ,float &PWM2 ,float &PWM3 ,float &PWM4);
     void FxFy_calc(float roll, float pitch);
 
+    float get_gain();
     void get_pilot_desired_force_to_boat(float roll, float pitch, float yaw);
     void get_pilot_desired_force_to_boat();
     void calcPWM();
