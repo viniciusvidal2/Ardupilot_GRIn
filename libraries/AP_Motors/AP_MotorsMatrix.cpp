@@ -97,10 +97,10 @@ void AP_MotorsMatrix::update_srv_action(float srv1, float srv2, float srv3, floa
     srv3 = lround(srv3);
     srv4 = lround(srv4);
 
-    hal.rcout->write(CH_9,  uint16_t(srv1)); // Servo 1
-    hal.rcout->write(CH_10, uint16_t(srv2)); // Servo 2
-    hal.rcout->write(CH_11, uint16_t(srv3)); // Servo 3
-    hal.rcout->write(CH_12, uint16_t(srv4)); // Servo 4
+    hal.rcout->write(AP_MOTORS_MOT_9,  uint16_t(srv1)); // Servo 1
+    hal.rcout->write(AP_MOTORS_MOT_10, uint16_t(srv2)); // Servo 2
+    hal.rcout->write(AP_MOTORS_MOT_11, uint16_t(srv3)); // Servo 3
+    hal.rcout->write(AP_MOTORS_MOT_12, uint16_t(srv4)); // Servo 4
 }
 
 void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, float &srv4, float &Pwm1, float &Pwm2, float &Pwm3, float &Pwm4)   //mathaus
@@ -156,17 +156,24 @@ void AP_MotorsMatrix::output_to_motors(float &srv1, float &srv2, float &srv3, fl
     }
 
     // Atualiza a saida dos servos
-    update_srv_action(srv1, srv2, srv3, srv4);
+    //update_srv_action(srv1, srv2, srv3, srv4);
+
+    motor_out[8]  = lround(srv1);
+    motor_out[9]  = lround(srv2);
+    motor_out[10] = lround(srv3);
+    motor_out[11] = lround(srv4);
 
     // send output to each motor
     for (i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++)
     {
         if (motor_enabled[i])
         {
-            rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
-        }
-        else
-        {
+            if(i<7){
+                rc_write(i, motor_out[i]); //(mathaus) Escreve na saída dos motores
+            }else{
+                rc_write(i, (int16_t)motor_out[i]);
+            }
+        }else{
             rc_write(i, get_pwm_output_min());
         }
     }
@@ -504,26 +511,23 @@ void AP_MotorsMatrix::remove_motor(int8_t motor_num)
 
 void AP_MotorsMatrix::setup_motors(motor_frame_class frame_class, motor_frame_type frame_type)
 {
-    // remove existing motors
-    for (int8_t i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++)
-    {
+  // remove existing motors
+    for (int8_t i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
         remove_motor(i);
     }
 
-    bool success = false;
+    bool success = true;
 
     add_motor(AP_MOTORS_MOT_1, 45, AP_MOTORS_MATRIX_YAW_FACTOR_CCW, 1);
     add_motor(AP_MOTORS_MOT_2, -135, AP_MOTORS_MATRIX_YAW_FACTOR_CCW, 3);
     add_motor(AP_MOTORS_MOT_3, -45, AP_MOTORS_MATRIX_YAW_FACTOR_CW, 4);
     add_motor(AP_MOTORS_MOT_4, 135, AP_MOTORS_MATRIX_YAW_FACTOR_CW, 2);
-    add_motor(AP_MOTORS_MOT_7,    0,                              0,  5); //(mathaus) Adicionando quinto motor
-    add_motor(AP_MOTORS_MOT_8,    0,                              0,  6); //(mathaus) Adicionando quinto motor
-    add_motor(AP_MOTORS_MOT_9,    0,                              0,  7); //(mathaus) Adicionando quinto motor
-    add_motor(AP_MOTORS_MOT_10,    0,                              0,  8); //(mathaus) Adicionando quinto motor
-    
-    
-    success = true;
 
+    add_motor_raw(AP_MOTORS_MOT_9 , 0, 0, 0, 5);
+    add_motor_raw(AP_MOTORS_MOT_10, 0, 0, 0, 6);
+    add_motor_raw(AP_MOTORS_MOT_11, 0, 0, 0, 7);
+    add_motor_raw(AP_MOTORS_MOT_12, 0, 0, 0, 8);
+  
     normalise_rpy_factors();
 
     _flags.initialised_ok = success;
