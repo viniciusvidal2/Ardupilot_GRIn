@@ -304,16 +304,12 @@ void Copter::pwm_servo_angle(){
 // servo_m4 = (channel_throttle->get_radio_in()-channel_throttle->get_radio_min()) + 1.5*(canalGanho->get_radio_in()-canalGanho->get_radio_min());
 
     //BARCO GRANDE
-    servo_m1 = servo_angle_to_pwm(theta_m1,444.0,2490.0);//675.0,2329.0);
-    servo_m2 = servo_angle_to_pwm(theta_m2,421.0,2501.0);//664.0,2144.0);
-    servo_m3 = servo_angle_to_pwm(theta_m3,418.0,2461.0);//656.0,2400.0);
-    servo_m4 = servo_angle_to_pwm(theta_m4,421.0,2501.0);//700.0,2345.0);
+    servo_m1 = servo_angle_to_pwm(theta_m1,550.0,2475.0);//675.0,2329.0);
+    servo_m2 = servo_angle_to_pwm(theta_m2,550.0,2475.0);//664.0,2144.0);
+    servo_m3 = servo_angle_to_pwm(theta_m3,550.0,2475.0);//656.0,2400.0);
+    servo_m4 = servo_angle_to_pwm(theta_m4,550.0,2475.0);//700.0,2345.0);
 
-    //BARCO PEQUENO
-    //    servo_m1 = servo_angle_to_pwm(theta_m1,986.0,1897.0);
-    //    servo_m2 = servo_angle_to_pwm(theta_m2,550.0,2270.0);
-    //    servo_m3 = servo_angle_to_pwm(theta_m3,502.0,2408.0);
-    //    servo_m4 = servo_angle_to_pwm(theta_m4,520.0,2390.0);
+    
 }
 
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
